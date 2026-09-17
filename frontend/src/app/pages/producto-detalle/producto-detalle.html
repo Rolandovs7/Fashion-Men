@@ -1,0 +1,138 @@
+<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+
+  <app-header></app-header>
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    <a routerLink="/catalogo" class="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-500 hover:text-neutral-900 mb-6 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Volver al catálogo
+    </a>
+
+    @if (cargando) {
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-semibold text-neutral-700">Cargando producto...</p>
+      </div>
+    } @else if (!producto) {
+      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
+        <p class="text-sm font-semibold text-neutral-600">{{ error || 'Producto no disponible.' }}</p>
+      </div>
+    } @else {
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+        <!-- Imagen placeholder -->
+        <div class="h-72 sm:h-96 rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center shadow-md">
+          <svg class="w-24 h-24 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+          </svg>
+        </div>
+
+        <!-- Información y selección -->
+        <div>
+          @if (categoria) {
+            <span class="text-[11px] font-bold uppercase tracking-widest text-neutral-400">{{ categoria.nombre }}</span>
+          }
+          <h1 class="text-3xl font-black text-neutral-900 mt-1">{{ producto.nombre }}</h1>
+          <p class="text-2xl font-black text-neutral-900 mt-3">Bs {{ producto.precio.toFixed(2) }}</p>
+          <p class="text-sm text-neutral-600 mt-4 leading-relaxed">
+            {{ producto.descripcion || 'Sin descripción disponible para esta prenda.' }}
+          </p>
+
+          <!-- Selección de talla -->
+          @if (variantes.length > 0) {
+            <div class="mt-8">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Talla</h3>
+              <div class="flex flex-wrap gap-2">
+                @for (talla of tallasUnicas(); track talla) {
+                  <span class="px-3 py-1.5 rounded-lg text-xs font-bold border border-neutral-200 bg-neutral-50 text-neutral-700">
+                    {{ talla }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <!-- Selección de variante (talla + color combinados) -->
+            <div class="mt-6">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Elige talla y color</h3>
+              <div class="flex flex-wrap gap-2">
+                @for (variante of variantes; track variante.id) {
+                  <button
+                    (click)="seleccionarVariante(variante)"
+                    [disabled]="variante.stock_disponible === 0"
+                    [class.border-neutral-950]="varianteSeleccionada?.id === variante.id"
+                    [class.ring-2]="varianteSeleccionada?.id === variante.id"
+                    [class.ring-neutral-950]="varianteSeleccionada?.id === variante.id"
+                    class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-neutral-200 cursor-pointer">
+                    <span
+                      class="w-4 h-4 rounded-full border border-neutral-300 shrink-0"
+                      [style.background-color]="variante.color_codigo_hex || '#d4d4d4'">
+                    </span>
+                    <span class="text-xs font-bold text-neutral-800">{{ variante.talla_nombre }} · {{ variante.color_nombre }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (varianteSeleccionada) {
+              <p class="mt-3 text-xs font-semibold" [class.text-emerald-600]="stockDisponible > 0" [class.text-red-600]="stockDisponible === 0">
+                {{ stockDisponible > 0 ? stockDisponible + ' unidades disponibles' : 'Sin stock para esta combinación' }}
+              </p>
+            }
+
+            <!-- Cantidad -->
+            <div class="mt-6 flex items-center gap-4">
+              <label class="text-xs font-bold uppercase tracking-wider text-neutral-500">Cantidad</label>
+              <input
+                type="number"
+                [(ngModel)]="cantidad"
+                min="1"
+                [max]="stockDisponible || 1"
+                class="w-20 rounded-xl border border-neutral-300 px-3 py-2 text-sm text-center outline-none focus:border-neutral-950"
+              />
+            </div>
+          } @else {
+            <p class="mt-6 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
+              Este producto aún no tiene tallas ni colores configurados.
+            </p>
+          }
+
+          @if (mensaje) {
+            <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 font-medium">
+              {{ mensaje }}
+            </div>
+          }
+
+          @if (error) {
+            <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 font-medium">
+              {{ error }}
+            </div>
+          }
+
+          <div class="mt-6 flex gap-3">
+            <button
+              (click)="agregarAlCarrito()"
+              [disabled]="agregando || variantes.length === 0 || stockDisponible === 0"
+              class="flex-1 flex justify-center items-center gap-2 rounded-xl bg-neutral-950 px-5 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+              {{ agregando ? 'Agregando...' : 'Agregar al carrito' }}
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    }
+
+  </main>
+
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
+      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
+    </div>
+  </footer>
+
+</div>

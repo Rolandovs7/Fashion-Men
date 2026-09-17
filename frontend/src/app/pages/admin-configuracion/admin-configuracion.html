@@ -1,0 +1,143 @@
+<app-admin-shell titulo="Configuración">
+
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+    <div class="mb-8">
+      <p class="text-sm text-neutral-500 font-medium">Administra los roles del sistema y los tipos de pago habilitados</p>
+    </div>
+
+    <div class="flex gap-2 mb-6 border-b border-neutral-200">
+      <button
+        (click)="cambiarPestana('roles')"
+        [class.border-neutral-950]="pestana === 'roles'"
+        [class.text-neutral-950]="pestana === 'roles'"
+        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
+        Roles
+      </button>
+      <button
+        (click)="cambiarPestana('tipos-pago')"
+        [class.border-neutral-950]="pestana === 'tipos-pago'"
+        [class.text-neutral-950]="pestana === 'tipos-pago'"
+        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
+        Tipos de Pago
+      </button>
+    </div>
+
+    @if (mensaje) {
+      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">{{ mensaje }}</div>
+    }
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">{{ error }}</div>
+    }
+
+    @if (pestana === 'roles') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo rol</h3>
+            <div class="space-y-3">
+              <input type="text" [(ngModel)]="nuevoRol.nombre" placeholder="Nombre (ej. encargado_sucursal)"
+                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
+              <textarea [(ngModel)]="nuevoRol.descripcion" placeholder="Descripción (opcional)" rows="2"
+                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
+              <button (click)="crearRol()" [disabled]="guardando"
+                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
+                {{ guardando ? 'Guardando...' : 'Crear rol' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+                  <th class="py-3 px-5">Nombre</th>
+                  <th class="py-3 px-5">Descripción</th>
+                  <th class="py-3 px-5">Estado</th>
+                  <th class="py-3 px-5 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-100">
+                @for (rol of roles; track rol.id) {
+                  <tr>
+                    <td class="py-3 px-5 font-bold">{{ rol.nombre }}</td>
+                    <td class="py-3 px-5 text-neutral-500">{{ rol.descripcion || '—' }}</td>
+                    <td class="py-3 px-5">
+                      <span class="px-2 py-1 rounded-md text-xs font-bold"
+                        [class.bg-emerald-50]="rol.activo" [class.text-emerald-700]="rol.activo"
+                        [class.bg-red-50]="!rol.activo" [class.text-red-700]="!rol.activo">
+                        {{ rol.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-5 text-right">
+                      @if (rol.activo && rol.nombre !== 'cliente' && rol.nombre !== 'administrador') {
+                        <button (click)="eliminarRol(rol)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin roles registrados.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (pestana === 'tipos-pago') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo tipo de pago</h3>
+            <div class="space-y-3">
+              <input type="text" [(ngModel)]="nuevoTipoPago" placeholder="Nombre (ej. transferencia)"
+                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
+              <button (click)="crearTipoPago()" [disabled]="guardando"
+                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
+                {{ guardando ? 'Guardando...' : 'Crear tipo de pago' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="lg:col-span-2">
+          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
+            <table class="w-full text-left text-sm">
+              <thead>
+                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+                  <th class="py-3 px-5">Nombre</th>
+                  <th class="py-3 px-5">Estado</th>
+                  <th class="py-3 px-5 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-neutral-100">
+                @for (tipo of tiposPago; track tipo.id) {
+                  <tr>
+                    <td class="py-3 px-5 font-bold">{{ tipo.nombre }}</td>
+                    <td class="py-3 px-5">
+                      <span class="px-2 py-1 rounded-md text-xs font-bold"
+                        [class.bg-emerald-50]="tipo.activo" [class.text-emerald-700]="tipo.activo"
+                        [class.bg-red-50]="!tipo.activo" [class.text-red-700]="!tipo.activo">
+                        {{ tipo.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-5 text-right">
+                      @if (tipo.activo) {
+                        <button (click)="eliminarTipoPago(tipo)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="3" class="py-8 text-center text-neutral-400 text-sm">Sin tipos de pago registrados.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+
+</app-admin-shell>

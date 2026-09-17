@@ -1,0 +1,22 @@
+/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+/* Impresión de comprobante/nota de venta (CU20) */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #recibo-imprimible,
+  #recibo-imprimible * {
+    visibility: visible;
+  }
+  #recibo-imprimible {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+  .no-print,
+  .no-print-overlay {
+    display: none !important;
+  }
+}

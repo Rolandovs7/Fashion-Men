@@ -1,0 +1,132 @@
+<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+
+  <app-header></app-header>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">Mis pedidos</h1>
+      <p class="text-sm text-neutral-500 font-medium mt-1">Historial de tus compras digitales</p>
+    </div>
+
+    @if (mensaje) {
+      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
+        {{ mensaje }}
+      </div>
+    }
+
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
+        {{ error }}
+      </div>
+    }
+
+    @if (cargando) {
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-semibold text-neutral-700">Cargando tus pedidos...</p>
+      </div>
+    } @else if (pedidos.length === 0) {
+      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
+        <p class="text-sm font-semibold text-neutral-600 mb-4">Aún no tienes pedidos.</p>
+        <a routerLink="/catalogo" class="inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all">
+          Ir al catálogo
+        </a>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (pedido of pedidos; track pedido.id) {
+          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-5">
+            <div class="flex items-start justify-between gap-4 mb-3">
+              <div>
+                <p class="font-bold text-neutral-900">Pedido #{{ pedido.id }}</p>
+                <p class="text-xs text-neutral-400 font-medium mt-0.5">{{ pedido.fecha_pedido | date: 'dd/MM/yyyy HH:mm' }}</p>
+              </div>
+              <span class="px-3 py-1 rounded-lg text-xs font-bold shrink-0" [class]="claseEstado(pedido.estado)">
+                {{ etiquetasEstado[pedido.estado] || pedido.estado }}
+              </span>
+            </div>
+
+            <div class="border-t border-neutral-100 pt-3 space-y-1.5">
+              @for (detalle of pedido.detalles; track detalle.id) {
+                <div class="flex justify-between text-sm text-neutral-600">
+                  <span>Variante #{{ detalle.variante_id }} × {{ detalle.cantidad }}</span>
+                  <span class="font-semibold text-neutral-800">Bs {{ detalle.subtotal.toFixed(2) }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="flex items-center justify-between mt-4 pt-3 border-t border-neutral-100">
+              <span class="font-black text-neutral-900">Total: Bs {{ pedido.total.toFixed(2) }}</span>
+              <div class="flex items-center gap-4">
+                <button
+                  (click)="verComprobante(pedido)"
+                  class="text-xs font-bold text-neutral-500 hover:text-neutral-900 uppercase tracking-wide transition-colors cursor-pointer">
+                  Ver comprobante
+                </button>
+                @if (pedido.estado === 'pendiente') {
+                  <button
+                    (click)="abrirPago(pedido)"
+                    class="text-xs font-bold text-neutral-950 hover:underline uppercase tracking-wide transition-colors cursor-pointer">
+                    Pagar ahora
+                  </button>
+                }
+                @if (puedeCancelar(pedido)) {
+                  <button
+                    (click)="cancelarPedido(pedido)"
+                    class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wide transition-colors cursor-pointer">
+                    Cancelar pedido
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (pedidoPagando === pedido.id) {
+              <div class="mt-4 pt-4 border-t border-neutral-100 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">Registrar pago</h4>
+                <select
+                  [(ngModel)]="metodoPago"
+                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+                  @for (tipo of tiposPago; track tipo.id) {
+                    <option [value]="tipo.nombre">{{ tipo.nombre }}</option>
+                  }
+                </select>
+                <input
+                  type="text"
+                  [(ngModel)]="referenciaPago"
+                  placeholder="Referencia de pago (opcional)"
+                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
+                <div class="flex gap-2">
+                  <button
+                    (click)="cerrarPago()"
+                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
+                    Cancelar
+                  </button>
+                  <button
+                    (click)="confirmarPago(pedido)"
+                    [disabled]="procesandoPago"
+                    class="flex-1 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 transition-all disabled:opacity-50 cursor-pointer">
+                    {{ procesandoPago ? 'Procesando...' : 'Confirmar pago de Bs ' + pedido.total.toFixed(2) }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
+      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
+    </div>
+  </footer>
+
+  @if (pedidoParaComprobante) {
+    <app-recibo [pedido]="pedidoParaComprobante" (cerrar)="cerrarComprobante()"></app-recibo>
+  }
+
+</div>

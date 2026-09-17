@@ -1,0 +1,147 @@
+# ============================================================
+# Fashion Men - .gitignore raíz
+# ============================================================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.venv-*/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ---------- Testing / Coverage ----------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# ---------- Node / Angular ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+dist/
+dist-ssr/
+tmp/
+out-tsc/
+.angular/
+.cache/
+
+# ---------- Flutter / Dart ----------
+.pub-cache/
+.pub/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.fvm/
+*.freezed.dart
+*.g.dart
+*.iml
+pubspec.lock.bak
+
+# ---------- Environment / Secrets ----------
+# Ignorar TODOS los .env reales (en cualquier carpeta)
+.env
+.env.*
+**/.env
+**/.env.local
+**/.env.*.local
+
+# EXCEPCIÓN: SÍ subir ejemplos de .env (documentación)
+!**/.env.example
+!**/*.env.example
+
+# Otros secretos
+secrets/
+.secrets/
+*.pem
+*.key
+
+# ---------- Database ----------
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# ---------- IDE ----------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# ---------- OS ----------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ---------- Logs ----------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- Docker / Deploy ----------
+.dockerignore
+*.pid
+*.seed
+*.pid.lock
+
+# ---------- Cloud / Terraform ----------
+.terraform/
+*.tfstate
+*.tfstate.*
+terraform.tfvars
+.aws/
+
+# ---------- Temporary ----------
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.old
+
+# ---------- Backups ----------
+*.backup
+*.bak
+*~

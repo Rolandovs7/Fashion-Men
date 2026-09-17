@@ -1,0 +1,161 @@
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RolesService, Rol } from '../../core/services/roles.service';
+import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.service';
+import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+
+type Pestana = 'roles' | 'tipos-pago';
+
+// ============================================================
+// TRAZABILIDAD MENSTYLE
+// CU: CU05 - Gestionar Roles
+// RF: RF02 - Gestionar usuarios y roles
+// CU: CU19 - Gestionar Tipos de Pago (Ciclo #2, incluido en esta misma
+//     pantalla por compartir el patrón de "catálogo de configuración")
+// RF: pendiente de confirmar según matriz oficial (RF18/RF19 relacionados)
+// CAPA: Angular
+// SERVICIO: core/services/roles.service.ts, core/services/tipos-pago.service.ts
+// PANTALLA: pages/admin-configuracion/admin-configuracion.ts
+// BACKEND: GET/POST/PUT/DELETE /api/roles, /api/tipos-pago
+// Ruta protegida por adminGuard (core/guards/auth.guard.ts).
+// ============================================================
+@Component({
+  selector: 'app-admin-configuracion',
+  imports: [CommonModule, FormsModule, AdminShellComponent],
+  templateUrl: './admin-configuracion.html',
+  styleUrl: './admin-configuracion.css'
+})
+export class AdminConfiguracion implements OnInit {
+  private rolesService = inject(RolesService);
+  private tiposPagoService = inject(TiposPagoService);
+  private cdr = inject(ChangeDetectorRef);
+
+  pestana: Pestana = 'roles';
+
+  roles: Rol[] = [];
+  tiposPago: TipoPago[] = [];
+
+  nuevoRol = { nombre: '', descripcion: '' };
+  nuevoTipoPago = '';
+
+  cargando = false;
+  guardando = false;
+  error = '';
+  mensaje = '';
+
+  ngOnInit(): void {
+    this.cargarTodo();
+  }
+
+  cambiarPestana(pestana: Pestana): void {
+    this.pestana = pestana;
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cargarTodo(): void {
+    this.cargando = true;
+
+    this.rolesService.listar(false).subscribe({
+      next: (roles) => {
+        this.roles = roles;
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.cargando = false; }
+    });
+
+    this.tiposPagoService.listar(false).subscribe({
+      next: (tipos) => {
+        this.tiposPago = tipos;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  crearRol(): void {
+    if (!this.nuevoRol.nombre.trim()) {
+      this.error = 'El nombre del rol es obligatorio.';
+      return;
+    }
+
+    this.guardando = true;
+    this.error = '';
+
+    this.rolesService.crear({
+      nombre: this.nuevoRol.nombre.trim(),
+      descripcion: this.nuevoRol.descripcion.trim() || null
+    }).subscribe({
+      next: (rol) => {
+        this.roles = [...this.roles, rol];
+        this.nuevoRol = { nombre: '', descripcion: '' };
+        this.guardando = false;
+        this.mensaje = 'Rol creado correctamente.';
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo crear el rol.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  eliminarRol(rol: Rol): void {
+    if (!confirm(`¿Desactivar el rol "${rol.nombre}"?`)) return;
+
+    this.rolesService.eliminar(rol.id).subscribe({
+      next: (actualizado) => {
+        this.roles = this.roles.map(r => r.id === actualizado.id ? actualizado : r);
+        this.mensaje = 'Rol desactivado.';
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo desactivar el rol.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  crearTipoPago(): void {
+    if (!this.nuevoTipoPago.trim()) {
+      this.error = 'El nombre del tipo de pago es obligatorio.';
+      return;
+    }
+
+    this.guardando = true;
+    this.error = '';
+
+    this.tiposPagoService.crear(this.nuevoTipoPago.trim()).subscribe({
+      next: (tipo) => {
+        this.tiposPago = [...this.tiposPago, tipo];
+        this.nuevoTipoPago = '';
+        this.guardando = false;
+        this.mensaje = 'Tipo de pago creado correctamente.';
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo crear el tipo de pago.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  eliminarTipoPago(tipo: TipoPago): void {
+    if (!confirm(`¿Desactivar el tipo de pago "${tipo.nombre}"?`)) return;
+
+    this.tiposPagoService.eliminar(tipo.id).subscribe({
+      next: (actualizado) => {
+        this.tiposPago = this.tiposPago.map(t => t.id === actualizado.id ? actualizado : t);
+        this.mensaje = 'Tipo de pago desactivado.';
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo desactivar el tipo de pago.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}

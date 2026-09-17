@@ -1,0 +1,193 @@
+<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+
+  <app-header></app-header>
+
+  <!-- Contenido Principal -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    @if (usuario) {
+
+      <!-- Encabezado de Bienvenida y Resumen -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-neutral-200/80 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 bg-neutral-950 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shrink-0 shadow-md">
+            {{ usuario.nombre.charAt(0) }}
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
+                ¡Hola, {{ usuario.nombre }}!
+              </h2>
+              <span class="text-2xl animate-bounce">👋</span>
+            </div>
+            <p class="text-sm text-neutral-500 font-medium mt-0.5">
+              Panel de control y gestión de operaciones FashionStore
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 border-t md:border-t-0 pt-4 md:pt-0 border-neutral-100">
+          <div class="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-right">
+            <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Rol Activo</span>
+            <span class="text-sm font-extrabold text-neutral-900 capitalize">{{ usuario.rol }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Principal: Información de Perfil + Módulos de Operación -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- Columna Izquierda: Tarjeta de Perfil -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200/80 sticky top-28">
+            <div class="flex items-center justify-between border-b border-neutral-100 pb-4 mb-5">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Perfil de Usuario</h3>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Nombre Completo</span>
+                <p class="text-base font-bold text-neutral-900">
+                  {{ usuario.nombre }} {{ usuario.apellido }}
+                </p>
+              </div>
+
+              <div>
+                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Correo Electrónico</span>
+                <p class="text-sm font-semibold text-neutral-800 break-all bg-neutral-50 p-2.5 rounded-lg border border-neutral-100">
+                  {{ usuario.email }}
+                </p>
+              </div>
+
+              <div>
+                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Estado de Cuenta</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Sesión Activa
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Columna Derecha: Módulos de Trabajo y Administración -->
+        <div class="lg:col-span-2 space-y-8">
+
+          <!-- Acceso rápido a la tienda (visible para todos) -->
+          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-neutral-200/80">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="p-2.5 bg-neutral-950 rounded-xl shadow-inner">
+                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold tracking-wide text-neutral-900">Tienda MenStyle</h3>
+                <p class="text-xs text-neutral-500">Explora el catálogo, reserva o compra tus prendas favoritas</p>
+              </div>
+            </div>
+            <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
+              Consulta las prendas disponibles por categoría, elige talla y color, y agrégalas al carrito para comprarlas en línea.
+            </p>
+            <button
+              (click)="irCatalogo()"
+              class="inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800 active:scale-[0.98] text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 cursor-pointer shadow-md">
+              Ver catálogo
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Módulo de Administración (Visible solo para administradores) -->
+          @if (usuario.rol === 'administrador') {
+
+            <div class="bg-gradient-to-br from-neutral-900 via-neutral-900 to-black text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-neutral-800">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="p-2.5 bg-neutral-800/90 rounded-xl border border-neutral-700/60 shadow-inner">
+                  <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold tracking-wide">Módulo de Administración</h3>
+                  <p class="text-xs text-neutral-400">Control global de seguridad, accesos y parametrización</p>
+                </div>
+              </div>
+
+              <p class="text-sm text-neutral-300 mb-6 leading-relaxed">
+                Administra los usuarios registrados, asigna roles para las sucursales y controla los niveles de acceso al sistema.
+              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  class="flex items-center justify-between bg-white text-neutral-950 hover:bg-neutral-200 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
+                  (click)="irAdminCatalogo()">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xl">🛍️</span>
+                    <span class="text-left">Gestión de Catálogo</span>
+                  </div>
+                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                <button
+                  class="flex items-center justify-between bg-white text-neutral-950 hover:bg-neutral-200 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
+                  (click)="irUsuarios()">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xl">👥</span>
+                    <span class="text-left">Gestión de Usuarios</span>
+                  </div>
+                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+
+                <button
+                  class="flex items-center justify-between bg-neutral-800 text-white border border-neutral-700 hover:bg-neutral-700 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
+                  (click)="irPermisos()">
+                  <div class="flex items-center gap-3">
+                    <span class="text-xl">🔐</span>
+                    <span class="text-left">Gestión de Permisos</span>
+                  </div>
+                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+          }
+
+        </div>
+
+      </div>
+
+    } @else {
+
+      <!-- Indicador de Carga -->
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-semibold text-neutral-700">Cargando información del usuario...</p>
+        <span class="text-xs text-neutral-400 mt-1">Sincronizando con el servidor FastAPI</span>
+      </div>
+
+    }
+
+  </main>
+
+  <!-- Footer Institucional -->
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
+      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
+    </div>
+  </footer>
+
+</div>

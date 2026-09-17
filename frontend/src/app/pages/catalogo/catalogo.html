@@ -1,0 +1,112 @@
+<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+
+  <app-header></app-header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    <!-- Encabezado -->
+    <div class="mb-8">
+      <h1 class="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">Catálogo</h1>
+      <p class="text-sm text-neutral-500 font-medium mt-1">Descubre las prendas disponibles en MenStyle</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-neutral-200/80 mb-8 flex flex-col sm:flex-row gap-4 sm:items-center">
+
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          [(ngModel)]="busqueda"
+          placeholder="Buscar por nombre..."
+          class="w-full rounded-xl border border-neutral-300 bg-neutral-50/50 pl-11 pr-4 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10"
+        />
+      </div>
+
+      <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+        <button
+          (click)="categoriaSeleccionada = 'todas'"
+          [class.bg-neutral-950]="categoriaSeleccionada === 'todas'"
+          [class.text-white]="categoriaSeleccionada === 'todas'"
+          class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer">
+          Todas
+        </button>
+        @for (categoria of categorias; track categoria.id) {
+          <button
+            (click)="categoriaSeleccionada = categoria.id"
+            [class.bg-neutral-950]="categoriaSeleccionada === categoria.id"
+            [class.text-white]="categoriaSeleccionada === categoria.id"
+            class="shrink-0 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide border border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer">
+            {{ categoria.nombre }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
+        {{ error }}
+      </div>
+    }
+
+    <!-- Cargando -->
+    @if (cargando) {
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-semibold text-neutral-700">Cargando catálogo...</p>
+      </div>
+    } @else {
+
+      <!-- Grid de productos -->
+      @if (productosFiltrados.length > 0) {
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          @for (producto of productosFiltrados; track producto.id) {
+            <button
+              (click)="verProducto(producto)"
+              class="text-left bg-white rounded-2xl border border-neutral-200/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group cursor-pointer">
+
+              <!-- Placeholder visual de la prenda -->
+              <div [class]="'h-44 w-full bg-gradient-to-br flex items-center justify-center ' + acentoPara(producto.id)">
+                <svg class="w-14 h-14 text-white/70 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+                </svg>
+              </div>
+
+              <div class="p-4">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                  {{ nombreCategoria(producto.categoria_id) }}
+                </span>
+                <h3 class="font-bold text-neutral-900 mt-1 line-clamp-1">{{ producto.nombre }}</h3>
+                <p class="text-xs text-neutral-500 mt-1 line-clamp-2 min-h-[2rem]">
+                  {{ producto.descripcion || 'Sin descripción disponible.' }}
+                </p>
+                <div class="mt-3 flex items-center justify-between">
+                  <span class="text-lg font-black text-neutral-900">Bs {{ producto.precio.toFixed(2) }}</span>
+                  <span class="text-xs font-bold text-neutral-500 group-hover:text-neutral-900 transition-colors">Ver más →</span>
+                </div>
+              </div>
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
+          <p class="text-sm font-semibold text-neutral-600">No se encontraron prendas con esos filtros.</p>
+        </div>
+      }
+    }
+
+  </main>
+
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
+      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
+    </div>
+  </footer>
+
+</div>

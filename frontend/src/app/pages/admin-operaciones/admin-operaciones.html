@@ -1,0 +1,126 @@
+<app-admin-shell titulo="Pedidos y Reservas">
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+    <div class="mb-8">
+      <p class="text-sm text-neutral-500 font-medium">Gestiona el estado de las compras y reservas de todos los clientes</p>
+    </div>
+
+    <div class="flex gap-2 mb-6 border-b border-neutral-200">
+      <button
+        (click)="cambiarPestana('pedidos')"
+        [class.border-neutral-950]="pestana === 'pedidos'"
+        [class.text-neutral-950]="pestana === 'pedidos'"
+        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
+        Pedidos ({{ pedidos.length }})
+      </button>
+      <button
+        (click)="cambiarPestana('reservas')"
+        [class.border-neutral-950]="pestana === 'reservas'"
+        [class.text-neutral-950]="pestana === 'reservas'"
+        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
+        Reservas ({{ reservas.length }})
+      </button>
+    </div>
+
+    @if (mensaje) {
+      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
+        {{ mensaje }}
+      </div>
+    }
+
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
+        {{ error }}
+      </div>
+    }
+
+    @if (pestana === 'pedidos') {
+      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+              <th class="py-3 px-5">Pedido</th>
+              <th class="py-3 px-5">Cliente</th>
+              <th class="py-3 px-5">Fecha</th>
+              <th class="py-3 px-5">Total</th>
+              <th class="py-3 px-5">Estado</th>
+              <th class="py-3 px-5 text-right">Comprobante</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            @for (pedido of pedidos; track pedido.id) {
+              <tr>
+                <td class="py-3 px-5 font-bold">#{{ pedido.id }}</td>
+                <td class="py-3 px-5 text-neutral-500">Usuario #{{ pedido.usuario_id }}</td>
+                <td class="py-3 px-5 text-neutral-500">{{ pedido.fecha_pedido | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="py-3 px-5 font-semibold">Bs {{ pedido.total.toFixed(2) }}</td>
+                <td class="py-3 px-5">
+                  <select
+                    [ngModel]="pedido.estado"
+                    (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
+                    [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
+                    class="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-bold outline-none focus:border-neutral-950 disabled:opacity-50">
+                    @for (estado of estadosPedido; track estado) {
+                      <option [value]="estado">{{ estado }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="py-3 px-5 text-right">
+                  <button (click)="verComprobante(pedido)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Ver</button>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">No hay pedidos registrados.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (pestana === 'reservas') {
+      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+              <th class="py-3 px-5">Reserva</th>
+              <th class="py-3 px-5">Cliente</th>
+              <th class="py-3 px-5">Sucursal</th>
+              <th class="py-3 px-5">Fecha</th>
+              <th class="py-3 px-5">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            @for (reserva of reservas; track reserva.id) {
+              <tr>
+                <td class="py-3 px-5 font-bold">#{{ reserva.id }}</td>
+                <td class="py-3 px-5 text-neutral-500">Usuario #{{ reserva.usuario_id }}</td>
+                <td class="py-3 px-5 text-neutral-500">{{ nombreSucursal(reserva.sucursal_id) }}</td>
+                <td class="py-3 px-5 text-neutral-500">{{ reserva.fecha_reserva | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="py-3 px-5">
+                  <select
+                    [ngModel]="reserva.estado"
+                    (ngModelChange)="cambiarEstadoReserva(reserva, $event)"
+                    [disabled]="reserva.estado === 'cancelada' || reserva.estado === 'completada'"
+                    class="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-bold outline-none focus:border-neutral-950 disabled:opacity-50">
+                    @for (estado of estadosReserva; track estado) {
+                      <option [value]="estado">{{ estado }}</option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">No hay reservas registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+
+  @if (pedidoParaComprobante) {
+    <app-recibo [pedido]="pedidoParaComprobante" [intentarCargarPagos]="false" (cerrar)="cerrarComprobante()"></app-recibo>
+  }
+
+</app-admin-shell>

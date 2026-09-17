@@ -1,0 +1,87 @@
+<div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50" (click)="cerrarComprobante()"></div>
+
+  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+
+    <div id="recibo-imprimible" class="p-8">
+
+      <div class="text-center mb-6">
+        <p class="text-lg font-black tracking-[0.2em] uppercase">MENSTYLE</p>
+        <p class="text-[11px] text-neutral-400 font-semibold uppercase tracking-wider">Nota de venta</p>
+      </div>
+
+      <div class="border-t border-b border-dashed border-neutral-300 py-3 mb-4 text-xs text-neutral-600 space-y-1">
+        <div class="flex justify-between"><span>N° de pedido</span><span class="font-bold text-neutral-900">#{{ pedido.id }}</span></div>
+        <div class="flex justify-between"><span>Fecha</span><span class="font-semibold">{{ pedido.fecha_pedido | date: 'dd/MM/yyyy HH:mm' }}</span></div>
+        @if (sucursalNombre) {
+          <div class="flex justify-between"><span>Sucursal</span><span class="font-semibold">{{ sucursalNombre }}</span></div>
+        }
+        <div class="flex justify-between"><span>Estado</span><span class="font-semibold capitalize">{{ pedido.estado }}</span></div>
+      </div>
+
+      @if (cargando) {
+        <p class="text-center text-xs text-neutral-400 py-6">Cargando detalle...</p>
+      } @else {
+        <table class="w-full text-xs mb-4">
+          <thead>
+            <tr class="text-left text-neutral-400 uppercase text-[10px] font-bold border-b border-neutral-200">
+              <th class="py-2">Prenda</th>
+              <th class="py-2 text-center">Cant.</th>
+              <th class="py-2 text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-100">
+            @for (linea of lineas; track $index) {
+              <tr>
+                <td class="py-2">
+                  <p class="font-bold text-neutral-900">{{ linea.producto?.nombre || 'Producto no disponible' }}</p>
+                  @if (linea.variante) {
+                    <p class="text-[10px] text-neutral-400">{{ linea.variante.talla_nombre }} · {{ linea.variante.color_nombre }}</p>
+                  }
+                </td>
+                <td class="py-2 text-center">{{ linea.cantidad }}</td>
+                <td class="py-2 text-right font-semibold">Bs {{ linea.subtotal.toFixed(2) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+
+      <div class="border-t border-dashed border-neutral-300 pt-3 flex justify-between items-center mb-4">
+        <span class="font-bold text-sm">TOTAL</span>
+        <span class="font-black text-lg">Bs {{ pedido.total.toFixed(2) }}</span>
+      </div>
+
+      @if (pagos.length > 0) {
+        <div class="border-t border-dashed border-neutral-300 pt-3 text-xs text-neutral-600 space-y-1">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">Pago</p>
+          @for (pago of pagos; track pago.id) {
+            <div class="flex justify-between">
+              <span class="capitalize">{{ pago.metodo }} @if (pago.referencia) { ({{ pago.referencia }}) }</span>
+              <span class="font-semibold">Bs {{ pago.monto.toFixed(2) }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      <p class="text-center text-[10px] text-neutral-400 mt-6">
+        Gracias por tu compra en MenStyle · Documento generado electrónicamente
+      </p>
+
+    </div>
+
+    <div class="p-4 border-t border-neutral-100 flex gap-3 no-print">
+      <button
+        (click)="cerrarComprobante()"
+        class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
+        Cerrar
+      </button>
+      <button
+        (click)="imprimir()"
+        class="flex-1 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 transition-all cursor-pointer">
+        Imprimir
+      </button>
+    </div>
+
+  </div>
+</div>

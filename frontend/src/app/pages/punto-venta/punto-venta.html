@@ -1,0 +1,149 @@
+<app-admin-shell titulo="Punto de Venta">
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+    <div class="mb-8">
+      <p class="text-sm text-neutral-500 font-medium">Registra una venta presencial y su pago en caja (RF17 / RF18)</p>
+    </div>
+
+    @if (mensaje) {
+      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
+        {{ mensaje }}
+      </div>
+    }
+
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
+        {{ error }}
+      </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Formulario de venta -->
+      <div class="lg:col-span-2 space-y-6">
+
+        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Datos de la venta</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select [(ngModel)]="clienteId" class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+              <option [ngValue]="null" disabled>Cliente</option>
+              @for (cliente of clientes; track cliente.id) {
+                <option [ngValue]="cliente.id">{{ cliente.nombre }} {{ cliente.apellido }} — {{ cliente.email }}</option>
+              }
+            </select>
+            <select [(ngModel)]="sucursalId" class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+              <option [ngValue]="null" disabled>Sucursal</option>
+              @for (sucursal of sucursales; track sucursal.id) {
+                <option [ngValue]="sucursal.id">{{ sucursal.nombre }} — {{ sucursal.ciudad }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Agregar prenda</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <select
+              [(ngModel)]="productoSeleccionadoId"
+              (ngModelChange)="cargarVariantes()"
+              class="sm:col-span-2 w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+              <option [ngValue]="null" disabled>Producto</option>
+              @for (producto of productos; track producto.id) {
+                <option [ngValue]="producto.id">{{ producto.nombre }} — Bs {{ producto.precio.toFixed(2) }}</option>
+              }
+            </select>
+            <select [(ngModel)]="varianteSeleccionadaId" class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+              <option [ngValue]="null" disabled>Talla / Color</option>
+              @for (variante of variantesDisponibles; track variante.id) {
+                <option [ngValue]="variante.id">{{ variante.talla_nombre }} · {{ variante.color_nombre }} ({{ variante.stock_disponible }})</option>
+              }
+            </select>
+            <input type="number" [(ngModel)]="cantidadSeleccionada" min="1"
+              class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
+          </div>
+          <button
+            (click)="agregarItem()"
+            class="mt-4 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-5 py-2.5 rounded-xl transition-all cursor-pointer">
+            + Agregar a la venta
+          </button>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+                <th class="py-3 px-5">Producto</th>
+                <th class="py-3 px-5">Variante</th>
+                <th class="py-3 px-5">Cant.</th>
+                <th class="py-3 px-5">Subtotal</th>
+                <th class="py-3 px-5"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-neutral-100">
+              @for (item of itemsVenta; track item.variante.id) {
+                <tr>
+                  <td class="py-3 px-5 font-bold">{{ item.producto.nombre }}</td>
+                  <td class="py-3 px-5 text-neutral-500">{{ item.variante.talla_nombre }} · {{ item.variante.color_nombre }}</td>
+                  <td class="py-3 px-5">{{ item.cantidad }}</td>
+                  <td class="py-3 px-5 font-semibold">Bs {{ (item.producto.precio * item.cantidad).toFixed(2) }}</td>
+                  <td class="py-3 px-5 text-right">
+                    <button (click)="quitarItem(item)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Quitar</button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">Aún no agregaste prendas a esta venta.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Resumen y confirmación -->
+      <div class="lg:col-span-1">
+        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6 sticky top-28">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Resumen</h3>
+
+          <div class="flex items-center justify-between text-sm text-neutral-600 mb-2">
+            <span>Prendas</span>
+            <span class="font-semibold">{{ itemsVenta.length }}</span>
+          </div>
+
+          <div class="border-t border-neutral-100 pt-4 mt-4 flex items-center justify-between">
+            <span class="font-bold text-neutral-900">Total</span>
+            <span class="text-2xl font-black text-neutral-900">Bs {{ total.toFixed(2) }}</span>
+          </div>
+
+          <div class="mt-6">
+            <label class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2 block">Método de pago</label>
+            <select [(ngModel)]="metodoPago" class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
+              @for (tipo of tiposPago; track tipo.id) {
+                <option [value]="tipo.nombre">{{ tipo.nombre }}</option>
+              }
+            </select>
+          </div>
+
+          <button
+            (click)="registrarVenta()"
+            [disabled]="procesando"
+            class="mt-6 w-full flex justify-center items-center rounded-xl bg-neutral-950 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-50 cursor-pointer">
+            {{ procesando ? 'Registrando...' : 'Cobrar y registrar venta' }}
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  @if (pedidoParaComprobante) {
+    <app-recibo
+      [pedido]="pedidoParaComprobante"
+      [sucursalNombre]="nombreSucursalSeleccionada"
+      [intentarCargarPagos]="false"
+      (cerrar)="cerrarComprobante()">
+    </app-recibo>
+  }
+
+</app-admin-shell>

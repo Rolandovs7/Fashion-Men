@@ -1,0 +1,5 @@
+python-interpreter-path = "backend/venv/bin/python"
+python-version = "3.12"
+python-platform = "linux"
+
+search-path = ["backend"]

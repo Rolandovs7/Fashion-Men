@@ -1,0 +1,70 @@
+@startuml Ciclo de Vida 3
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+  FontSize 11
+}
+
+title Ciclo de Vida #3 - Ventas, Pagos, Pedidos y Reservas
+
+left to right direction
+
+actor "Administrador" as A1
+actor "Encargado de Sucursal" as A2
+actor "Cajero" as A3
+actor "Cliente" as A4
+actor "Sistema de Pagos\n(Stripe)" as A6 <<external>>
+
+rectangle "Ventas y Pagos" {
+  usecase "CU18 Administrar\nVenta de Producto" as CU18
+  usecase "CU19 Administrar\nTipo de Pago" as CU19
+  usecase "CU20 Realizar\nNota de Venta" as CU20
+}
+
+rectangle "Pedidos y Carrito" {
+  usecase "CU21 Gestionar\nPedido" as CU21
+  usecase "CU22 Administrar\nCarrito de Compra" as CU22
+  usecase "CU33 Gestionar\nHistorial de Compras" as CU33
+}
+
+rectangle "Reservas" {
+  usecase "CU24 Gestionar\nReservas" as CU24
+}
+
+' Relaciones Admin
+A1 --> CU18
+A1 --> CU19
+A1 --> CU20
+A1 --> CU21
+A1 --> CU22
+A1 --> CU24
+
+' Relaciones Encargado
+A2 --> CU18
+A2 --> CU20
+A2 --> CU24
+
+' Relaciones Cajero
+A3 --> CU18
+A3 --> CU19
+A3 --> CU20
+
+' Relaciones Cliente
+A4 --> CU21
+A4 --> CU22
+A4 --> CU24
+A4 --> CU33
+
+' Relaciones sistema externo
+CU19 --> A6 : <<include>>
+
+' Include / Extend
+CU21 ..> CU22 : <<include>>
+CU21 ..> CU19 : <<include>>
+CU18 ..> CU20 : <<include>>
+CU24 ..> CU21 : <<extend>>
+
+@enduml

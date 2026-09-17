@@ -1,0 +1,52 @@
+@startuml Ciclo de Vida 4
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #F3E5F5
+  BorderColor #6A1B9A
+  FontSize 11
+}
+
+title Ciclo de Vida #4 - Realidad Aumentada, Reportes e IA
+
+left to right direction
+
+actor "Administrador" as A1
+actor "Cliente" as A4
+actor "Servicio de IA\n(Gemini)" as A7 <<external>>
+actor "Sistema RA\n(ARCore/ARKit)" as A8 <<external>>
+
+rectangle "Realidad Aumentada" {
+  usecase "CU23 Realizar\nProbador Virtual" as CU23
+}
+
+rectangle "Reportes y Dashboard" {
+  usecase "CU29 Visualizar\nDashboard" as CU29
+  usecase "CU30 Generar\nReportes" as CU30
+}
+
+rectangle "Inteligencia Artificial" {
+  usecase "CU31 Recibir\nRecomendaciones (IA)" as CU31
+  usecase "CU32 Interactuar con\nAsistente Virtual" as CU32
+}
+
+' Relaciones Admin
+A1 --> CU29
+A1 --> CU30
+
+' Relaciones Cliente
+A4 --> CU23
+A4 --> CU31
+A4 --> CU32
+
+' Relaciones sistemas externos
+CU23 --> A8 : <<include>>
+CU31 --> A7 : <<include>>
+CU32 --> A7 : <<include>>
+
+' Include / Extend
+CU31 ..> CU23 : <<extend>>
+CU32 ..> CU31 : <<extend>>
+
+@enduml

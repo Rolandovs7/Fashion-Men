@@ -1,0 +1,59 @@
+@startuml Proceso de Reserva
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam activity {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  DiamondBackgroundColor #FFF9C4
+  DiamondBorderColor #F57F17
+}
+
+title 3.1.1 - Proceso de Reserva de Prendas y Compra Presencial
+
+|Cliente|
+start
+:Consultar catálogo;
+:Seleccionar prendas;
+:Seleccionar talla y color;
+
+|#AntiqueWhite|Sistema|
+:Verificar disponibilidad;
+if (¿Stock disponible?) then (Sí)
+  :Registrar reserva;
+  :Incrementar cantidad_reservada;
+  
+  |Encargado de Sucursal|
+  :Recibir notificación;
+  :Preparar prendas;
+  :Marcar reserva como "preparada";
+  
+  |Cliente|
+  :Acudir a la sucursal;
+  :Probar prendas;
+  
+  if (¿Cliente compra?) then (Sí)
+    |Cajero|
+    :Registrar venta;
+    :Procesar pago;
+    :Emitir comprobante;
+    
+    |Sistema|
+    :Actualizar inventario;
+    :Marcar reserva como "vendida";
+  else (No)
+    |Encargado de Sucursal|
+    :Marcar reserva como "cancelada";
+    
+    |Sistema|
+    :Liberar cantidad_reservada;
+  endif
+else (No)
+  |Sistema|
+  :Mostrar "Producto no disponible";
+endif
+
+|Cliente|
+:Fin del proceso;
+stop
+
+@enduml

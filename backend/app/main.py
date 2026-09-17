@@ -26,6 +26,7 @@ from app.api.routes.returns import router as returns_router
 from app.api.routes.users import router as users_router
 from app.api.routes.permissions import router as permissions_router
 from app.api.routes.ia import router as ia_router                              # ← NUEVA (CU31, CU32 - RF25)
+from app.api.routes.reports import router as reports_router
 
 app = FastAPI(
     title="MenStyle API",
@@ -78,6 +79,11 @@ app.include_router(permissions_router, prefix="/api")
 # CU31 - Recibir Recomendaciones (IA)
 # CU32 - Interactuar con Asistente Virtual
 app.include_router(ia_router, prefix="/api/ia", tags=["Inteligencia Artificial"])
+
+# ============================================
+# ROUTERS - REPORTES Y DASHBOARD (RF24)
+# ============================================
+app.include_router(reports_router, prefix="/api/reportes", tags=["Reportes"])
 
 # ============================================
 # ENDPOINTS DE PRUEBA

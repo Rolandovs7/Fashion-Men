@@ -1,0 +1,160 @@
+@startuml Casos de Uso - Fashion Men
+!theme plain
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+skinparam backgroundColor #FAFAFA
+skinparam actor {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam usecase {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  FontSize 11
+}
+
+left to right direction
+
+actor "Cliente" as Cliente
+actor "Administrador" as Admin
+actor "Encargado de Sucursal" as Encargado
+actor "Cajero" as Cajero
+actor "Proveedor" as Proveedor
+actor "Sistema de Pagos\n(Stripe)" as Pagos <<external>>
+actor "Servicio de IA\n(Gemini)" as IA <<external>>
+actor "Sistema RA\n(ARCore/ARKit)" as RA <<external>>
+
+rectangle "Autenticación" {
+  usecase "CU01 Administrar\nInicio de Sesión" as CU01
+  usecase "CU02 Administrar\nCierre de Sesión" as CU02
+  usecase "CU03 Registrar\nUsuario" as CU03
+}
+
+rectangle "Gestión de Usuarios" {
+  usecase "CU04 Gestionar\nUsuarios" as CU04
+  usecase "CU05 Gestionar\nRoles" as CU05
+  usecase "CU06 Asignar\nPermisos" as CU06
+}
+
+rectangle "Catálogo de Productos" {
+  usecase "CU07 Gestionar\nProductos" as CU07
+  usecase "CU08 Gestionar\nTipo de Prenda" as CU08
+  usecase "CU09 Gestionar\nDescuentos" as CU09
+  usecase "CU10 Gestionar\nMarcas" as CU10
+  usecase "CU11 Gestionar\nTallas" as CU11
+  usecase "CU12 Gestionar\nColores" as CU12
+  usecase "CU13 Gestionar\nImágenes" as CU13
+  usecase "CU14 Administrar\nCatálogo" as CU14
+  usecase "CU16 Gestionar\nCategorías" as CU16
+}
+
+rectangle "Inventario y Sucursales" {
+  usecase "CU15 Administrar\nInventario" as CU15
+  usecase "CU17 Gestionar\nSucursales" as CU17
+  usecase "CU25 Consultar\nDisponibilidad" as CU25
+}
+
+rectangle "Ventas y Pagos" {
+  usecase "CU18 Administrar\nVenta de Producto" as CU18
+  usecase "CU19 Administrar\nTipo de Pago" as CU19
+  usecase "CU20 Realizar\nNota de Venta" as CU20
+}
+
+rectangle "Pedidos y Carrito" {
+  usecase "CU21 Gestionar\nPedido" as CU21
+  usecase "CU22 Administrar\nCarrito de Compra" as CU22
+  usecase "CU33 Gestionar\nHistorial de Compras" as CU33
+}
+
+rectangle "Reservas y Realidad Aumentada" {
+  usecase "CU23 Realizar\nProbador Virtual" as CU23
+  usecase "CU24 Gestionar\nReservas" as CU24
+}
+
+rectangle "Proveedores y Colecciones" {
+  usecase "CU26 Gestionar\nProveedores" as CU26
+  usecase "CU27 Gestionar\nTemporadas" as CU27
+  usecase "CU28 Gestionar\nColecciones" as CU28
+}
+
+rectangle "Reportes y Dashboard" {
+  usecase "CU29 Visualizar\nDashboard" as CU29
+  usecase "CU30 Generar\nReportes" as CU30
+}
+
+rectangle "Inteligencia Artificial" {
+  usecase "CU31 Recibir\nRecomendaciones (IA)" as CU31
+  usecase "CU32 Interactuar con\nAsistente Virtual" as CU32
+}
+
+' Relaciones Cliente
+Cliente --> CU01
+Cliente --> CU02
+Cliente --> CU03
+Cliente --> CU14
+Cliente --> CU22
+Cliente --> CU21
+Cliente --> CU23
+Cliente --> CU24
+Cliente --> CU25
+Cliente --> CU31
+Cliente --> CU32
+Cliente --> CU33
+
+' Relaciones Admin
+Admin --> CU01
+Admin --> CU02
+Admin --> CU03
+Admin --> CU04
+Admin --> CU05
+Admin --> CU06
+Admin --> CU07
+Admin --> CU08
+Admin --> CU09
+Admin --> CU10
+Admin --> CU11
+Admin --> CU12
+Admin --> CU13
+Admin --> CU15
+Admin --> CU16
+Admin --> CU17
+Admin --> CU19
+Admin --> CU26
+Admin --> CU27
+Admin --> CU28
+Admin --> CU29
+Admin --> CU30
+
+' Relaciones Encargado
+Encargado --> CU24
+Encargado --> CU15
+Encargado --> CU25
+Encargado --> CU29
+
+' Relaciones Cajero
+Cajero --> CU18
+Cajero --> CU19
+Cajero --> CU20
+
+' Relaciones Proveedor
+Proveedor --> CU26
+Proveedor --> CU27
+Proveedor --> CU28
+
+' Sistemas externos
+CU19 --> Pagos : <<include>>
+CU23 --> RA : <<include>>
+CU31 --> IA : <<include>>
+CU32 --> IA : <<include>>
+
+' Include / Extend
+CU21 ..> CU22 : <<include>>
+CU21 ..> CU19 : <<include>>
+CU24 ..> CU25 : <<include>>
+CU18 ..> CU20 : <<include>>
+CU31 ..> CU14 : <<extend>>
+
+@enduml

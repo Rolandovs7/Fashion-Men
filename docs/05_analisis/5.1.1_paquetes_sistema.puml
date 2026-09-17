@@ -1,0 +1,114 @@
+@startuml Paquetes del Sistema - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam package {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  FontSize 12
+  FontStyle bold
+}
+skinparam component {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+title 5.1.1 - Identificar Paquetes del Sistema MenStyle
+
+package "Capa de Presentación" {
+  package "Web (Angular)" as WEB #E3F2FD {
+    [Módulo Auth]
+    [Módulo Catálogo]
+    [Módulo Admin]
+    [Módulo Reportes]
+  }
+  
+  package "Móvil (Flutter)" as MOVIL #E8F5E9 {
+    [Módulo Auth Móvil]
+    [Módulo Catálogo Móvil]
+    [Módulo RA Móvil]
+    [Módulo IA Móvil]
+  }
+}
+
+package "Capa de Aplicación (FastAPI)" as API #FFF3E0 {
+  package "Paquete: Autenticación y Seguridad" as P1 #FFCDD2 {
+    [auth]
+    [users]
+    [roles]
+    [permissions]
+  }
+  
+  package "Paquete: Catálogo" as P2 #F8BBD0 {
+    [products]
+    [categories]
+    [sizes]
+    [colors]
+    [brands]
+    [garment_types]
+    [discounts]
+    [seasons]
+    [collections]
+  }
+  
+  package "Paquete: Inventario" as P3 #D1C4E9 {
+    [inventory]
+    [branches]
+  }
+  
+  package "Paquete: Proveedores" as P4 #C5CAE9 {
+    [suppliers]
+  }
+  
+  package "Paquete: Ventas y Pagos" as P5 #B2DFDB {
+    [orders]
+    [payments]
+    [payment_types]
+  }
+  
+  package "Paquete: Reservas" as P6 #B2EBF2 {
+    [reservations]
+    [cart]
+    [notifications]
+  }
+  
+  package "Paquete: Realidad Aumentada" as P7 #FFE0B2 {
+    [AR (Flutter)]
+  }
+  
+  package "Paquete: Inteligencia Artificial" as P8 #F0F4C3 {
+    [ia_service]
+    [ia_routes]
+  }
+  
+  package "Paquete: Reportes" as P9 #DCEDC8 {
+    [report_service]
+    [reports]
+  }
+}
+
+package "Capa de Datos" as DATA #ECEFF1 {
+  database "PostgreSQL" as PG {
+    [usuarios]
+    [productos]
+    [variantes]
+    [inventarios]
+    [pedidos]
+    [reservas]
+    [pagos]
+    [reportes]
+  }
+}
+
+package "Sistemas Externos" as EXT #FFEBEE {
+  [Google Gemini]
+  [Stripe / PayPal]
+  [ARCore / ARKit]
+}
+
+' Relaciones
+WEB --> API : HTTPS
+MOVIL --> API : HTTPS
+API --> DATA : SQLAlchemy
+API --> EXT : REST/SDK
+
+@enduml

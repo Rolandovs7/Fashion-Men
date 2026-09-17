@@ -1,0 +1,133 @@
+@startuml Análisis de Clases - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  ArrowColor #1565C0
+  FontSize 11
+}
+
+title 5.3 - Análisis de Clases (Alto Nivel)
+
+' === CLASES DE NEGOCIO ===
+package "Gestión de Usuarios" {
+  class Usuario {
+    - id
+    - nombre
+    - email
+    - password_hash
+    - rol
+    + iniciarSesion()
+    + registrar()
+  }
+  
+  class Rol {
+    - id
+    - nombre
+  }
+  
+  class Permiso {
+    - id
+    - nombre
+  }
+}
+
+package "Catálogo" {
+  class Producto {
+    - id
+    - nombre
+    - precio
+    - activo
+  }
+  
+  class ProductoVariante {
+    - id
+    - talla_id
+    - color_id
+  }
+  
+  class Categoria
+  class Talla
+  class Color
+  class Marca
+}
+
+package "Inventario y Sucursales" {
+  class Inventario {
+    - cantidad
+    - cantidad_reservada
+  }
+  
+  class Sucursal {
+    - nombre
+    - ciudad
+  }
+}
+
+package "Ventas y Reservas" {
+  class Pedido {
+    - fecha
+    - total
+    - estado
+  }
+  
+  class DetallePedido {
+    - cantidad
+    - subtotal
+  }
+  
+  class Reserva {
+    - fecha
+    - estado
+  }
+  
+  class Pago {
+    - metodo
+    - monto
+    - estado
+  }
+  
+  class Carrito
+}
+
+package "IA y Reportes" {
+  class IAService {
+    + recomendar()
+    + responderConsulta()
+  }
+  
+  class ReportService {
+    + dashboard()
+    + ventasPorMes()
+  }
+}
+
+' === RELACIONES ===
+Usuario "1" -- "*" Pedido : realiza
+Usuario "1" -- "*" Reserva : crea
+Usuario "1" -- "1" Carrito : tiene
+Usuario "1" -- "1" Rol : tiene
+
+Pedido "1" -- "*" DetallePedido : contiene
+Pedido "1" -- "1" Pago : tiene
+DetallePedido "*" -- "1" ProductoVariante : referencia
+
+Reserva "1" -- "*" ProductoVariante : incluye
+Reserva "*" -- "1" Sucursal : en
+
+Producto "1" -- "*" ProductoVariante : tiene
+ProductoVariante "*" -- "1" Talla : tiene
+ProductoVariante "*" -- "1" Color : tiene
+Producto "*" -- "1" Categoria : pertenece
+Producto "*" -- "1" Marca : pertenece
+
+ProductoVariante "1" -- "*" Inventario : tiene
+Inventario "*" -- "1" Sucursal : en
+
+IAService ..> Producto : consulta
+IAService ..> Pedido : analiza
+ReportService ..> Pedido : analiza
+ReportService ..> Inventario : analiza
+
+@enduml

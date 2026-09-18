@@ -23,7 +23,7 @@ export interface SucursalCrear {
 })
 export class SucursalesService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/sucursales';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/sucursales';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

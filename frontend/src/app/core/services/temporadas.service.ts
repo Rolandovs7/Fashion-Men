@@ -19,7 +19,7 @@ export interface TemporadaCrear {
 })
 export class TemporadasService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/temporadas';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/temporadas';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

@@ -20,7 +20,7 @@ export interface Carrito {
 })
 export class CarritoService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/carrito';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/carrito';
 
   // Contador reactivo para el badge del carrito en el header
   private contadorSubject = new BehaviorSubject<number>(0);

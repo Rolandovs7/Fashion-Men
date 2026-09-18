@@ -24,7 +24,7 @@ export interface PagoCrear {
 })
 export class PagosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/pagos';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/pagos';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

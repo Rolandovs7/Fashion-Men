@@ -27,7 +27,7 @@ export interface InventarioActualizar {
 })
 export class InventarioService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/inventario';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/inventario';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

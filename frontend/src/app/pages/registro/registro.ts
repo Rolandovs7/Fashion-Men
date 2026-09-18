@@ -50,7 +50,7 @@ export class Registro {
     };
 
     this.http.post(
-      'https://menstyle-hms1.onrender.com/api/auth/registro',
+      'https://menstyle-api-n77g.onrender.com/api/auth/registro',
       datos
     ).subscribe({
       next: () => {

@@ -14,7 +14,7 @@ export interface Marca {
 })
 export class MarcasService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/marcas';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/marcas';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

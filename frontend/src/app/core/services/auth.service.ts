@@ -35,7 +35,7 @@ export class AuthService {
 
   private http = inject(HttpClient);
 
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/auth';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/auth';
 
   login(email: string, password: string): Observable<Token> {
     const body = new HttpParams()

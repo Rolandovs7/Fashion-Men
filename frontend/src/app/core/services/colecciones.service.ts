@@ -19,7 +19,7 @@ export interface ColeccionCrear {
 })
 export class ColeccionesService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/colecciones';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/colecciones';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

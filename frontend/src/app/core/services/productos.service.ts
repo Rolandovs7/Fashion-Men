@@ -35,7 +35,7 @@ export interface ProductoCrear {
 })
 export class ProductosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/productos';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/productos';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

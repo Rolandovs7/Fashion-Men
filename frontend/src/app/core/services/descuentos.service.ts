@@ -23,7 +23,7 @@ export interface DescuentoCrear {
 })
 export class DescuentosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/descuentos';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/descuentos';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

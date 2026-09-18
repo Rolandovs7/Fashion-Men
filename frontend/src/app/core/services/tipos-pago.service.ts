@@ -13,7 +13,7 @@ export interface TipoPago {
 })
 export class TiposPagoService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/tipos-pago';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/tipos-pago';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

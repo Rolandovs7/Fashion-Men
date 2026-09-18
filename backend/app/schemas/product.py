@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class ProductoBase(BaseModel):
     nombre: str = Field(..., min_length=1, max_length=150)
     descripcion: Optional[str] = None
+    imagen_url: Optional[str] = Field(None, max_length=500)
     precio: float = Field(..., gt=0)
     categoria_id: int
     proveedor_id: Optional[int] = None
@@ -23,6 +24,7 @@ class ProductoCrear(ProductoBase):
 class ProductoActualizar(BaseModel):
     nombre: Optional[str] = Field(None, min_length=1, max_length=150)
     descripcion: Optional[str] = None
+    imagen_url: Optional[str] = Field(None, max_length=500)
     precio: Optional[float] = Field(None, gt=0)
     categoria_id: Optional[int] = None
     proveedor_id: Optional[int] = None

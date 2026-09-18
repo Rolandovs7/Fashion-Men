@@ -101,3 +101,72 @@ def run_seed_demo(x_admin_key: str = Header(None)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error ejecutando seed-demo: {str(e)}"
         )
+
+
+@router.post("/fix-imagenes")
+def fix_imagenes(x_admin_key: str = Header(None)):
+    """
+    Actualiza imagen_url de los 15 productos demo con rutas locales
+    bajo /imagenes/<categoria>/<archivo>.jpg
+
+    Idempotente: se puede ejecutar múltiples veces sin efectos adversos.
+    """
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clave de administración inválida"
+        )
+
+    # Mapeo: nombre del producto -> ruta de imagen
+    MAPA = {
+        "Camisa Formal Blanca":          "/imagenes/camisas/camisa-formal-blanca.jpg",
+        "Camisa Casual Azul":            "/imagenes/camisas/camisa-casual-azul.jpg",
+        "Pantalón de Vestir Negro":      "/imagenes/pantalones/pantalon-vestir-negro.jpg",
+        "Jean Clásico Azul":             "/imagenes/pantalones/jean-clasico-azul.jpg",
+        "Zapato Formal Negro":           "/imagenes/zapatos/zapato-formal-negro.jpg",
+        "Zapatilla Deportiva Blanca":    "/imagenes/zapatos/zapatilla-deportiva-blanca.jpg",
+        "Zapatilla Urbana Negra":        "/imagenes/zapatos/zapatilla-urbana-negra.jpg",
+        "Chaqueta de Cuero":             "/imagenes/chaquetas/chaqueta-cuero.jpg",
+        "Chaqueta Deportiva":            "/imagenes/chaquetas/chaqueta-deportiva.jpg",
+        "Polera Básica Negra":           "/imagenes/poleras/polera-basica-negra.jpg",
+        "Polera Estampada":              "/imagenes/poleras/polera-estampada.jpg",
+        "Traje Completo Gris":           "/imagenes/trajes/traje-completo-gris.jpg",
+        "Short Deportivo":               "/imagenes/ropa-deportiva/short-deportivo.jpg",
+        "Cinturón de Cuero":             "/imagenes/accesorios/cinturon-cuero.jpg",
+        "Bufanda de Lana":               "/imagenes/accesorios/bufanda-lana.jpg",
+    }
+
+    try:
+        from app.core.database import SessionLocal
+        from app.models.product import Producto
+
+        db = SessionLocal()
+        try:
+            actualizados = 0
+            no_encontrados = []
+
+            for nombre, ruta in MAPA.items():
+                producto = db.query(Producto).filter(Producto.nombre == nombre).first()
+                if producto:
+                    producto.imagen_url = ruta
+                    actualizados += 1
+                else:
+                    no_encontrados.append(nombre)
+
+            db.commit()
+
+            return {
+                "status": "ok",
+                "actualizados": actualizados,
+                "total_mapa": len(MAPA),
+                "no_encontrados": no_encontrados,
+                "mensaje": f"{actualizados}/{len(MAPA)} productos actualizados con imagen local"
+            }
+        finally:
+            db.close()
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error actualizando imágenes: {str(e)}"
+        )

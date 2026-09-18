@@ -24,11 +24,22 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-        <!-- Imagen placeholder -->
-        <div class="h-72 sm:h-96 rounded-2xl bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center shadow-md">
-          <svg class="w-24 h-24 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
-          </svg>
+        <!-- Imagen del producto -->
+        <div class="h-72 sm:h-96 rounded-2xl bg-neutral-100 overflow-hidden shadow-md flex items-center justify-center">
+          @if (producto.imagen_url) {
+            <img
+              [src]="producto.imagen_url"
+              [alt]="producto.nombre"
+              class="w-full h-full object-cover"
+              (error)="onImagenError($event)"
+            />
+          } @else {
+            <div class="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center">
+              <svg class="w-24 h-24 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+              </svg>
+            </div>
+          }
         </div>
 
         <!-- Información y selección -->

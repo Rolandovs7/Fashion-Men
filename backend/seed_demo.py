@@ -287,21 +287,21 @@ def sembrar_productos(db):
 
     # (nombre, desc, precio, categoria, marca, proveedor, temporada, coleccion, tipo, imagen_url)
     productos_data = [
-        ("Camisa Formal Blanca", "Camisa de vestir manga larga", 180, "Camisas", "Zara", "Textiles Bolivia S.A.", "Primavera-Verano 2026", "Clásica Premium", "Camisa Formal", "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500"),
-        ("Camisa Casual Azul", "Camisa casual de algodón", 150, "Camisas", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Camisa Casual", "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500"),
-        ("Pantalón de Vestir Negro", "Pantalón formal de corte recto", 250, "Pantalones", "Zara", "Textiles Bolivia S.A.", "Otoño-Invierno 2026", "Clásica Premium", "Pantalón de Vestir", "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500"),
-        ("Jean Clásico Azul", "Jean de mezclilla corte regular", 220, "Pantalones", "Levi's", "Moda Import SRL", "Primavera-Verano 2026", "Casual Weekend", "Jean", "https://images.unsplash.com/photo-1542272604-787c3835535d?w=500"),
-        ("Zapato Formal Negro", "Zapato de cuero para vestir", 380, "Zapatos", "Tommy Hilfiger", "Distribuidora Central", "Otoño-Invierno 2026", "Clásica Premium", "Zapato Formal", "https://images.unsplash.com/photo-1614252369475-531eba835eb1?w=500"),
-        ("Zapatilla Deportiva Blanca", "Zapatilla para running", 420, "Zapatos", "Nike", "Distribuidora Central", "Primavera-Verano 2026", "Sport Active", "Zapatilla", "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500"),
-        ("Zapatilla Urbana Negra", "Zapatilla casual urbana", 350, "Zapatos", "Adidas", "Distribuidora Central", "Primavera-Verano 2026", "Urbana 2026", "Zapatilla", "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=500"),
-        ("Chaqueta de Cuero", "Chaqueta de cuero genuino", 650, "Chaquetas", "Zara", "Moda Import SRL", "Otoño-Invierno 2026", "Clásica Premium", "Chaqueta", "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500"),
-        ("Chaqueta Deportiva", "Chaqueta cortavientos", 300, "Chaquetas", "Nike", "Distribuidora Central", "Otoño-Invierno 2026", "Sport Active", "Chaqueta", "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500"),
-        ("Polera Básica Negra", "Polera de algodón cuello redondo", 90, "Poleras", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Casual Weekend", "Polera", "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500"),
-        ("Polera Estampada", "Polera con diseño gráfico", 110, "Poleras", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Polera", "https://images.unsplash.com/photo-1503341504253-dff4815485f1?w=500"),
-        ("Traje Completo Gris", "Traje de 2 piezas color gris", 1200, "Trajes", "Tommy Hilfiger", "Textiles Bolivia S.A.", "Otoño-Invierno 2026", "Clásica Premium", "Camisa Formal", "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=500"),
-        ("Short Deportivo", "Short para entrenamiento", 130, "Ropa Deportiva", "Adidas", "Distribuidora Central", "Primavera-Verano 2026", "Sport Active", "Jean", "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=500"),
-        ("Cinturón de Cuero", "Cinturón formal de cuero", 120, "Accesorios", "Tommy Hilfiger", "Distribuidora Central", "Otoño-Invierno 2026", "Clásica Premium", "Camisa Formal", "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500"),
-        ("Bufanda de Lana", "Bufanda tejida para invierno", 80, "Accesorios", "H&M", "Importadora Andina", "Otoño-Invierno 2026", "Casual Weekend", "Chaqueta", "https://images.unsplash.com/photo-1520903920243-00d872a2d1c9?w=500"),
+        ("Camisa Formal Blanca", "Camisa de vestir manga larga", 180, "Camisas", "Zara", "Textiles Bolivia S.A.", "Primavera-Verano 2026", "Clásica Premium", "Camisa Formal", "/imagenes/camisas/camisa-formal-blanca.jpg"),
+        ("Camisa Casual Azul", "Camisa casual de algodón", 150, "Camisas", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Camisa Casual", "/imagenes/camisas/camisa-casual-azul.jpg"),
+        ("Pantalón de Vestir Negro", "Pantalón formal de corte recto", 250, "Pantalones", "Zara", "Textiles Bolivia S.A.", "Otoño-Invierno 2026", "Clásica Premium", "Pantalón de Vestir", "/imagenes/pantalones/pantalon-vestir-negro.jpg"),
+        ("Jean Clásico Azul", "Jean de mezclilla corte regular", 220, "Pantalones", "Levi's", "Moda Import SRL", "Primavera-Verano 2026", "Casual Weekend", "Jean", "/imagenes/pantalones/jean-clasico-azul.jpg"),
+        ("Zapato Formal Negro", "Zapato de cuero para vestir", 380, "Zapatos", "Tommy Hilfiger", "Distribuidora Central", "Otoño-Invierno 2026", "Clásica Premium", "Zapato Formal", "/imagenes/zapatos/zapato-formal-negro.jpg"),
+        ("Zapatilla Deportiva Blanca", "Zapatilla para running", 420, "Zapatos", "Nike", "Distribuidora Central", "Primavera-Verano 2026", "Sport Active", "Zapatilla", "/imagenes/zapatos/zapatilla-deportiva-blanca.jpg"),
+        ("Zapatilla Urbana Negra", "Zapatilla casual urbana", 350, "Zapatos", "Adidas", "Distribuidora Central", "Primavera-Verano 2026", "Urbana 2026", "Zapatilla", "/imagenes/zapatos/zapatilla-urbana-negra.jpg"),
+        ("Chaqueta de Cuero", "Chaqueta de cuero genuino", 650, "Chaquetas", "Zara", "Moda Import SRL", "Otoño-Invierno 2026", "Clásica Premium", "Chaqueta", "/imagenes/chaquetas/chaqueta-cuero.jpg"),
+        ("Chaqueta Deportiva", "Chaqueta cortavientos", 300, "Chaquetas", "Nike", "Distribuidora Central", "Otoño-Invierno 2026", "Sport Active", "Chaqueta", "/imagenes/chaquetas/chaqueta-deportiva.jpg"),
+        ("Polera Básica Negra", "Polera de algodón cuello redondo", 90, "Poleras", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Casual Weekend", "Polera", "/imagenes/poleras/polera-basica-negra.jpg"),
+        ("Polera Estampada", "Polera con diseño gráfico", 110, "Poleras", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Polera", "/imagenes/poleras/polera-estampada.jpg"),
+        ("Traje Completo Gris", "Traje de 2 piezas color gris", 1200, "Trajes", "Tommy Hilfiger", "Textiles Bolivia S.A.", "Otoño-Invierno 2026", "Clásica Premium", "Camisa Formal", "/imagenes/trajes/traje-completo-gris.jpg"),
+        ("Short Deportivo", "Short para entrenamiento", 130, "Ropa Deportiva", "Adidas", "Distribuidora Central", "Primavera-Verano 2026", "Sport Active", "Jean", "/imagenes/ropa-deportiva/short-deportivo.jpg"),
+        ("Cinturón de Cuero", "Cinturón formal de cuero", 120, "Accesorios", "Tommy Hilfiger", "Distribuidora Central", "Otoño-Invierno 2026", "Clásica Premium", "Camisa Formal", "/imagenes/accesorios/cinturon-cuero.jpg"),
+        ("Bufanda de Lana", "Bufanda tejida para invierno", 80, "Accesorios", "H&M", "Importadora Andina", "Otoño-Invierno 2026", "Casual Weekend", "Chaqueta", "/imagenes/accesorios/bufanda-lana.jpg"),
     ]
 
     productos_nuevos = 0

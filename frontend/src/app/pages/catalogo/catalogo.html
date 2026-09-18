@@ -70,11 +70,23 @@
               (click)="verProducto(producto)"
               class="text-left bg-white rounded-2xl border border-neutral-200/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group cursor-pointer">
 
-              <!-- Placeholder visual de la prenda -->
-              <div [class]="'h-44 w-full bg-gradient-to-br flex items-center justify-center ' + acentoPara(producto.id)">
-                <svg class="w-14 h-14 text-white/70 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
-                </svg>
+              <!-- Imagen de la prenda -->
+              <div class="h-44 w-full bg-neutral-100 overflow-hidden relative">
+                @if (producto.imagen_url) {
+                  <img
+                    [src]="producto.imagen_url"
+                    [alt]="producto.nombre"
+                    loading="lazy"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    (error)="onImagenError($event, producto)"
+                  />
+                } @else {
+                  <div [class]="'w-full h-full bg-gradient-to-br flex items-center justify-center ' + acentoPara(producto.id)">
+                    <svg class="w-14 h-14 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+                    </svg>
+                  </div>
+                }
               </div>
 
               <div class="p-4">

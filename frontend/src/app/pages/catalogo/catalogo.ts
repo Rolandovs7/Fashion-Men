@@ -91,4 +91,15 @@ export class Catalogo implements OnInit {
   verProducto(producto: Producto): void {
     this.router.navigate(['/producto', producto.id]);
   }
+
+  /**
+   * Fallback si una imagen no carga: reemplaza el src por vacío
+   * para que el @else del template muestre el placeholder SVG.
+   */
+  onImagenError(event: Event, producto: Producto): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    producto.imagen_url = null;
+    this.cdr.detectChanges();
+  }
 }

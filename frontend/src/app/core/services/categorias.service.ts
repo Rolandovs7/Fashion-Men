@@ -19,7 +19,7 @@ export interface CategoriaCrear {
 })
 export class CategoriasService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/categorias';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/categorias';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

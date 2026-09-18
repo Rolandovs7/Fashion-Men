@@ -36,7 +36,7 @@ export interface ReservaCrear {
 })
 export class ReservasService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/reservas';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/reservas';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

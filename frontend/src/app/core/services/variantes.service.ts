@@ -38,7 +38,7 @@ export interface Color {
 })
 export class VariantesService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

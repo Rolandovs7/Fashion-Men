@@ -15,7 +15,7 @@ export interface Permiso {
 export class PermisosService {
 
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/permisos';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/permisos';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

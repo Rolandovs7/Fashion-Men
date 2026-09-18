@@ -30,7 +30,7 @@ export interface ItemVentaPresencial {
 })
 export class PedidosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/pedidos';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/pedidos';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

@@ -32,7 +32,7 @@ export interface UsuarioCrear {
 })
 export class UsuariosService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/usuarios';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/usuarios';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

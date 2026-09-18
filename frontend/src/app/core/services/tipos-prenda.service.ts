@@ -14,7 +14,7 @@ export interface TipoPrenda {
 })
 export class TiposPrendaService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://menstyle-hms1.onrender.com/api/tipos-prenda';
+  private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/tipos-prenda';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({

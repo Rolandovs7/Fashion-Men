@@ -61,6 +61,27 @@ def listar_todos_los_pedidos(
 
 
 @router.get(
+    "/me",
+    response_model=List[PedidoRespuesta]
+)
+def listar_mis_pedidos_alias(
+    estado: Optional[str] = None,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
+):
+    """
+    CU33 - Gestionar Historial de Compras (alias /me)
+    RF15/RF16 - Historial de compras del usuario autenticado.
+    Alias de GET /api/pedidos para compatibilidad con la documentación.
+    """
+    return order_service.listar_pedidos_usuario(
+        db,
+        usuario_actual.id,
+        estado=estado
+    )
+
+
+@router.get(
     "/{pedido_id}",
     response_model=PedidoRespuesta
 )

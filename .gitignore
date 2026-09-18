@@ -121,7 +121,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # ---------- Docker / Deploy ----------
-.dockerignore
+# .dockerignore (comentado para permitir backend/.dockerignore y frontend/.dockerignore)
 *.pid
 *.seed
 *.pid.lock

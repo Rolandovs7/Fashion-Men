@@ -51,3 +51,151 @@ def listar_pagos_pedido(
         usuario_actual.id,
         pedido_id
     )
+
+# ============================================================
+# STRIPE - Pasarela de pago (RF19)
+# ============================================================
+from fastapi import Request, Header
+from app.schemas.payment import (
+    StripeIntentRequest,
+    StripeIntentResponse,
+    StripeConfirmRequest,
+    StripeConfirmResponse,
+    StripeConfigResponse,
+)
+from app.services import stripe_service
+
+
+@router.get(
+    "/stripe/config",
+    response_model=StripeConfigResponse,
+    tags=["Pagos - Stripe"]
+)
+def obtener_config_stripe():
+    """Retorna la configuración pública de Stripe."""
+    return stripe_service.obtener_config_publica()
+
+
+@router.post(
+    "/stripe/intent",
+    response_model=StripeIntentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Pagos - Stripe"]
+)
+def crear_stripe_intent(
+    datos: StripeIntentRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
+):
+    """
+    CU19 - Administrar Tipo de Pago
+    RF19 - Crear un PaymentIntent de Stripe para un pedido.
+    """
+    return stripe_service.crear_payment_intent(
+        db,
+        usuario_actual.id,
+        datos.pedido_id,
+        datos.moneda
+    )
+
+
+@router.post(
+    "/stripe/confirm",
+    response_model=StripeConfirmResponse,
+    tags=["Pagos - Stripe"]
+)
+def confirmar_stripe_pago(
+    datos: StripeConfirmRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
+):
+    """
+    CU19 - Administrar Tipo de Pago
+    RF19 - Confirmar el estado de un PaymentIntent.
+    """
+    return stripe_service.confirmar_pago(
+        db,
+        usuario_actual.id,
+        datos.payment_intent_id
+    )
+
+
+@router.post(
+    "/stripe/webhook",
+    tags=["Pagos - Stripe"]
+)
+async def stripe_webhook(
+    request: Request,
+    stripe_signature: str = Header(None, alias="stripe-signature")
+):
+    """
+    RF19 - Recibir eventos de Stripe (payment_intent.succeeded, etc.).
+    """
+    payload = await request.body()
+    return stripe_service.procesar_webhook(payload, stripe_signature)
+
+# ============================================================
+# STRIPE - Pasarela de pago (RF19)
+# ============================================================
+from app.schemas.payment import (
+    StripeIntentRequest,
+    StripeIntentResponse,
+    StripeConfirmRequest,
+    StripeConfirmResponse,
+    StripeConfigResponse,
+)
+from app.services import stripe_service
+
+
+@router.get(
+    "/stripe/config",
+    response_model=StripeConfigResponse,
+    tags=["Pagos - Stripe"]
+)
+def obtener_config_stripe():
+    """Retorna la configuración pública de Stripe (publishable key)."""
+    return stripe_service.obtener_config_publica()
+
+
+@router.post(
+    "/stripe/intent",
+    response_model=StripeIntentResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Pagos - Stripe"]
+)
+def crear_stripe_intent(
+    datos: StripeIntentRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
+):
+    """
+    CU19 - Administrar Tipo de Pago
+    RF19 - Crear un PaymentIntent de Stripe para un pedido.
+    """
+    return stripe_service.crear_payment_intent(
+        db,
+        usuario_actual.id,
+        datos.pedido_id,
+        datos.moneda
+    )
+
+
+@router.post(
+    "/stripe/confirm",
+    response_model=StripeConfirmResponse,
+    tags=["Pagos - Stripe"]
+)
+def confirmar_stripe_pago(
+    datos: StripeConfirmRequest,
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
+):
+    """
+    CU19 - Administrar Tipo de Pago
+    RF19 - Confirmar el estado de un PaymentIntent.
+    """
+    return stripe_service.confirmar_pago(
+        db,
+        usuario_actual.id,
+        datos.payment_intent_id
+    )

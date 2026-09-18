@@ -6,6 +6,7 @@ export interface Producto {
   id: number;
   nombre: string;
   descripcion?: string | null;
+  imagen_url?: string | null;
   precio: number;
   categoria_id: number;
   proveedor_id?: number | null;
@@ -20,6 +21,7 @@ export interface Producto {
 export interface ProductoCrear {
   nombre: string;
   descripcion?: string | null;
+  imagen_url?: string | null;
   precio: number;
   categoria_id: number;
   proveedor_id?: number | null;

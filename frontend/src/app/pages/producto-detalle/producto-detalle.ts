@@ -139,4 +139,17 @@ export class ProductoDetalle implements OnInit {
   irCarrito(): void {
     this.router.navigate(['/carrito']);
   }
+
+  /**
+   * Fallback si la imagen del producto no carga: la oculta y
+   * el @else del template muestra el placeholder SVG.
+   */
+  onImagenError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    if (this.producto) {
+      this.producto.imagen_url = null;
+    }
+    this.cdr.detectChanges();
+  }
 }

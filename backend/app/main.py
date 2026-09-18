@@ -27,6 +27,7 @@ from app.api.routes.users import router as users_router
 from app.api.routes.permissions import router as permissions_router
 from app.api.routes.ia import router as ia_router                              # ← NUEVA (CU31, CU32 - RF25)
 from app.api.routes.reports import router as reports_router
+from app.api.routes.admin import router as admin_router
 
 app = FastAPI(
     title="MenStyle API",
@@ -72,6 +73,7 @@ app.include_router(payments_router, prefix="/api/pagos", tags=["Pagos"])
 app.include_router(returns_router, prefix="/api/devoluciones", tags=["Devoluciones"])
 app.include_router(users_router, prefix="/api")
 app.include_router(permissions_router, prefix="/api")
+app.include_router(admin_router, prefix="/api", tags=["Admin"])
 
 # ============================================
 # ROUTERS - INTELIGENCIA ARTIFICIAL (RF25)

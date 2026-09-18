@@ -155,3 +155,6 @@ out/
 
 # ---------- Render ----------
 .render/
+
+# Backups locales
+*.bak*

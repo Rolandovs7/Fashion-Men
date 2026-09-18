@@ -60,3 +60,44 @@ def run_seed(x_admin_key: str = Header(None)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/seed-demo")
+def run_seed_demo(x_admin_key: str = Header(None)):
+    """
+    Ejecuta el script seed_demo.py para poblar la BD con datos demo.
+
+    Idempotente: si los datos ya existen, los omite.
+    Cubre: CU07, CU08, CU10-CU17, CU26-CU31 (datos para demo).
+    Requisito: RF04, RF05, RF06, RF07, RF21, RF22, RF23.
+    """
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clave de administración inválida"
+        )
+
+    try:
+        import subprocess
+        result = subprocess.run(
+            ["python", "seed_demo.py"],
+            cwd="/app",
+            capture_output=True,
+            text=True,
+            timeout=180  # 3 minutos máximo
+        )
+        return {
+            "status": "ok" if result.returncode == 0 else "error",
+            "stdout": result.stdout,
+            "stderr": result.stderr,
+            "returncode": result.returncode
+        }
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="El seed tardó más de 3 minutos. Verifica los logs."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error ejecutando seed-demo: {str(e)}"
+        )

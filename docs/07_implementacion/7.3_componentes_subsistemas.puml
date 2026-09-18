@@ -1,0 +1,56 @@
+@startuml Componentes por Subsistema - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam component {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  FontSize 10
+}
+
+title 7.3 - Componentes por Subsistema (Paquete 1: Autenticación)
+
+package "Subsistema: Autenticación y Seguridad" {
+  component "auth.py\\n(Router)" as AUTH
+  component "users.py\\n(Router)" as USERS
+  component "roles.py\\n(Router)" as ROLES
+  component "permissions.py\\n(Router)" as PERMS
+  
+  component "security.py\\n(bcrypt + JWT)" as SEC
+  component "dependencies.py\\n(get_current_user)" as DEPS
+  
+  component "Usuario\\n(Model)" as M_USR
+  component "Rol\\n(Model)" as M_ROL
+  component "Permiso\\n(Model)" as M_PERM
+  
+  interface "IUsuarioService" as I_USR
+  interface "IAuthService" as I_AUTH
+}
+
+database "PostgreSQL" as DB
+
+' Conexiones
+AUTH --> I_AUTH
+AUTH --> SEC
+AUTH --> DEPS
+USERS --> I_USR
+ROLES --> I_USR
+PERMS --> I_USR
+I_USR --> M_USR
+I_USR --> M_ROL
+I_USR --> M_PERM
+I_AUTH --> M_USR
+M_USR --> DB
+M_ROL --> DB
+M_PERM --> DB
+
+note bottom
+  <b>Endpoints del subsistema:</b>
+  POST /api/auth/login
+  POST /api/auth/register
+  GET /api/auth/me
+  GET/POST/PUT/DELETE /api/users
+  GET/POST/PUT/DELETE /api/roles
+  GET/POST/PUT/DELETE /api/permissions
+end note
+
+@enduml

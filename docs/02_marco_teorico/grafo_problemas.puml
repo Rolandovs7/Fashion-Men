@@ -1,0 +1,56 @@
+@startuml Grafo de Problemas - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam node {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  FontSize 10
+}
+skinparam arrowColor #1565C0
+
+title Grafo Dirigido de Dependencias entre Problemas
+
+' Los problemas que causan otros problemas
+node "P1\\nInformación\\ndispersa" as P1 #FFCDD2
+node "P2\\nDescontrol\\ninventario" as P2 #FFCDD2
+node "P3\\nSin disponibilidad\\nreal" as P3 #FFE0B2
+node "P4\\nReservas\\nmanuales" as P4 #FFF9C4
+node "P5\\nVentas\\nsin integrar" as P5 #FFF9C4
+node "P6\\nPagos sin\\ncontrol" as P6 #FFF9C4
+node "P7\\nProveedores\\nmanuales" as P7 #C8E6C9
+node "P8\\nSin\\ntrazabilidad" as P8 #B2DFDB
+node "P9\\nCatálogo\\ndesordenado" as P9 #B3E5FC
+node "P10\\nSin\\nreportes" as P10 #D1C4E9
+node "P11\\nRoles\\ndébiles" as P11 #F8BBD0
+node "P12\\nSin\\nexperiencia" as P12 #E1BEE7
+
+' Relaciones (causa → efecto)
+P1 --> P3
+P1 --> P10
+P2 --> P3
+P2 --> P4
+P2 --> P8
+P3 --> P4
+P5 --> P2
+P5 --> P6
+P6 --> P5
+P6 --> P10
+P7 --> P2
+P8 --> P10
+P9 --> P3
+P9 --> P10
+P11 --> P5
+P11 --> P8
+P12 --> P10
+
+note bottom
+  <b>Leyenda:</b>
+  - Rojo: Problemas de información
+  - Naranja: Inventario
+  - Amarillo: Ventas
+  - Verde: Abastecimiento
+  - Azul: Catálogo
+  - Morado: Seguridad/Experiencia
+end note
+
+@enduml

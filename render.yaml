@@ -6,10 +6,9 @@ services:
   - type: web
     name: menstyle-api
     runtime: python
-    plan: free
     region: oregon
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
@@ -31,7 +30,7 @@ services:
   - type: web
     name: menstyle-web
     runtime: static
-    plan: free
+    plan: free              # ← Static Site sí admite free
     rootDir: frontend
     buildCommand: npm ci && npm run build -- --configuration production
     staticPublishPath: dist/frontend/browser
@@ -45,6 +44,6 @@ services:
 
 databases:
   - name: menstyle-db
-    plan: free
+    plan: free              # ← PostgreSQL sí admite free
     databaseName: menstyle_db
     user: menstyle_user

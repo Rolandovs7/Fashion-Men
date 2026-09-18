@@ -1,0 +1,61 @@
+@startuml Diagrama de Ishikawa - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam arrowColor #1565C0
+skinparam noteBackgroundColor #FFF9C4
+skinparam noteBorderColor #F57F17
+
+title Diagrama de Ishikawa - Problemas de MenStyle
+
+' Estructura tipo espina de pescado usando salt (WBS)
+' Cabeza (efecto) al final, causas a los lados
+
+left to right direction
+
+skinparam rectangle {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  FontSize 10
+}
+
+rectangle "CAUSA 1\\nGestión de\\nInformación" as C1 #FFCDD2 {
+  note "P1: Datos dispersos" as N1
+  note "P8: Sin trazabilidad" as N8
+}
+
+rectangle "CAUSA 2\\nInventario y\\nDisponibilidad" as C2 #F8BBD0 {
+  note "P2: Descontrol stock" as N2
+  note "P3: Sin disponibilidad real" as N3
+}
+
+rectangle "CAUSA 3\\nSeguridad\\ny Control" as C3 #E1BEE7 {
+  note "P11: Roles débiles" as N11
+  note "P8: Sin auditoría" as N8b
+}
+
+rectangle "CAUSA 4\\nAbastecimiento\\ny Proveedores" as C4 #D1C4E9 {
+  note "P7: Proveedores manuales" as N7
+}
+
+rectangle "CAUSA 5\\nVentas, Reservas\\ny Pagos" as C5 #C5CAE9 {
+  note "P4: Reservas manuales" as N4
+  note "P5: Ventas aisladas" as N5
+  note "P6: Pagos sin control" as N6
+}
+
+rectangle "CAUSA 6\\nCatálogo,\\nExperiencia y Análisis" as C6 #BBDEFB {
+  note "P9: Catálogo desordenado" as N9
+  note "P10: Sin reportes" as N10
+  note "P12: Sin recomendaciones" as N12
+}
+
+rectangle "PROBLEMA\\nPRINCIPAL\\n\\nMenStyle no cuenta con\\nuna plataforma integrada\\nomnicanal" as EFECTO #FFEBEE
+
+C1 --> EFECTO
+C2 --> EFECTO
+C3 --> EFECTO
+C4 --> EFECTO
+C5 --> EFECTO
+C6 --> EFECTO
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml Ciclo de Vida 1
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+
+title Ciclo de Vida #1 - Autenticación, Usuarios, Roles y Permisos
+
+left to right direction
+
+actor "Administrador" as A1
+actor "Encargado de Sucursal" as A2
+actor "Cajero" as A3
+actor "Cliente" as A4
+
+rectangle "Módulo de Autenticación y Seguridad" {
+  usecase "CU01 Iniciar Sesión" as CU01
+  usecase "CU02 Cerrar Sesión" as CU02
+  usecase "CU03 Registrar Usuario" as CU03
+  usecase "CU04 Gestionar Usuarios" as CU04
+  usecase "CU05 Gestionar Roles" as CU05
+  usecase "CU06 Asignar Permisos" as CU06
+}
+
+A1 --> CU01
+A1 --> CU02
+A1 --> CU03
+A1 --> CU04
+A1 --> CU05
+A1 --> CU06
+
+A2 --> CU01
+A2 --> CU02
+
+A3 --> CU01
+A3 --> CU02
+
+A4 --> CU01
+A4 --> CU02
+A4 --> CU03
+
+CU04 ..> CU05 : <<include>>
+CU06 ..> CU05 : <<extend>>
+CU03 ..> CU01 : <<include>>
+
+@enduml

@@ -1,0 +1,67 @@
+@startuml Secuencia - CU24 Reservas
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ArrowColor #2E7D32
+}
+
+title 6.2.1 - Diagrama de Secuencia: CU24 Gestionar Reservas
+
+actor "Cliente" as C
+participant "Frontend" as FE
+participant "ReservaRouter" as RR
+participant "ReservaService" as RS
+participant "InventarioService" as IS
+participant "NotificationService" as NS
+database "PostgreSQL" as DB
+
+C -> FE : seleccionar prendas + sucursal + fecha
+activate FE
+
+FE -> RR : POST /api/reservas/
+activate RR
+
+RR -> RS : crearReserva(usuario_id, items, sucursal_id, fecha)
+activate RS
+
+RS -> IS : verificarStock(variante_id, sucursal_id, cantidad)
+activate IS
+IS -> DB : SELECT cantidad - cantidad_reservada
+activate DB
+DB --> IS : stock disponible
+deactivate DB
+IS --> RS : stock OK / insuficiente
+deactivate IS
+
+alt Stock disponible
+  RS -> IS : incrementarReservado(variante_id, cantidad)
+  activate IS
+  IS -> DB : UPDATE inventarios SET cantidad_reservada += ?
+  DB --> IS : OK
+  IS --> RS : OK
+  deactivate IS
+  
+  RS -> DB : INSERT INTO reservas
+  activate DB
+  DB --> RS : reserva_id
+  deactivate DB
+  
+  RS -> NS : notificarSucursal(sucursal_id, reserva_id)
+  activate NS
+  NS --> RS : OK
+  deactivate NS
+  
+  RS --> RR : ReservaRespuesta
+  RR --> FE : 201 Created
+  FE --> C : mostrar "Reserva confirmada"
+else Stock insuficiente
+  RS --> RR : raise HTTPException(400)
+  RR --> FE : 400 Bad Request
+  FE --> C : mostrar "Producto no disponible"
+end
+
+deactivate RS
+deactivate RR
+deactivate FE
+
+@enduml

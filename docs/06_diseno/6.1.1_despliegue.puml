@@ -1,0 +1,77 @@
+@startuml Diagrama de Despliegue - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam node {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam database {
+  BackgroundColor #DCEDC8
+  BorderColor #2E7D32
+}
+skinparam cloud {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+title 6.1.1 - Diseño Físico: Diagrama de Despliegue
+
+node "Cliente Web\n(Navegador Chrome/Firefox)" as Webbrowser {
+  artifact "Angular SPA" as Angular
+}
+
+node "Cliente Móvil\n(Android/iOS)" as Mobile {
+  artifact "Flutter App" as Flutter
+  artifact "ARCore/ARKit" as AR
+}
+
+cloud "Servicios en la Nube" as Cloud {
+  node "Servidor Backend\n(Render - 512MB RAM)" as Backend {
+    artifact "FastAPI (uvicorn)" as FastAPI
+    artifact "Alembic (migraciones)" as Alembic
+  }
+  
+  database "PostgreSQL\n(Render)" as Postgres {
+    folder "menstyle_db" as DB {
+      artifact "21 tablas"
+    }
+  }
+  
+  node "Frontend Web\n(Render Static)" as Frontend {
+    artifact "Angular build" as AngularBuild
+  }
+}
+
+cloud "Servicios Externos" as Ext {
+  node "Google Gemini\n(API REST)" as Gemini
+  node "Stripe\n(API REST)" as Stripe
+}
+
+' Conexiones
+Angular --> Backend : HTTPS / REST
+Flutter --> Backend : HTTPS / REST
+Flutter --> AR : SDK nativo
+Webbrowser --> Frontend : HTTPS
+Backend --> Postgres : TCP/IP (5432)
+Backend --> Gemini : HTTPS (JSON)
+Backend --> Stripe : HTTPS (JSON)
+
+note right of Backend
+  <b>Endpoints:</b>
+  - /api/auth
+  - /api/productos
+  - /api/reservas
+  - /api/pedidos
+  - /api/pagos
+  - /api/ia
+  - /api/reportes
+end note
+
+note right of Postgres
+  <b>21 tablas:</b>
+  usuarios, productos, variantes,
+  inventarios, pedidos, reservas,
+  pagos, etc.
+end note
+
+@enduml

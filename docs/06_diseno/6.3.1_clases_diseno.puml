@@ -1,0 +1,199 @@
+@startuml Clases de Diseño - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam class {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  ArrowColor #1565C0
+  FontSize 10
+  AttributeFontSize 9
+}
+
+title 6.3.1 - Diagrama de Clases de Diseño (Detallado)
+
+' === USUARIOS Y SEGURIDAD ===
+class Usuario {
+  + id : Integer <<PK>>
+  - nombre : String(100)
+  - apellido : String(100)
+  - email : String(150) <<UNIQUE>>
+  - password_hash : String(255)
+  - activo : Boolean
+  - rol : String(30)
+  - fecha_creacion : DateTime
+  + iniciarSesion() : Token
+  + verificarPassword() : Boolean
+}
+
+class Rol {
+  + id : Integer <<PK>>
+  - nombre : String(30) <<UNIQUE>>
+  - activo : Boolean
+}
+
+class Permiso {
+  + id : Integer <<PK>>
+  - nombre : String(50)
+}
+
+class RolPermiso {
+  + rol_id : Integer <<FK>>
+  + permiso_id : Integer <<FK>>
+}
+
+Usuario "*" -- "1" Rol
+Rol "1" -- "*" RolPermiso
+Permiso "1" -- "*" RolPermiso
+
+' === CATÁLOGO ===
+class Producto {
+  + id : Integer <<PK>>
+  - nombre : String(150)
+  - descripcion : Text
+  - precio : Numeric(10,2)
+  - categoria_id : Integer <<FK>>
+  - proveedor_id : Integer <<FK>>
+  - temporada_id : Integer <<FK>>
+  - coleccion_id : Integer <<FK>>
+  - tipo_prenda_id : Integer <<FK>>
+  - marca_id : Integer <<FK>>
+  - descuento_id : Integer <<FK>>
+  - activo : Boolean
+}
+
+class ProductoVariante {
+  + id : Integer <<PK>>
+  - producto_id : Integer <<FK>>
+  - talla_id : Integer <<FK>>
+  - color_id : Integer <<FK>>
+  - activo : Boolean
+}
+
+class Categoria {
+  + id : Integer <<PK>>
+  - nombre : String(100) <<UNIQUE>>
+  - descripcion : String(255)
+}
+
+class Talla { + id : Integer <<PK>> \n - nombre : String(10) }
+class Color { + id : Integer <<PK>> \n - nombre : String(30) \n - codigo_hex : String(7) }
+class Marca { + id : Integer <<PK>> \n - nombre : String(100) }
+class Temporada { + id : Integer <<PK>> \n - nombre : String(50) }
+class Coleccion { + id : Integer <<PK>> \n - nombre : String(100) }
+class Descuento { + id : Integer <<PK>> \n - porcentaje : Numeric(5,2) \n - fecha_inicio : Date \n - fecha_fin : Date }
+class TipoPrenda { + id : Integer <<PK>> \n - nombre : String(50) }
+
+Producto "1" -- "*" ProductoVariante
+Producto "*" -- "1" Categoria
+Producto "*" -- "1" Marca
+Producto "*" -- "1" Temporada
+Producto "*" -- "1" Coleccion
+Producto "*" -- "1" Descuento
+Producto "*" -- "1" TipoPrenda
+ProductoVariante "*" -- "1" Talla
+ProductoVariante "*" -- "1" Color
+
+' === INVENTARIO ===
+class Inventario {
+  + id : Integer <<PK>>
+  - variante_id : Integer <<FK>>
+  - sucursal_id : Integer <<FK>>
+  - cantidad : Integer
+  - cantidad_reservada : Integer
+}
+
+class Sucursal {
+  + id : Integer <<PK>>
+  - nombre : String(100) <<UNIQUE>>
+  - direccion : String(255)
+  - ciudad : String(100)
+  - telefono : String(30)
+  - activo : Boolean
+}
+
+Inventario "*" -- "1" ProductoVariante
+Inventario "*" -- "1" Sucursal
+
+' === VENTAS ===
+class Pedido {
+  + id : Integer <<PK>>
+  - usuario_id : Integer <<FK>>
+  - fecha_pedido : DateTime
+  - estado : String(30)
+  - total : Numeric(10,2)
+}
+
+class DetallePedido {
+  + id : Integer <<PK>>
+  - pedido_id : Integer <<FK>>
+  - variante_id : Integer <<FK>>
+  - cantidad : Integer
+  - precio_unitario : Numeric(10,2)
+  - subtotal : Numeric(10,2)
+}
+
+class Pago {
+  + id : Integer <<PK>>
+  - pedido_id : Integer <<FK>>
+  - metodo : String(30)
+  - monto : Numeric(10,2)
+  - estado : String(30)
+  - referencia : String(150)
+  - fecha_pago : DateTime
+}
+
+class Carrito {
+  + id : Integer <<PK>>
+  - usuario_id : Integer <<FK>>
+  - fecha_creacion : DateTime
+}
+
+class CarritoDetalle {
+  + id : Integer <<PK>>
+  - carrito_id : Integer <<FK>>
+  - variante_id : Integer <<FK>>
+  - cantidad : Integer
+}
+
+Usuario "1" -- "*" Pedido
+Pedido "1" -- "*" DetallePedido
+Pedido "1" -- "1" Pago
+DetallePedido "*" -- "1" ProductoVariante
+Usuario "1" -- "1" Carrito
+Carrito "1" -- "*" CarritoDetalle
+CarritoDetalle "*" -- "1" ProductoVariante
+
+' === RESERVAS ===
+class Reserva {
+  + id : Integer <<PK>>
+  - usuario_id : Integer <<FK>>
+  - sucursal_id : Integer <<FK>>
+  - fecha_reserva : DateTime
+  - fecha_visita : DateTime
+  - estado : String(30)
+}
+
+class ReservaDetalle {
+  + id : Integer <<PK>>
+  - reserva_id : Integer <<FK>>
+  - variante_id : Integer <<FK>>
+  - cantidad : Integer
+}
+
+Usuario "1" -- "*" Reserva
+Reserva "1" -- "*" ReservaDetalle
+ReservaDetalle "*" -- "1" ProductoVariante
+Reserva "*" -- "1" Sucursal
+
+' === PROVEEDORES ===
+class Proveedor {
+  + id : Integer <<PK>>
+  - nombre : String(100) <<UNIQUE>>
+  - contacto : String(100)
+  - telefono : String(30)
+  - email : String(150)
+  - activo : Boolean
+}
+Producto "*" -- "1" Proveedor
+
+@enduml

@@ -1,0 +1,54 @@
+# ============================================================
+# Docker Compose - MenStyle (desarrollo local)
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: menstyle_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: menstyle_user
+      POSTGRES_PASSWORD: menstyle123
+      POSTGRES_DB: menstyle_db
+    ports:
+      - "5433:5432"    # ← CAMBIO AQUÍ (evita conflicto con PostgreSQL local)
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U menstyle_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: menstyle_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://menstyle_user:menstyle123@postgres:5432/menstyle_db
+      SECRET_KEY: menstyle-clave-secreta-desarrollo-2026
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: menstyle_frontend
+    restart: unless-stopped
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

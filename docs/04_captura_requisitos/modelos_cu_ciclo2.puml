@@ -1,0 +1,71 @@
+@startuml Ciclo de Vida 2
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+title Ciclo de Vida #2 - Catálogo, Inventario y Proveedores
+
+left to right direction
+
+actor "Administrador" as A1
+actor "Encargado de Sucursal" as A2
+actor "Cliente" as A4
+actor "Proveedor" as A5
+
+rectangle "Catálogo de Productos" {
+  usecase "CU07 Gestionar Productos" as CU07
+  usecase "CU08 Gestionar Tipo Prenda" as CU08
+  usecase "CU09 Gestionar Descuentos" as CU09
+  usecase "CU10 Gestionar Marcas" as CU10
+  usecase "CU11 Gestionar Tallas" as CU11
+  usecase "CU12 Gestionar Colores" as CU12
+  usecase "CU13 Gestionar Imágenes" as CU13
+  usecase "CU14 Administrar Catálogo" as CU14
+  usecase "CU16 Gestionar Categorías" as CU16
+}
+
+rectangle "Inventario y Sucursales" {
+  usecase "CU15 Administrar Inventario" as CU15
+  usecase "CU17 Gestionar Sucursales" as CU17
+  usecase "CU25 Consultar Disponibilidad" as CU25
+}
+
+rectangle "Proveedores y Temporadas" {
+  usecase "CU26 Gestionar Proveedores" as CU26
+  usecase "CU27 Gestionar Temporadas" as CU27
+  usecase "CU28 Gestionar Colecciones" as CU28
+}
+
+A1 --> CU07
+A1 --> CU08
+A1 --> CU09
+A1 --> CU10
+A1 --> CU11
+A1 --> CU12
+A1 --> CU13
+A1 --> CU14
+A1 --> CU15
+A1 --> CU16
+A1 --> CU17
+A1 --> CU26
+A1 --> CU27
+A1 --> CU28
+
+A2 --> CU15
+A2 --> CU25
+A4 --> CU14
+A4 --> CU25
+A5 --> CU26
+A5 --> CU27
+A5 --> CU28
+
+CU07 ..> CU11 : <<include>>
+CU07 ..> CU12 : <<include>>
+CU14 ..> CU25 : <<extend>>
+CU15 ..> CU25 : <<include>>
+
+@enduml

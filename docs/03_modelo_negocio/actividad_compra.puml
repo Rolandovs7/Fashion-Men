@@ -1,0 +1,61 @@
+@startuml Proceso de Compra Digital
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam activity {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  DiamondBackgroundColor #FFF9C4
+  DiamondBorderColor #F57F17
+}
+
+title 3.1.2 - Proceso de Compra Digital y Actualización de Inventario
+
+|Cliente|
+start
+:Iniciar sesión;
+:Consultar catálogo;
+:Agregar productos al carrito;
+:Modificar cantidades;
+
+|#AntiqueWhite|Sistema|
+:Consultar disponibilidad;
+if (¿Stock suficiente?) then (Sí)
+  :Calcular total;
+  
+  |Cliente|
+  :Iniciar checkout;
+  :Seleccionar método de pago;
+  
+  |Sistema de Pagos|
+  :Procesar pago;
+  
+  if (¿Pago aprobado?) then (Sí)
+    |Sistema|
+    :Registrar pedido;
+    :Registrar pago (estado="aprobado");
+    :Decrementar inventario;
+    :Enviar notificación al cliente;
+    
+    |Cliente|
+    :Recibir confirmación;
+    :Consultar historial de compras;
+  else (No)
+    |Sistema|
+    :Registrar pago (estado="rechazado");
+    :Notificar rechazo al cliente;
+    
+    |Cliente|
+    :Ver mensaje de error;
+    :Reintentar pago;
+  endif
+else (No)
+  |Sistema|
+  :Mostrar "Stock insuficiente";
+  
+  |Cliente|
+  :Modificar carrito;
+endif
+
+stop
+
+@enduml

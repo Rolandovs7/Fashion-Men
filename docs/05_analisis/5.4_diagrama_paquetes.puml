@@ -1,0 +1,63 @@
+@startuml Diagrama de Paquetes - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  FontSize 12
+}
+
+title 5.4 - Diagrama de Paquetes del Sistema
+
+package "MenStyle (Sistema)" {
+  
+  package "Backend (FastAPI)" as BACK #FFE0B2 {
+    package "api.routes" as ROUTES #FFCCBC
+    package "services" as SERVICES #F8BBD0
+    package "schemas" as SCHEMAS #E1BEE7
+    package "models" as MODELS #D1C4E9
+    package "core" as CORE #C5CAE9
+  }
+  
+  package "Frontend Web (Angular)" as WEB #B3E5FC {
+    package "core.services" as WSERV
+    package "pages" as WPAGES
+    package "shared" as WSHARED
+  }
+  
+  package "Mobile (Flutter)" as MOBILE #B2DFDB {
+    package "services" as MSERV
+    package "screens" as MSCREENS
+    package "widgets" as MWIDGETS
+    package "ar" as MAR
+  }
+  
+  package "Base de Datos" as DB #DCEDC8 {
+    package "PostgreSQL" as PG
+  }
+  
+  package "Externos" as EXT #FFCDD2 {
+    package "Gemini" as GEM
+    package "Stripe" as STR
+    package "ARCore/ARKit" as AR
+  }
+}
+
+' Dependencias
+ROUTES --> SERVICES
+SERVICES --> SCHEMAS
+SERVICES --> MODELS
+MODELS --> CORE
+CORE --> PG
+
+WPAGES --> WSERV
+WSERV --> ROUTES
+MSCREENS --> MSERV
+MSERV --> ROUTES
+MAR --> AR
+
+SERVICES --> GEM : REST
+ROUTES --> STR : REST
+
+@enduml

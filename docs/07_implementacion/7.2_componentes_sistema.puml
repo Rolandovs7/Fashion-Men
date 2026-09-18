@@ -1,0 +1,88 @@
+@startuml Componentes del Sistema - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam component {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+  FontSize 11
+}
+skinparam interface {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+title 7.2 - Diagrama de Componentes Principal del Sistema
+
+package "Cliente Web" {
+  [Angular SPA] as WEB
+}
+
+package "Cliente Móvil" {
+  [Flutter App] as MOVIL
+  [AR Module] as AR
+}
+
+package "Backend FastAPI" {
+  component "API REST" as API {
+    [Auth Router]
+    [Catalog Router]
+    [Inventory Router]
+    [Sales Router]
+    [IA Router]
+    [Reports Router]
+  }
+  
+  component "Services" as SRV {
+    [Auth Service]
+    [Product Service]
+    [Inventory Service]
+    [Order Service]
+    [IA Service]
+    [Report Service]
+  }
+  
+  component "Data Layer" as DATA {
+    [SQLAlchemy Models]
+    [Alembic Migrations]
+  }
+}
+
+database "PostgreSQL" as DB
+
+cloud "Servicios Externos" {
+  [Google Gemini]
+  [Stripe]
+}
+
+' Interfaces
+interface "REST API\n/api/*" as IAPI
+interface "JWT Auth" as IJWT
+
+' Conexiones
+WEB -right-> IAPI
+MOVIL -right-> IAPI
+MOVIL -right-> AR
+AR ..> [ARCore/ARKit]
+
+IAPI -down-> API
+API --> SRV : usa
+SRV --> DATA : usa
+DATA -down-> DB : SQL
+SRV -right-> [Google Gemini] : HTTPS
+SRV -right-> [Stripe] : HTTPS
+
+note right of API
+  <b>Componentes principales:</b>
+  - 24 routers (endpoints)
+  - Schemas Pydantic
+  - Middleware CORS
+end note
+
+note right of SRV
+  <b>Servicios de negocio:</b>
+  - Lógica de negocio
+  - Validaciones
+  - Transacciones
+end note
+
+@enduml

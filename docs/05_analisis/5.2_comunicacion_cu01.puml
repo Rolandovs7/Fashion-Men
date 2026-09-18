@@ -1,0 +1,37 @@
+@startuml Diagrama de Comunicación - CU01
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam object {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam sequenceMessageAlign center
+
+title 5.2 - Diagrama de Comunicación CU01: Administrar Inicio de Sesión
+
+' Nota: PlantUML no tiene diagrama de comunicación nativo.
+' Se simula usando un diagrama de objetos + secuencia simplificada.
+
+object ":Cliente" as C
+object ":LoginView\n(UI)" as UI
+object ":AuthController\n(FastAPI)" as AC
+object ":AuthService" as AS
+object ":UsuarioRepository" as UR
+object ":TokenService\n(JWT)" as TS
+database ":PostgreSQL" as DB
+
+C --> UI : 1: ingresar(email, password)
+UI --> AC : 2: POST /api/auth/login
+AC --> AS : 3: autenticar(email, password)
+AS --> UR : 4: obtenerPorEmail(email)
+UR --> DB : 5: SELECT * FROM usuarios
+DB --> UR : 6: usuario
+UR --> AS : 7: usuario
+AS --> AS : 8: verificarPassword(bcrypt)
+AS --> TS : 9: generarToken(usuario)
+TS --> AS : 10: token JWT
+AS --> AC : 11: usuario + token
+AC --> UI : 12: 200 OK + token
+UI --> C : 13: redirigir a panel
+
+@enduml

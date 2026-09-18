@@ -1,0 +1,51 @@
+@startuml Estados de Pedido - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam state {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+  ArrowColor #1565C0
+}
+
+title 6.2.4 - Diagrama de Estados: Ciclo de Vida del Pedido
+
+[*] --> Pendiente : crearPedido()
+
+Pendiente --> Pagado : procesarPago() [pago aprobado]
+Pendiente --> Cancelado : cancelarPedido() [cliente]
+Pendiente --> Cancelado : timeoutPago() [30 min]
+
+Pagado --> EnPreparacion : prepararPedido() [encargado]
+EnPreparacion --> Enviado : despacharPedido() [entrega]
+
+Enviado --> Entregado : recibirPedido() [cliente]
+Enviado --> Devolucion : solicitarDevolucion() [cliente]
+
+Entregado --> Devolucion : solicitarDevolucion() [7 días]
+Entregado --> [*] : finalizar()
+
+Devolucion --> Reembolsado : procesarDevolucion() [aprobada]
+Devolucion --> Entregado : rechazarDevolucion()
+
+Reembolsado --> [*]
+Cancelado --> [*]
+
+note right of Pendiente
+  Estado inicial.
+  <b>Acciones:</b>
+  - Procesar pago
+  - Cancelar
+end note
+
+note right of Pagado
+  Pago confirmado.
+  Stock decrementado.
+end note
+
+note right of Entregado
+  Cliente recibió el producto.
+  Inicia ventana de 7 días
+  para devolución.
+end note
+
+@enduml

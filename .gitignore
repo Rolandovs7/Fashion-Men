@@ -149,3 +149,9 @@ temp/
 # ---------- PlantUML output ----------
 out/
 /out
+
+# ---------- Docker ----------
+*.dockerignore.bak
+
+# ---------- Render ----------
+.render/

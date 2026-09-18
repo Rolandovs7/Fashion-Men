@@ -1,0 +1,50 @@
+@startuml Diagrama de Red - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam node {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+
+title 6.2.3 - Diagrama de Red (Topología de Despliegue)
+
+node "Internet" as INET {
+  cloud "Usuarios" {
+    node "Navegador Web" as NAV
+    node "Dispositivo Móvil" as MOB
+  }
+}
+
+node "Servicios Nube (Render)" as CLOUD {
+  node "CDN / Frontend" as CDN {
+    artifact "menstyle-web.onrender.com" as WEB_URL
+  }
+  
+  node "API Gateway" as GW {
+    artifact "menstyle-hms1.onrender.com" as API_URL
+  }
+  
+  node "Backend Cluster" as BClust {
+    node "uvicorn:8000" as UV
+  }
+  
+  node "Database Cluster" as DClust {
+    database "PostgreSQL 5432" as PG
+  }
+}
+
+cloud "Servicios Externos" as EXT {
+  node "Google Gemini API" as GEM
+  node "Stripe API" as STR
+}
+
+' Enlaces
+NAV --> CDN : HTTPS 443
+MOB --> GW : HTTPS 443
+CDN --> GW : HTTPS
+GW --> UV : HTTP interno
+UV --> PG : TCP 5432
+UV --> GEM : HTTPS 443
+UV --> STR : HTTPS 443
+
+@enduml

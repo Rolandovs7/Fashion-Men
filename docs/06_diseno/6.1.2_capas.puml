@@ -1,0 +1,72 @@
+@startuml Diseño Lógico por Capas - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam component {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+skinparam package {
+  BackgroundColor #FFF3E0
+  BorderColor #E65100
+}
+
+title 6.1.2 - Diseño Lógico Organizado en Capas
+
+package "Capa 1: Presentación" as Capa1 #E3F2FD {
+  component "Web Angular" as Web
+  component "Móvil Flutter" as Movil
+}
+
+package "Capa 2: API REST (FastAPI)" as Capa2 #FFF3E0 {
+  component "Routers (endpoints)" as Routers
+  component "Schemas (Pydantic)" as Schemas
+  component "Middleware CORS" as CORS
+  component "Auth JWT" as Auth
+}
+
+package "Capa 3: Lógica de Negocio" as Capa3 #FFF9C4 {
+  component "Services" as Services
+  component "IA Service" as IAService
+  component "Report Service" as ReportService
+  component "Payment Service" as PaymentService
+}
+
+package "Capa 4: Acceso a Datos" as Capa4 #F8BBD0 {
+  component "Models (SQLAlchemy)" as Models
+  component "Repositories" as Repos
+  component "Alembic Migrations" as Alembic
+}
+
+package "Capa 5: Persistencia" as Capa5 #DCEDC8 {
+  database "PostgreSQL" as Postgres
+}
+
+package "Capa 6: Servicios Externos" as Capa6 #FFCDD2 {
+  component "Google Gemini" as Gemini
+  component "Stripe" as Stripe
+  component "ARCore/ARKit" as AR
+}
+
+' Flujo de capas
+Web --> Routers
+Movil --> Routers
+Routers --> Schemas
+Routers --> Auth
+Routers --> Services
+Services --> IAService
+Services --> ReportService
+Services --> PaymentService
+Services --> Models
+Models --> Repos
+Repos --> Postgres
+IAService --> Gemini
+PaymentService --> Stripe
+Movil --> AR
+
+note bottom of Services
+  <b>Regla:</b> Cada capa solo
+  se comunica con la inmediata
+  inferior (arquitectura en capas).
+end note
+
+@enduml

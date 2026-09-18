@@ -1,0 +1,76 @@
+@startuml Navegación - MenStyle
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam state {
+  BackgroundColor #E3F2FD
+  BorderColor #1565C0
+}
+
+title 6.2.2 - Diagrama de Navegación del Sistema
+
+state "Inicio / Login" as Login
+
+state "Web (Admin)" as Web {
+  state "Dashboard" as Dashboard
+  state "Gestión Usuarios" as Usuarios
+  state "Gestión Productos" as Productos
+  state "Gestión Inventario" as Inventario
+  state "Gestión Reservas" as Reservas
+  state "Punto de Venta" as POS
+  state "Reportes" as Reportes
+}
+
+state "Móvil (Cliente)" as Movil {
+  state "Catálogo" as Catalogo
+  state "Detalle Producto" as Detalle
+  state "Probador Virtual" as RA
+  state "Carrito" as Carrito
+  state "Checkout" as Checkout
+  state "Mis Reservas" as MisReservas
+  state "Mis Pedidos" as MisPedidos
+  state "Chat IA" as ChatIA
+}
+
+state "Fin" as Fin
+
+[*] --> Login
+
+Login --> Dashboard : Admin
+Login --> Catalogo : Cliente
+
+Dashboard --> Usuarios
+Dashboard --> Productos
+Dashboard --> Inventario
+Dashboard --> Reservas
+Dashboard --> POS
+Dashboard --> Reportes
+
+Catalogo --> Detalle : seleccionar
+Detalle --> RA : probar
+Detalle --> Carrito : agregar
+Detalle --> MisReservas : reservar
+
+Carrito --> Checkout : pagar
+Checkout --> MisPedidos : confirmar
+
+Catalogo --> ChatIA : consultar
+
+Usuarios --> Dashboard
+Productos --> Dashboard
+Inventario --> Dashboard
+Reservas --> Dashboard
+POS --> Dashboard
+Reportes --> Dashboard
+RA --> Detalle
+Carrito --> Catalogo
+Checkout --> Catalogo
+MisPedidos --> Catalogo
+MisReservas --> Catalogo
+ChatIA --> Catalogo
+
+Dashboard --> Login : logout
+Catalogo --> Login : logout
+
+Login --> Fin : cerrar
+
+@enduml

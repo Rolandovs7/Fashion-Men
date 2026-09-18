@@ -1,0 +1,62 @@
+@startuml Tiempo - CU01 Login
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam timing {
+  BackgroundColor #E3F2FD
+  LineColor #1565C0
+  FontSize 11
+}
+
+title 6.2.5 - Diagrama de Tiempo: CU01 Administrar Inicio de Sesión
+
+robust "Cliente" as C
+concise "Frontend" as FE
+concise "Backend (FastAPI)" as BE
+concise "Base de Datos" as DB
+concise "JWT" as JWT
+
+@0
+C is "Esperando"
+FE is "Idle"
+BE is "Idle"
+DB is "Idle"
+JWT is "Idle"
+
+@1
+C is "Ingresando\ncredenciales"
+FE is "Formulario"
+
+@2
+C is "Click Login"
+FE is "Enviando HTTP"
+BE is "Recibiendo"
+
+@3
+BE is "Validando"
+DB is "Consultando"
+
+@4
+DB is "Retornando\nusuario"
+BE is "Verificando\npassword"
+
+@5
+BE is "Generando\nJWT"
+JWT is "Generando token"
+
+@6
+JWT is "Token listo"
+BE is "Enviando respuesta"
+
+@7
+FE is "Recibiendo token"
+BE is "Idle"
+
+@8
+FE is "Guardando\ntoken"
+C is "Redirigido"
+
+@9
+C is "En panel"
+FE is "Idle"
+
+@enduml

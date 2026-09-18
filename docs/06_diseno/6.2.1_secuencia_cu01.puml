@@ -1,0 +1,63 @@
+@startuml Secuencia - CU01 Login
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam sequence {
+  ArrowColor #1565C0
+  ActorBorderColor #1565C0
+  LifeLineBorderColor #1565C0
+  ParticipantBorderColor #E65100
+}
+
+title 6.2.1 - Diagrama de Secuencia: CU01 Administrar Inicio de Sesión
+
+actor "Usuario" as U
+participant "Frontend\n(Angular/Flutter)" as FE
+participant "AuthRouter\n(FastAPI)" as AR
+participant "AuthService" as AS
+participant "Security\n(bcrypt/JWT)" as SEC
+participant "UsuarioRepository" as UR
+database "PostgreSQL" as DB
+
+U -> FE : ingresar(email, password)
+activate FE
+
+FE -> AR : POST /api/auth/login
+activate AR
+
+AR -> AS : autenticar(email, password)
+activate AS
+
+AS -> UR : obtenerPorEmail(email)
+activate UR
+UR -> DB : SELECT * FROM usuarios WHERE email=?
+activate DB
+DB --> UR : usuario
+deactivate DB
+UR --> AS : usuario
+deactivate UR
+
+alt Usuario existe
+  AS -> SEC : verificarPassword(password, hash)
+  activate SEC
+  SEC --> AS : True
+  deactivate SEC
+  
+  AS -> SEC : generarTokenJWT(usuario)
+  activate SEC
+  SEC --> AS : token
+  deactivate SEC
+  
+  AS --> AR : {access_token, token_type}
+  AR --> FE : 200 OK + token
+  FE --> U : redirigir a panel
+else Usuario no existe o password incorrecto
+  AS --> AR : raise HTTPException(401)
+  AR --> FE : 401 Unauthorized
+  FE --> U : mostrar "Credenciales inválidas"
+end
+
+deactivate AS
+deactivate AR
+deactivate FE
+
+@enduml

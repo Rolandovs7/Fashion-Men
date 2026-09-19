@@ -7,10 +7,25 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SECRET_KEY = os.getenv(
-    "SECRET_KEY",
-    "menstyle-clave-secreta-cambiar-en-produccion"
-)
+# SECRET_KEY obligatoria en producción. Si falta en Render → falla al arrancar.
+# En desarrollo local, si no está, se genera una aleatoria (que invalida tokens
+# al reiniciar, pero es seguro para tests).
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    import secrets as _secrets
+    import logging as _logging
+
+    _entorno = os.getenv("ENVIRONMENT", "development").lower()
+    if _entorno == "production":
+        raise RuntimeError(
+            "SECRET_KEY no está definida en producción. "
+            "Configúrala en Render → Environment."
+        )
+    SECRET_KEY = _secrets.token_urlsafe(48)
+    _logging.warning(
+        "⚠️ SECRET_KEY no definida. Generando una aleatoria temporal. "
+        "En producción esto es un error fatal."
+    )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60

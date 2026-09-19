@@ -10,8 +10,19 @@ from alembic import command
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-# Clave secreta simple (defínela en Render como variable de entorno)
-ADMIN_KEY = os.getenv("ADMIN_MIGRATION_KEY", "menstyle-migrate-2026")
+# Clave secreta OBLIGATORIA (defínela en Render como variable de entorno).
+# Si no existe, el módulo falla al importar (protección contra mala configuración).
+ADMIN_KEY = os.getenv("ADMIN_MIGRATION_KEY")
+if not ADMIN_KEY:
+    raise RuntimeError(
+        "ADMIN_MIGRATION_KEY no está definida. "
+        "Configúrala en Render → Environment antes de desplegar."
+    )
+
+# Flag para habilitar endpoints destructivos (/seed, /seed-demo, /fix-imagenes).
+# Por defecto FALSE en producción. Ponlo en "true" temporalmente si necesitas
+# re-ejecutar un seed o fix. Vuelve a "false" después.
+ALLOW_DESTRUCTIVE_ENDPOINTS = os.getenv("ALLOW_DESTRUCTIVE_ENDPOINTS", "false").lower() == "true"
 
 
 @router.post("/migrate")
@@ -40,7 +51,15 @@ def run_migrations(x_admin_key: str = Header(None)):
 
 @router.post("/seed")
 def run_seed(x_admin_key: str = Header(None)):
-    """Ejecuta el script seed_admin.py para crear el admin."""
+    """Ejecuta el script seed_admin.py para crear el admin.
+
+    BLOQUEADO en producción salvo que ALLOW_DESTRUCTIVE_ENDPOINTS=true.
+    """
+    if not ALLOW_DESTRUCTIVE_ENDPOINTS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Endpoint deshabilitado en producción."
+        )
     if x_admin_key != ADMIN_KEY:
         raise HTTPException(status_code=401, detail="Clave inválida")
     
@@ -69,7 +88,14 @@ def run_seed_demo(x_admin_key: str = Header(None)):
     Idempotente: si los datos ya existen, los omite.
     Cubre: CU07, CU08, CU10-CU17, CU26-CU31 (datos para demo).
     Requisito: RF04, RF05, RF06, RF07, RF21, RF22, RF23.
+
+    BLOQUEADO en producción salvo que ALLOW_DESTRUCTIVE_ENDPOINTS=true.
     """
+    if not ALLOW_DESTRUCTIVE_ENDPOINTS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Endpoint deshabilitado en producción."
+        )
     if x_admin_key != ADMIN_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -110,7 +136,14 @@ def fix_imagenes(x_admin_key: str = Header(None)):
     bajo /imagenes/<categoria>/<archivo>.jpg
 
     Idempotente: se puede ejecutar múltiples veces sin efectos adversos.
+
+    BLOQUEADO en producción salvo que ALLOW_DESTRUCTIVE_ENDPOINTS=true.
     """
+    if not ALLOW_DESTRUCTIVE_ENDPOINTS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Endpoint deshabilitado en producción."
+        )
     if x_admin_key != ADMIN_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

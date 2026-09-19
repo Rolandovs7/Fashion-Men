@@ -12,11 +12,11 @@ class Categoria {
   });
 
   factory Categoria.fromJson(Map<String, dynamic> json) => Categoria(
-        id: json['id'],
-        nombre: json['nombre'],
-        descripcion: json['descripcion'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    descripcion: json['descripcion'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Proveedor {
@@ -39,14 +39,14 @@ class Proveedor {
   });
 
   factory Proveedor.fromJson(Map<String, dynamic> json) => Proveedor(
-        id: json['id'],
-        nombre: json['nombre'],
-        contacto: json['contacto'],
-        telefono: json['telefono'],
-        email: json['email'],
-        direccion: json['direccion'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    contacto: json['contacto'],
+    telefono: json['telefono'],
+    email: json['email'],
+    direccion: json['direccion'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Temporada {
@@ -63,11 +63,11 @@ class Temporada {
   });
 
   factory Temporada.fromJson(Map<String, dynamic> json) => Temporada(
-        id: json['id'],
-        nombre: json['nombre'],
-        descripcion: json['descripcion'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    descripcion: json['descripcion'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Coleccion {
@@ -84,11 +84,11 @@ class Coleccion {
   });
 
   factory Coleccion.fromJson(Map<String, dynamic> json) => Coleccion(
-        id: json['id'],
-        nombre: json['nombre'],
-        descripcion: json['descripcion'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    descripcion: json['descripcion'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Usuario {
@@ -109,13 +109,13 @@ class Usuario {
   });
 
   factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
-        id: json['id'],
-        nombre: json['nombre'],
-        apellido: json['apellido'],
-        email: json['email'],
-        activo: json['activo'] ?? true,
-        rol: json['rol'] ?? 'cliente',
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    apellido: json['apellido'],
+    email: json['email'],
+    activo: json['activo'] ?? true,
+    rol: json['rol'] ?? 'cliente',
+  );
 }
 
 class Permiso {
@@ -132,17 +132,18 @@ class Permiso {
   });
 
   factory Permiso.fromJson(Map<String, dynamic> json) => Permiso(
-        id: json['id'],
-        nombre: json['nombre'],
-        descripcion: json['descripcion'] ?? '',
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    descripcion: json['descripcion'] ?? '',
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Producto {
   final int id;
   final String nombre;
   final String? descripcion;
+  final String? imagenUrl;
   final double precio;
   final int categoriaId;
   final int? proveedorId;
@@ -154,6 +155,7 @@ class Producto {
     required this.id,
     required this.nombre,
     this.descripcion,
+    this.imagenUrl,
     required this.precio,
     required this.categoriaId,
     this.proveedorId,
@@ -163,16 +165,17 @@ class Producto {
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) => Producto(
-        id: json['id'],
-        nombre: json['nombre'],
-        descripcion: json['descripcion'],
-        precio: (json['precio'] as num).toDouble(),
-        categoriaId: json['categoria_id'],
-        proveedorId: json['proveedor_id'],
-        temporadaId: json['temporada_id'],
-        coleccionId: json['coleccion_id'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    descripcion: json['descripcion'],
+    imagenUrl: json['imagen_url'],
+    precio: (json['precio'] as num).toDouble(),
+    categoriaId: json['categoria_id'],
+    proveedorId: json['proveedor_id'],
+    temporadaId: json['temporada_id'],
+    coleccionId: json['coleccion_id'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class Variante {
@@ -199,16 +202,16 @@ class Variante {
   });
 
   factory Variante.fromJson(Map<String, dynamic> json) => Variante(
-        id: json['id'],
-        productoId: json['producto_id'],
-        tallaId: json['talla_id'],
-        tallaNombre: json['talla_nombre'],
-        colorId: json['color_id'],
-        colorNombre: json['color_nombre'],
-        colorHex: json['color_codigo_hex'],
-        activo: json['activo'] ?? true,
-        stockDisponible: json['stock_disponible'] ?? 0,
-      );
+    id: json['id'],
+    productoId: json['producto_id'],
+    tallaId: json['talla_id'],
+    tallaNombre: json['talla_nombre'],
+    colorId: json['color_id'],
+    colorNombre: json['color_nombre'],
+    colorHex: json['color_codigo_hex'],
+    activo: json['activo'] ?? true,
+    stockDisponible: json['stock_disponible'] ?? 0,
+  );
 }
 
 class Sucursal {
@@ -229,13 +232,13 @@ class Sucursal {
   });
 
   factory Sucursal.fromJson(Map<String, dynamic> json) => Sucursal(
-        id: json['id'],
-        nombre: json['nombre'],
-        direccion: json['direccion'],
-        ciudad: json['ciudad'],
-        telefono: json['telefono'],
-        activo: json['activo'] ?? true,
-      );
+    id: json['id'],
+    nombre: json['nombre'],
+    direccion: json['direccion'],
+    ciudad: json['ciudad'],
+    telefono: json['telefono'],
+    activo: json['activo'] ?? true,
+  );
 }
 
 class DetalleCarrito {
@@ -252,11 +255,11 @@ class DetalleCarrito {
   });
 
   factory DetalleCarrito.fromJson(Map<String, dynamic> json) => DetalleCarrito(
-        id: json['id'],
-        carritoId: json['carrito_id'],
-        varianteId: json['variante_id'],
-        cantidad: json['cantidad'],
-      );
+    id: json['id'],
+    carritoId: json['carrito_id'],
+    varianteId: json['variante_id'],
+    cantidad: json['cantidad'],
+  );
 }
 
 class Carrito {
@@ -264,19 +267,15 @@ class Carrito {
   final int usuarioId;
   final List<DetalleCarrito> detalles;
 
-  Carrito({
-    required this.id,
-    required this.usuarioId,
-    required this.detalles,
-  });
+  Carrito({required this.id, required this.usuarioId, required this.detalles});
 
   factory Carrito.fromJson(Map<String, dynamic> json) => Carrito(
-        id: json['id'],
-        usuarioId: json['usuario_id'],
-        detalles: (json['detalles'] as List)
-            .map((d) => DetalleCarrito.fromJson(d))
-            .toList(),
-      );
+    id: json['id'],
+    usuarioId: json['usuario_id'],
+    detalles: (json['detalles'] as List)
+        .map((d) => DetalleCarrito.fromJson(d))
+        .toList(),
+  );
 }
 
 class DetallePedido {
@@ -297,13 +296,13 @@ class DetallePedido {
   });
 
   factory DetallePedido.fromJson(Map<String, dynamic> json) => DetallePedido(
-        id: json['id'],
-        pedidoId: json['pedido_id'],
-        varianteId: json['variante_id'],
-        cantidad: json['cantidad'],
-        precioUnitario: (json['precio_unitario'] as num).toDouble(),
-        subtotal: (json['subtotal'] as num).toDouble(),
-      );
+    id: json['id'],
+    pedidoId: json['pedido_id'],
+    varianteId: json['variante_id'],
+    cantidad: json['cantidad'],
+    precioUnitario: (json['precio_unitario'] as num).toDouble(),
+    subtotal: (json['subtotal'] as num).toDouble(),
+  );
 }
 
 class Pedido {
@@ -324,15 +323,15 @@ class Pedido {
   });
 
   factory Pedido.fromJson(Map<String, dynamic> json) => Pedido(
-        id: json['id'],
-        usuarioId: json['usuario_id'],
-        fechaPedido: json['fecha_pedido'],
-        estado: json['estado'],
-        total: (json['total'] as num).toDouble(),
-        detalles: (json['detalles'] as List)
-            .map((d) => DetallePedido.fromJson(d))
-            .toList(),
-      );
+    id: json['id'],
+    usuarioId: json['usuario_id'],
+    fechaPedido: json['fecha_pedido'],
+    estado: json['estado'],
+    total: (json['total'] as num).toDouble(),
+    detalles: (json['detalles'] as List)
+        .map((d) => DetallePedido.fromJson(d))
+        .toList(),
+  );
 }
 
 class DetalleReserva {
@@ -349,11 +348,11 @@ class DetalleReserva {
   });
 
   factory DetalleReserva.fromJson(Map<String, dynamic> json) => DetalleReserva(
-        id: json['id'],
-        reservaId: json['reserva_id'],
-        varianteId: json['variante_id'],
-        cantidad: json['cantidad'],
-      );
+    id: json['id'],
+    reservaId: json['reserva_id'],
+    varianteId: json['variante_id'],
+    cantidad: json['cantidad'],
+  );
 }
 
 class Reserva {
@@ -376,14 +375,14 @@ class Reserva {
   });
 
   factory Reserva.fromJson(Map<String, dynamic> json) => Reserva(
-        id: json['id'],
-        usuarioId: json['usuario_id'],
-        sucursalId: json['sucursal_id'],
-        fechaReserva: json['fecha_reserva'],
-        estado: json['estado'],
-        observaciones: json['observaciones'],
-        detalles: (json['detalles'] as List)
-            .map((d) => DetalleReserva.fromJson(d))
-            .toList(),
-      );
+    id: json['id'],
+    usuarioId: json['usuario_id'],
+    sucursalId: json['sucursal_id'],
+    fechaReserva: json['fecha_reserva'],
+    estado: json['estado'],
+    observaciones: json['observaciones'],
+    detalles: (json['detalles'] as List)
+        .map((d) => DetalleReserva.fromJson(d))
+        .toList(),
+  );
 }

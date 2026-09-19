@@ -1,6 +1,6 @@
-# MenStyle — App Móvil (Flutter)
+# MenStyle - App Movil (Flutter)
 
-App móvil de MenStyle. Consume la API REST del backend en Render.
+App movil de MenStyle. Consume la API REST del backend en Render.
 
 ## Requisitos previos
 
@@ -10,9 +10,8 @@ App móvil de MenStyle. Consume la API REST del backend en Render.
 
 Verifica: `flutter doctor -v`
 
-## Instalación
+## Instalacion
 
-```bash
 git clone https://github.com/Rolandovs7/Fashion-Men.git
 cd Fashion-Men/mobile
 flutter pub get

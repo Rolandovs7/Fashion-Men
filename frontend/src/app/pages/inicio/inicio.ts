@@ -20,7 +20,6 @@ export class Inicio implements OnInit {
   ngOnInit(): void {
     this.authService.obtenerUsuarioActual().subscribe({
       next: (usuario) => {
-        console.log('USUARIO RECIBIDO POR ANGULAR:', usuario);
 
         this.usuario = usuario;
 

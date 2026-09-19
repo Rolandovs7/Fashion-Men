@@ -31,4 +31,28 @@ class AppConfig {
     'DEBUG_HTTP',
     defaultValue: false,
   );
+
+  /// URL base para recursos estáticos (imágenes, etc.).
+  /// Las imágenes viven en el frontend Angular (menstyle-web-0de9),
+  /// no en el backend. Se puede override con --dart-define=MEDIA_URL=...
+  static const String mediaBaseUrl = String.fromEnvironment(
+    'MEDIA_URL',
+    defaultValue: 'https://menstyle-web-0de9.onrender.com',
+  );
+
+  /// Convierte una ruta relativa como "/imagenes/x.jpg"
+  /// a una URL absoluta como
+  /// "https://menstyle-web-0de9.onrender.com/imagenes/x.jpg".
+  /// Si la entrada ya es una URL absoluta (http/https), la devuelve tal cual.
+  static String? urlCompleta(String? ruta) {
+    if (ruta == null || ruta.isEmpty) return null;
+    if (ruta.startsWith('http://') || ruta.startsWith('https://')) {
+      return ruta;
+    }
+    final base = mediaBaseUrl.endsWith('/')
+        ? mediaBaseUrl.substring(0, mediaBaseUrl.length - 1)
+        : mediaBaseUrl;
+    final path = ruta.startsWith('/') ? ruta : '/$ruta';
+    return '$base$path';
+  }
 }

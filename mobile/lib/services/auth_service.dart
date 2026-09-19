@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../core/config.dart';
+
 // ============================================================
 // TRAZABILIDAD MENSTYLE
 // CU: CU01 - Administrar Inicio de Sesión
@@ -22,7 +24,7 @@ class AuthService {
 
   AuthService._internal();
 
-  final String baseUrl = 'https://menstyle-api-n77g.onrender.com/api/auth';
+  final String baseUrl = AppConfig.authUrl;
 
   String? token;
   Map<String, dynamic>? usuarioActual;

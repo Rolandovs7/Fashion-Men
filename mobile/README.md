@@ -1,17 +1,19 @@
-# mobile
+# MenStyle — App Móvil (Flutter)
 
-A new Flutter project.
+App móvil de MenStyle. Consume la API REST del backend en Render.
 
-## Getting Started
+## Requisitos previos
 
-This project is a starting point for a Flutter application.
+- Flutter SDK 3.13 o superior
+- Git
+- Android Studio (para Android) o Xcode (para iOS)
 
-A few resources to get you started if this is your first Flutter project:
+Verifica: `flutter doctor -v`
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Instalación
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+git clone https://github.com/Rolandovs7/Fashion-Men.git
+cd Fashion-Men/mobile
+flutter pub get
+flutter analyze

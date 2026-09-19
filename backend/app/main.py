@@ -38,12 +38,28 @@ app = FastAPI(
 # ============================================
 # CONFIGURACIÓN CORS
 # ============================================
+# Orígenes permitidos. Se leen de la env var CORS_ORIGINS (separados por coma).
+# En producción: solo dominios MenStyle.
+# En desarrollo local: añade http://localhost:4200
+import os as _os
+
+_default_origins = (
+    "https://menstyle-web-0de9.onrender.com,"
+    "http://localhost:4200,"
+    "http://localhost:3000"
+)
+CORS_ORIGINS = [
+    o.strip()
+    for o in _os.getenv("CORS_ORIGINS", _default_origins).split(",")
+    if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["Authorization", "Content-Type", "x-admin-key"],
 )
 
 # ============================================

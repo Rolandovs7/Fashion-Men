@@ -41,7 +41,7 @@
               <div>
                 <p class="font-bold text-neutral-900">Reserva #{{ reserva.id }}</p>
                 <p class="text-xs text-neutral-400 font-medium mt-0.5">
-                  {{ nombreSucursal(reserva.sucursal_id) }} · {{ reserva.fecha_reserva | date: 'dd/MM/yyyy HH:mm' }}
+                  {{ nombreSucursal(reserva.sucursal_id) }} · {{ reserva.fecha_reserva | fechaBolivia }}
                 </p>
               </div>
               <span class="px-3 py-1 rounded-lg text-xs font-bold shrink-0" [class]="claseEstado(reserva.estado)">

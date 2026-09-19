@@ -6,12 +6,13 @@ import { ReservasService, Reserva } from '../../core/services/reservas.service';
 import { SucursalesService, Sucursal } from '../../core/services/sucursales.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { ReciboComponent } from '../../shared/recibo/recibo';
+import { FechaBoliviaPipe } from '../../core/pipes/fecha-bolivia.pipe';
 
 type Pestana = 'pedidos' | 'reservas';
 
 @Component({
   selector: 'app-admin-operaciones',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ReciboComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ReciboComponent, FechaBoliviaPipe],
   templateUrl: './admin-operaciones.html',
   styleUrl: './admin-operaciones.css'
 })

@@ -192,6 +192,15 @@ export class CarritoPage implements OnInit {
     this.mostrarCheckout = 'ninguno';
   }
 
+  onImagenError(event: Event, item: ItemCarritoVista): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+    if (item.producto) {
+      item.producto.imagen_url = null;
+    }
+    this.cdr.detectChanges();
+  }
+
   confirmarCompra(): void {
     if (!this.sucursalSeleccionada) {
       this.error = 'Selecciona una sucursal.';

@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { ReservasService, Reserva } from '../../core/services/reservas.service';
 import { SucursalesService, Sucursal } from '../../core/services/sucursales.service';
 import { HeaderComponent } from '../../shared/header/header';
+import { FechaBoliviaPipe } from '../../core/pipes/fecha-bolivia.pipe';
 
 @Component({
   selector: 'app-reservas',
-  imports: [CommonModule, RouterLink, HeaderComponent],
+  imports: [CommonModule, RouterLink, HeaderComponent, FechaBoliviaPipe],
   templateUrl: './reservas.html',
   styleUrl: './reservas.css'
 })

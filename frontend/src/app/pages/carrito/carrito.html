@@ -51,10 +51,21 @@
           @for (item of items; track item.detalle.id) {
             <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-4 sm:p-5 flex items-center gap-4">
 
-              <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center shrink-0">
-                <svg class="w-7 h-7 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
-                </svg>
+              <div class="w-16 h-16 rounded-xl bg-neutral-100 overflow-hidden shrink-0">
+                @if (item.producto?.imagen_url) {
+                  <img
+                    [src]="item.producto!.imagen_url"
+                    [alt]="item.producto!.nombre"
+                    class="w-full h-full object-cover"
+                    (error)="onImagenError($event, item)"
+                  />
+                } @else {
+                  <div class="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+                    </svg>
+                  </div>
+                }
               </div>
 
               <div class="flex-1 min-w-0">

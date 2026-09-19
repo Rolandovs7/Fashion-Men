@@ -53,7 +53,7 @@
               <tr>
                 <td class="py-3 px-5 font-bold">#{{ pedido.id }}</td>
                 <td class="py-3 px-5 text-neutral-500">Usuario #{{ pedido.usuario_id }}</td>
-                <td class="py-3 px-5 text-neutral-500">{{ pedido.fecha_pedido | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="py-3 px-5 text-neutral-500">{{ pedido.fecha_pedido | fechaBolivia }}</td>
                 <td class="py-3 px-5 font-semibold">Bs {{ pedido.total.toFixed(2) }}</td>
                 <td class="py-3 px-5">
                   <select
@@ -96,7 +96,7 @@
                 <td class="py-3 px-5 font-bold">#{{ reserva.id }}</td>
                 <td class="py-3 px-5 text-neutral-500">Usuario #{{ reserva.usuario_id }}</td>
                 <td class="py-3 px-5 text-neutral-500">{{ nombreSucursal(reserva.sucursal_id) }}</td>
-                <td class="py-3 px-5 text-neutral-500">{{ reserva.fecha_reserva | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="py-3 px-5 text-neutral-500">{{ reserva.fecha_reserva | fechaBolivia }}</td>
                 <td class="py-3 px-5">
                   <select
                     [ngModel]="reserva.estado"

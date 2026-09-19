@@ -7,10 +7,11 @@ import { PagosService } from '../../core/services/pagos.service';
 import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.service';
 import { ReciboComponent } from '../../shared/recibo/recibo';
 import { HeaderComponent } from '../../shared/header/header';
+import { FechaBoliviaPipe } from '../../core/pipes/fecha-bolivia.pipe';
 
 @Component({
   selector: 'app-pedidos',
-  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent, ReciboComponent],
+  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent, ReciboComponent, FechaBoliviaPipe],
   templateUrl: './pedidos.html',
   styleUrl: './pedidos.css'
 })

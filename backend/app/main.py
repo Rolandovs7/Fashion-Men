@@ -54,9 +54,14 @@ CORS_ORIGINS = [
     if o.strip()
 ]
 
+# Regex: permite CUALQUIER puerto de localhost/127.0.0.1 durante desarrollo.
+# Necesario para Flutter Web (usa puertos aleatorios) y otras herramientas de dev.
+_CORS_LOCALHOST_REGEX = r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
+    allow_origin_regex=_CORS_LOCALHOST_REGEX,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["Authorization", "Content-Type", "x-admin-key"],

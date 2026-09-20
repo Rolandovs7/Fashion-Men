@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
 import 'login_page.dart';
 import 'admin_catalogo_page.dart';
+import '../core/theme.dart';
 
-// ============================================================
-// CU01/CU02 - Autenticación (perfil y cierre de sesión)
-// RF: pendiente de confirmar en documentación
-// El acceso al panel de administración ahora se centraliza en el
-// AdminDrawer (ver shared/admin_shell.dart) — esta pantalla solo
-// ofrece un único punto de entrada, para no duplicar la navegación
-// administrativa que antes vivía aquí como una lista de botones.
-// ============================================================
 class PerfilPage extends StatelessWidget {
   final Map<String, dynamic> usuario;
 
@@ -30,14 +24,14 @@ class PerfilPage extends StatelessWidget {
   }
 
   void _abrirPanelAdmin(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AdminCatalogoPage()),
-    );
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => const AdminCatalogoPage()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.fondoPerfil,
       appBar: AppBar(title: const Text('Mi perfil')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -74,6 +68,31 @@ class PerfilPage extends StatelessWidget {
                     subtitle: Text('${usuario['rol']}'),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Selector de modo claro / oscuro.
+            Card(
+              child: ValueListenableBuilder<ThemeMode>(
+                valueListenable: AppTheme.modoNotifier,
+                builder: (context, modo, _) {
+                  final esOscuro = modo == ThemeMode.dark;
+                  return SwitchListTile(
+                    secondary: Icon(
+                      esOscuro
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                    ),
+                    title: const Text('Modo oscuro'),
+                    subtitle: Text(esOscuro ? 'Activado' : 'Desactivado'),
+                    value: esOscuro,
+                    onChanged: (activar) {
+                      AppTheme.modoNotifier.value = activar
+                          ? ThemeMode.dark
+                          : ThemeMode.light;
+                    },
+                  );
+                },
               ),
             ),
             if (_esAdministrador) ...[

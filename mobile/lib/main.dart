@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'core/theme.dart';
 import 'screens/login_page.dart';
 
 void main() {
@@ -10,16 +12,18 @@ class MenStyleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'MenStyle',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.black,
-        ),
-        useMaterial3: true,
-      ),
-      home: const LoginPage(),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppTheme.modoNotifier,
+      builder: (context, modo, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'MenStyle',
+          themeMode: modo,
+          theme: AppTheme.temaClaro,
+          darkTheme: AppTheme.temaOscuro,
+          home: const LoginPage(),
+        );
+      },
     );
   }
 }

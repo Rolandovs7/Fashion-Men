@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 import '../services/reservas_service.dart';
 import '../services/sucursales_service.dart';
 import '../services/auth_service.dart';
+import '../core/theme.dart';
 
 class MisReservasPage extends StatefulWidget {
   const MisReservasPage({super.key});
@@ -72,7 +74,8 @@ class _MisReservasPageState extends State<MisReservasPage> {
     return s.isEmpty ? 'Sucursal #$id' : s.first.nombre;
   }
 
-  bool _puedeCancelar(Reserva r) => !['cancelada', 'completada'].contains(r.estado);
+  bool _puedeCancelar(Reserva r) =>
+      !['cancelada', 'completada'].contains(r.estado);
 
   Color _colorEstado(String estado) {
     switch (estado) {
@@ -95,8 +98,14 @@ class _MisReservasPageState extends State<MisReservasPage> {
       builder: (context) => AlertDialog(
         title: Text('¿Cancelar la reserva #${reserva.id}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí, cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, cancelar'),
+          ),
         ],
       ),
     );
@@ -114,6 +123,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.fondoReservas,
       appBar: AppBar(title: const Text('Mis reservas')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
@@ -128,7 +138,10 @@ class _MisReservasPageState extends State<MisReservasPage> {
                     const Padding(
                       padding: EdgeInsets.only(top: 60),
                       child: Center(
-                        child: Text('Aún no tienes reservas.', style: TextStyle(color: Colors.grey)),
+                        child: Text(
+                          'Aún no tienes reservas.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
                   ...reservas.map(
@@ -142,11 +155,20 @@ class _MisReservasPageState extends State<MisReservasPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Reserva #${reserva.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Reserva #${reserva.id}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _colorEstado(reserva.estado).withValues(alpha: 0.12),
+                                    color: _colorEstado(reserva.estado)
+                                        .withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -163,24 +185,44 @@ class _MisReservasPageState extends State<MisReservasPage> {
                             const SizedBox(height: 4),
                             Text(
                               '${_nombreSucursal(reserva.sucursalId)} · ${reserva.fechaReserva.substring(0, 16).replaceFirst('T', ' ')}',
-                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
                             ),
                             const Divider(height: 20),
                             ...reserva.detalles.map(
                               (d) => Padding(
                                 padding: const EdgeInsets.only(bottom: 4),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('Variante #${d.varianteId}', style: const TextStyle(fontSize: 13)),
-                                    Text('${d.cantidad} unid.', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Text(
+                                      'Variante #${d.varianteId}',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    Text(
+                                      '${d.cantidad} unid.',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
                             if (reserva.observaciones?.isNotEmpty == true) ...[
                               const SizedBox(height: 6),
-                              Text('"${reserva.observaciones}"', style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey, fontSize: 12)),
+                              Text(
+                                '"${reserva.observaciones}"',
+                                style: const TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ],
                             if (_puedeCancelar(reserva)) ...[
                               const SizedBox(height: 8),
@@ -188,7 +230,9 @@ class _MisReservasPageState extends State<MisReservasPage> {
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
                                   onPressed: () => _cancelar(reserva),
-                                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                  ),
                                   child: const Text('Cancelar reserva'),
                                 ),
                               ),
@@ -205,14 +249,17 @@ class _MisReservasPageState extends State<MisReservasPage> {
   }
 
   Widget _banner(String texto, Color color) => Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Text(texto, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-      );
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
+    ),
+    child: Text(
+      texto,
+      style: TextStyle(color: color, fontWeight: FontWeight.w600),
+    ),
+  );
 }

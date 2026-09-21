@@ -194,12 +194,31 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
         productos_sugeridos = []
 
         # --- Categorías ---
+        # Las categorías en la BD están en PLURAL:
+        # Camisas, Pantalones, Zapatos, Accesorios, Chaquetas,
+        # Poleras, Trajes, Camisetas, Ropa Deportiva
+        # El matching usa LIKE %nombre%, así que usamos el plural
+        # para que coincida.
         categorias_keywords = {
-            "traje": "Traje", "trajes": "Traje",
-            "camisa": "Camisa", "camisas": "Camisa",
-            "pantalon": "Pantalón", "pantalones": "Pantalón", "jean": "Pantalón",
-            "zapato": "Zapato", "zapatos": "Zapato",
-            "accesorio": "Accesorio", "accesorios": "Accesorio",
+            "traje": "Trajes", "trajes": "Trajes",
+            "camisa": "Camisas", "camisas": "Camisas",
+            "camiseta": "Camisetas", "camisetas": "Camisetas",
+            "pantalon": "Pantalones", "pantalones": "Pantalones",
+            "jean": "Pantalones", "jeans": "Pantalones",
+            "zapato": "Zapatos", "zapatos": "Zapatos",
+            "zapatilla": "Zapatos", "zapatillas": "Zapatos",
+            "tenis": "Zapatos",
+            "polera": "Poleras", "poleras": "Poleras",
+            "polo": "Poleras", "polos": "Poleras",
+            "chaqueta": "Chaquetas", "chaquetas": "Chaquetas",
+            "abrigo": "Chaquetas",
+            "accesorio": "Accesorios", "accesorios": "Accesorios",
+            "cinturon": "Accesorios", "cinturones": "Accesorios",
+            "bufanda": "Accesorios", "bufandas": "Accesorios",
+            "gorra": "Accesorios", "gorras": "Accesorios",
+            "short": "Ropa Deportiva", "shorts": "Ropa Deportiva",
+            "deportiv": "Ropa Deportiva", "deportiva": "Ropa Deportiva",
+            "gym": "Ropa Deportiva", "gimnasio": "Ropa Deportiva",
         }
 
         categoria_detectada = None

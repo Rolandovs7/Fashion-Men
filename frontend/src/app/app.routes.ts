@@ -15,6 +15,7 @@ import { AdminOperaciones } from './pages/admin-operaciones/admin-operaciones';
 import { PuntoVenta } from './pages/punto-venta/punto-venta';
 import { AdminConfiguracion } from './pages/admin-configuracion/admin-configuracion';
 import { AdminInventario } from './pages/admin-inventario/admin-inventario';
+import { AdminReportes } from './pages/admin-reportes/admin-reportes';
 import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
@@ -44,7 +45,7 @@ export const routes: Routes = [
     path: 'registro',
     component: Registro
   },
-    {
+  {
     path: 'forgot-password',
     component: ForgotPassword
   },
@@ -111,6 +112,11 @@ export const routes: Routes = [
     canActivate: [adminGuard]
   },
   {
+    path: 'admin/reportes',
+    component: AdminReportes,
+    canActivate: [adminGuard]
+  },
+  {
     path: 'usuarios',
     component: Usuarios,
     canActivate: [adminGuard]
@@ -124,5 +130,4 @@ export const routes: Routes = [
     path: '**',
     redirectTo: 'login'
   }
-
 ];

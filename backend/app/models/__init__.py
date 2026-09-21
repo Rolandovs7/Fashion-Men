@@ -41,6 +41,7 @@ from app.models.reservation_detail import DetalleReserva
 
 from app.models.return_model import Devolucion
 from app.models.notification import Notificacion
+from app.models.password_reset_token import PasswordResetToken
 
 
 __all__ = [
@@ -71,4 +72,5 @@ __all__ = [
     "DetalleReserva",
     "Devolucion",
     "Notificacion",
+    "PasswordResetToken",
 ]

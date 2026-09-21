@@ -17,6 +17,18 @@ export interface ChatResponse {
   fuente?: string;
 }
 
+export interface RecomendacionRequest {
+  categoria_id?: number;
+  tipo_prenda_id?: number;
+  limite?: number;
+}
+
+export interface RecomendacionResponse {
+  usuario_id: number;
+  total: number;
+  recomendaciones: ProductoSugerido[];
+}
+
 export interface MensajeChat {
   rol: 'usuario' | 'bot';
   texto: string;
@@ -49,6 +61,24 @@ export class IaService {
       `${this.apiUrl}/chat`,
       { mensaje },
       { headers: this.headers() }
+    );
+  }
+
+  recomendar(req: RecomendacionRequest = {}): Observable<RecomendacionResponse> {
+    const token = localStorage.getItem('access_token');
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    const body: RecomendacionRequest = {
+      limite: req.limite ?? 3,
+      ...(req.categoria_id && { categoria_id: req.categoria_id }),
+      ...(req.tipo_prenda_id && { tipo_prenda_id: req.tipo_prenda_id }),
+    };
+    return this.http.post<RecomendacionResponse>(
+      `${this.apiUrl}/recomendar`,
+      body,
+      { headers }
     );
   }
 

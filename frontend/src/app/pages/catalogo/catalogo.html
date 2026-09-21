@@ -10,6 +10,35 @@
       <p class="text-sm text-neutral-500 font-medium mt-1">Descubre las prendas disponibles en MenStyle</p>
     </div>
 
+    <!-- Recomendados para ti (IA) -->
+    @if (recomendaciones.length > 0) {
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl">✨</span>
+          <h2 class="text-xl sm:text-2xl font-black text-neutral-900">Recomendados para ti</h2>
+          <span class="text-xs font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+            IA
+          </span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          @for (prod of recomendaciones; track prod.id) {
+            <button
+              (click)="verRecomendado(prod)"
+              class="text-left bg-white rounded-2xl border-2 border-amber-200 hover:border-amber-400 shadow-sm hover:shadow-md transition-all p-4 cursor-pointer group">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                ✨ IA
+              </span>
+              <h3 class="font-bold text-neutral-900 text-sm mt-2 line-clamp-1 group-hover:text-amber-700">
+                {{ prod.nombre }}
+              </h3>
+              <p class="text-xs text-neutral-500 mt-1 line-clamp-1">{{ prod.motivo }}</p>
+              <p class="text-base font-black text-neutral-900 mt-2">Bs {{ prod.precio.toFixed(2) }}</p>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Filtros -->
     <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-neutral-200/80 mb-8 flex flex-col sm:flex-row gap-4 sm:items-center">
 

@@ -46,6 +46,12 @@ export class AdminShellComponent implements OnInit {
       ]
     },
     {
+      titulo: 'Reportes',
+      enlaces: [
+        { ruta: '/admin/reportes', etiqueta: 'Estadísticas y reportes', icono: '📈' },
+      ]
+    },
+    {
       titulo: 'Configuración',
       enlaces: [
         { ruta: '/usuarios', etiqueta: 'Usuarios', icono: '👤' },

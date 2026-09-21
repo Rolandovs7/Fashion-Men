@@ -62,6 +62,6 @@ urllib3==2.8.0
 uvicorn==0.52.4
 uvloop==0.22.1
 watchfiles==1.2.0
-websockets==17.1
+websockets==14.2
 slowapi==0.1.9
 google-genai==1.16.1

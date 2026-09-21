@@ -1,17 +1,18 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
 // CU: CU01 - Administrar Inicio de Sesión
+// CU: CU04 - Recuperar Contraseña (link a forgot-password)
 // RF: RF01 - Registrar clientes (enlace a registro)
 // CAPA: Angular | SERVICIO: auth.service.ts | BACKEND: POST /api/auth/login
 // ============================================================
 @Component({
   selector: 'app-login',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
@@ -53,6 +54,8 @@ export class Login {
 
         if (error.status === 401) {
           this.error = 'Email o contraseña incorrectos.';
+        } else if (error.status === 429) {
+          this.error = 'Demasiados intentos. Esperá unos minutos.';
         } else {
           this.error = 'No se pudo conectar con el servidor.';
         }

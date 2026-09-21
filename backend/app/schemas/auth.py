@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
+
+from app.core.password_validator import mensaje_error_password
 
 
 class RegistroUsuario(BaseModel):
@@ -6,6 +8,14 @@ class RegistroUsuario(BaseModel):
     apellido: str
     email: EmailStr
     password: str
+
+    @field_validator("password")
+    @classmethod
+    def validar_password(cls, v: str) -> str:
+        error = mensaje_error_password(v)
+        if error:
+            raise ValueError(error)
+        return v
 
 
 class LoginUsuario(BaseModel):
@@ -27,3 +37,28 @@ class UsuarioRespuesta(BaseModel):
     rol: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# ============================================================
+# SCHEMAS DE RECUPERACIÓN DE CONTRASEÑA
+# ============================================================
+
+class SolicitarResetPassword(BaseModel):
+    email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    password_nueva: str
+
+    @field_validator("password_nueva")
+    @classmethod
+    def validar_password(cls, v: str) -> str:
+        error = mensaje_error_password(v)
+        if error:
+            raise ValueError(error)
+        return v
+
+
+class MensajeRespuesta(BaseModel):
+    mensaje: str

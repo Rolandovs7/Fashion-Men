@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -59,10 +60,11 @@ export interface VentaSucursal {
 @Injectable({ providedIn: 'root' })
 export class ReportsService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/reportes';
 
   private headers(): HttpHeaders {
-    const token = localStorage.getItem('token') ?? '';
+    const token = this.auth.getToken() ?? '';
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 

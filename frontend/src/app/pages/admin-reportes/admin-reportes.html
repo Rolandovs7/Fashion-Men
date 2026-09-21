@@ -86,9 +86,17 @@
 
         <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
           <h3 class="text-sm font-bold uppercase tracking-wider text-neutral-950 mb-4">
-            🍩 Ventas por método de pago
+            💳 Ventas por método de pago
           </h3>
-          <div class="h-72"><canvas #canvasMetodoPago></canvas></div>
+          @if (metodosPago.length === 0) {
+            <div class="h-72 flex flex-col items-center justify-center text-neutral-400">
+              <span class="text-4xl mb-3">💳</span>
+              <p class="text-sm font-medium">Sin ventas registradas por método de pago</p>
+              <p class="text-xs mt-1">Los pagos aparecerán acá cuando se registren</p>
+            </div>
+          } @else {
+            <div class="h-72"><canvas #canvasMetodoPago></canvas></div>
+          }
         </div>
       </div>
 

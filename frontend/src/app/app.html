@@ -1,3 +1,5 @@
 <router-outlet></router-outlet>
-<router-outlet></router-outlet>
-<app-chat-widget></app-chat-widget>
+
+@if (mostrarChat()) {
+  <app-chat-widget></app-chat-widget>
+}

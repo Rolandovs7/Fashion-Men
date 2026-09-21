@@ -101,7 +101,13 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
       next: (d) => { this.ventasMes = d; listo(); }, error: fallo,
     });
     this.reportsService.ventasPorMetodoPago().subscribe({
-      next: (d) => { this.metodosPago = d; listo(); }, error: fallo,
+      next: (d) => {
+        this.metodosPago = d;
+        this.cdr.detectChanges();
+        this.renderMetodoPago();
+        listo();
+      },
+      error: fallo,
     });
     this.reportsService.productosTop(10).subscribe({
       next: (d) => { this.productosTop = d; listo(); }, error: fallo,
@@ -155,7 +161,7 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
 
   private renderMetodoPago(): void {
     this.chartMetodoPago?.destroy();
-    if (!this.canvasMetodoPago) return;
+    if (!this.canvasMetodoPago || this.metodosPago.length === 0) return;
     this.chartMetodoPago = new Chart(this.canvasMetodoPago.nativeElement, {
       type: 'doughnut',
       data: {

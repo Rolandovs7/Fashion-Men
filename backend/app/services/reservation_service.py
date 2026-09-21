@@ -159,11 +159,13 @@ def crear_reserva(
         )
 
         # RF11 — Notificar a encargados/admin de la sucursal
+        cantidad_total = sum(item.cantidad for item in datos.detalles)
         notificar_nueva_reserva(
             db=db,
             reserva=nueva_reserva,
             sucursal=sucursal,
             cliente=usuario,
+            cantidad_items=cantidad_total,
         )
 
         db.commit()

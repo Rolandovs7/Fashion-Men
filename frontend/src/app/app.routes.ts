@@ -18,6 +18,7 @@ import { AdminInventario } from './pages/admin-inventario/admin-inventario';
 import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
+import { NotificacionesPage } from './pages/notificaciones/notificaciones';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -77,6 +78,11 @@ export const routes: Routes = [
   {
     path: 'reservas',
     component: ReservasPage,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'notificaciones',
+    component: NotificacionesPage,
     canActivate: [authGuard]
   },
   {

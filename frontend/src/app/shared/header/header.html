@@ -44,8 +44,24 @@
       }
     </nav>
 
-    <!-- Derecha: Carrito + Sesión -->
+    <!-- Derecha: Notificaciones + Carrito + Sesión -->
     <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+
+      <!-- Campanita de notificaciones -->
+      <a routerLink="/notificaciones" routerLinkActive="ring-2 ring-amber-400"
+        class="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 transition-all"
+        title="Notificaciones">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        @if (noLeidas$() > 0) {
+          <span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+            {{ noLeidas$() > 9 ? '9+' : noLeidas$() }}
+          </span>
+        }
+      </a>
+
+      <!-- Carrito -->
       <a routerLink="/carrito" class="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 transition-all">
         <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -59,6 +75,7 @@
         }
       </a>
 
+      <!-- Botón salir -->
       <button
         (click)="cerrarSesion()"
         class="inline-flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 hover:border-neutral-600 active:scale-95 font-semibold text-xs sm:text-sm px-3 sm:px-4 py-2.5 rounded-xl transition-all duration-200 shadow-sm cursor-pointer">

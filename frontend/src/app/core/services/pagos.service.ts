@@ -46,4 +46,41 @@ export class PagosService {
       { headers: this.headers() }
     );
   }
+    // ============================================================
+  // RF19 — Stripe
+  // ============================================================
+
+  obtenerConfigStripe(): Observable<{ publishable_key: string; modo: string }> {
+    return this.http.get<{ publishable_key: string; modo: string }>(
+      `${this.apiUrl}/stripe/config`,
+      { headers: this.headers() }
+    );
+  }
+
+  crearStripeIntent(pedidoId: number, moneda = 'usd'): Observable<{
+    client_secret: string;
+    payment_intent_id: string;
+    monto: number;
+    moneda: string;
+    publishable_key: string;
+  }> {
+    return this.http.post<any>(
+      `${this.apiUrl}/stripe/intent`,
+      { pedido_id: pedidoId, moneda },
+      { headers: this.headers() }
+    );
+  }
+
+  confirmarStripePago(paymentIntentId: string): Observable<{
+    payment_intent_id: string;
+    estado: string;
+    monto: number;
+    moneda: string;
+  }> {
+    return this.http.post<any>(
+      `${this.apiUrl}/stripe/confirm`,
+      { payment_intent_id: paymentIntentId },
+      { headers: this.headers() }
+    );
+  }
 }

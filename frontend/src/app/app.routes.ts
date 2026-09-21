@@ -9,6 +9,7 @@ import { Catalogo } from './pages/catalogo/catalogo';
 import { ProductoDetalle } from './pages/producto-detalle/producto-detalle';
 import { CarritoPage } from './pages/carrito/carrito';
 import { PedidosPage } from './pages/pedidos/pedidos';
+import { Checkout } from './pages/checkout/checkout';
 import { ReservasPage } from './pages/reservas/reservas';
 import { AdminCatalogo } from './pages/admin-catalogo/admin-catalogo';
 import { AdminOperaciones } from './pages/admin-operaciones/admin-operaciones';
@@ -70,6 +71,10 @@ export const routes: Routes = [
     path: 'carrito',
     component: CarritoPage,
     canActivate: [authGuard]
+  },
+  {
+    path: 'checkout/:pedidoId',
+    component: Checkout,
   },
   {
     path: 'pedidos',

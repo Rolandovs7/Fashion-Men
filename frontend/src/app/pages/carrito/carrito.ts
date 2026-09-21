@@ -214,7 +214,7 @@ export class CarritoPage implements OnInit {
       next: (pedido) => {
         this.procesandoCheckout = false;
         this.mostrarCheckout = 'ninguno';
-        this.router.navigate(['/pedidos'], { state: { pedidoCreado: pedido.id } });
+        this.router.navigate(['/checkout', pedido.id]);
       },
       error: (error) => {
         this.procesandoCheckout = false;

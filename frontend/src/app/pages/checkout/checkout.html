@@ -1,0 +1,82 @@
+<div class="min-h-screen bg-neutral-50 py-12 px-4">
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8">
+      <a routerLink="/pedidos" class="text-sm text-neutral-500 hover:text-neutral-900">
+        ← Volver a mis pedidos
+      </a>
+      <h1 class="text-3xl font-bold text-neutral-900 mt-4">Checkout</h1>
+      <p class="text-neutral-500 mt-1">RF19 — Pago con tarjeta vía Stripe</p>
+    </div>
+
+    <!-- Loading -->
+    @if (cargando) {
+      <div class="bg-white rounded-2xl border border-neutral-200 p-8 text-center">
+        <p class="text-neutral-500">Cargando pedido...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (errorMsg && !cargando) {
+      <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6">
+        <p class="text-red-700 font-medium">{{ errorMsg }}</p>
+      </div>
+    }
+
+    <!-- Éxito -->
+    @if (exitoMsg) {
+      <div class="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
+        <div class="text-5xl mb-3">✅</div>
+        <p class="text-green-700 font-bold text-xl">{{ exitoMsg }}</p>
+        <p class="text-green-600 mt-2">Redirigiendo a tus pedidos...</p>
+      </div>
+    }
+
+    <!-- Checkout -->
+    @if (!cargando && pedido && !exitoMsg) {
+      <!-- Resumen del pedido -->
+      <div class="bg-white rounded-2xl border border-neutral-200 p-6 mb-6">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-900 mb-4">
+          Resumen del pedido #{{ pedido.id }}
+        </h2>
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-neutral-600">Estado</span>
+          <span class="font-medium">{{ pedido.estado }}</span>
+        </div>
+        <div class="flex justify-between items-center pt-4 border-t border-neutral-100 mt-4">
+          <span class="text-neutral-900 font-bold text-lg">Total a pagar</span>
+          <span class="text-neutral-900 font-bold text-2xl">
+            Bs {{ pedido.total | number:'1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Formulario Stripe -->
+      <div class="bg-white rounded-2xl border border-neutral-200 p-6">
+        <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-900 mb-4">
+          💳 Datos de la tarjeta
+        </h2>
+
+        <div #cardElement class="border border-neutral-300 rounded-lg p-4 mb-6 min-h-[50px]"></div>
+
+        <button
+          (click)="pagar()"
+          [disabled]="procesando"
+          class="w-full bg-neutral-900 text-white py-4 rounded-lg font-bold hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition">
+          @if (procesando) {
+            Procesando pago...
+          } @else {
+            Pagar Bs {{ pedido.total | number:'1.2-2' }}
+          }
+        </button>
+
+        <p class="text-xs text-neutral-400 text-center mt-4">
+          🔒 Pago seguro procesado por Stripe.
+          <br>Modo test: usá la tarjeta <strong>4242 4242 4242 4242</strong>, cualquier fecha futura y CVC.
+        </p>
+      </div>
+    }
+
+  </div>
+</div>

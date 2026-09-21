@@ -203,3 +203,79 @@ def fix_imagenes(x_admin_key: str = Header(None)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error actualizando imágenes: {str(e)}"
         )
+
+
+@router.post("/actualizar-usuario")
+def actualizar_usuario(datos: dict, x_admin_key: str = Header(None)):
+    """
+    Actualiza un usuario existente (email y/o password).
+
+    Body JSON:
+    {
+      "email_viejo": "rolando@gmail.com",
+      "email_nuevo": "rolando.vsoliz@gmail.com",
+      "password_nueva": "Admin1234#"
+    }
+    """
+    if x_admin_key != ADMIN_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Clave de administración inválida"
+        )
+
+    if not ALLOW_DESTRUCTIVE_ENDPOINTS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Endpoint deshabilitado. Setear ALLOW_DESTRUCTIVE_ENDPOINTS=true en Render."
+        )
+
+    from app.core.database import SessionLocal
+    from app.models.user import Usuario
+    from app.core.security import obtener_password_hash
+
+    email_viejo = datos.get("email_viejo")
+    email_nuevo = datos.get("email_nuevo")
+    password_nueva = datos.get("password_nueva")
+
+    if not email_viejo:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Falta 'email_viejo'"
+        )
+
+    db = SessionLocal()
+    try:
+        usuario = db.query(Usuario).filter(Usuario.email == email_viejo).first()
+
+        if not usuario:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Usuario con email '{email_viejo}' no encontrado"
+            )
+
+        cambios = []
+
+        if email_nuevo:
+            existente = db.query(Usuario).filter(Usuario.email == email_nuevo).first()
+            if existente and existente.id != usuario.id:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"El email '{email_nuevo}' ya está en uso"
+                )
+            usuario.email = email_nuevo
+            cambios.append(f"email: {email_viejo} -> {email_nuevo}")
+
+        if password_nueva:
+            usuario.password_hash = obtener_password_hash(password_nueva)
+            cambios.append("password actualizada")
+
+        db.commit()
+
+        return {
+            "status": "ok",
+            "usuario_id": usuario.id,
+            "email_actual": usuario.email,
+            "cambios": cambios,
+        }
+    finally:
+        db.close()

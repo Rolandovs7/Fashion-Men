@@ -69,6 +69,7 @@ def notificar_nueva_reserva(
     reserva,
     sucursal,
     cliente,
+    cantidad_items: int = 0,
 ) -> int:
     """
     RF11 — Notifica a encargados de la sucursal + admins de una nueva reserva.
@@ -88,7 +89,7 @@ def notificar_nueva_reserva(
     titulo = f"Nueva reserva en {sucursal.nombre}"
     mensaje = (
         f"{cliente.nombre} {cliente.apellido} reservó "
-        f"{len(reserva.detalles)} producto(s). "
+        f"{cantidad_items} producto(s). "
         f"Reserva #{reserva.id}. Revisá el panel de reservas."
     )
 

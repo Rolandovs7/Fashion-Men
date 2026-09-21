@@ -1,0 +1,13 @@
+:host {
+  display: contents;
+}
+
+/* Animación de bounce para el indicador "escribiendo" */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-bounce {
+  animation: bounce 0.8s infinite;
+}

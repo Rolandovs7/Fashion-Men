@@ -1,5 +1,5 @@
 """
-Servicio de envío de emails vía SMTP (Gmail).
+Servicio de envío de emails vía Brevo API HTTP.
 
 Uso:
     from app.services.email_service import enviar_email_reset_password
@@ -11,34 +11,33 @@ Uso:
     )
 
 Configuración (.env o variables de entorno):
-    SMTP_HOST          smtp.gmail.com
-    SMTP_PORT          587
-    SMTP_USER          tu-correo@gmail.com
-    SMTP_PASSWORD      app-password-de-gmail (SIN espacios)
+    BREVO_API_KEY      xkeysib-...  (obligatoria)
     SMTP_FROM_NAME     MenStyle
-    FRONTEND_URL       http://localhost:4200  (o https://menstyle-web-0de9.onrender.com)
+    SMTP_USER          tu-email-verificado-en-brevo@ejemplo.com
+    FRONTEND_URL       https://menstyle-web-0de9.onrender.com
+
+NOTA: Usamos la API HTTP de Brevo en lugar de SMTP porque Render
+(free tier) bloquea los puertos SMTP salientes (587, 465, 25).
 """
 import os
-import smtplib
 import logging
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formataddr
+import requests
 
 logger = logging.getLogger(__name__)
 
-# Configuración SMTP
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").replace(" ", "")  # quitar espacios
+# Configuración
+BREVO_API_KEY = os.getenv("BREVO_API_KEY", "")
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "MenStyle")
+SMTP_USER = os.getenv("SMTP_USER", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:4200").rstrip("/")
 
+# Endpoint de Brevo
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-def _smtp_configurado() -> bool:
-    """Verifica si las credenciales SMTP están configuradas."""
-    return bool(SMTP_USER and SMTP_PASSWORD)
+
+def _brevo_configurado() -> bool:
+    """Verifica si la API key de Brevo está configurada."""
+    return bool(BREVO_API_KEY and SMTP_USER)
 
 
 def _html_reset_password(nombre: str, token: str) -> str:
@@ -105,43 +104,60 @@ def enviar_email_reset_password(
     token: str,
 ) -> bool:
     """
-    Envía el email con el link de recuperación de contraseña.
-
-    Args:
-        destinatario: email del usuario.
-        nombre_usuario: nombre para personalizar el saludo.
-        token: token UUID generado.
-
-    Returns:
-        True si se envió, False si hubo error o no está configurado.
+    Envía el email con el link de recuperación de contraseña vía Brevo API.
     """
-    if not _smtp_configurado():
+    if not _brevo_configurado():
         logger.warning(
-            "SMTP no configurado. No se envió email a %s. Token: %s",
-            destinatario, token
+            "Brevo no configurado (falta BREVO_API_KEY o SMTP_USER). "
+            "No se envió email a %s.",
+            destinatario
         )
-        # Imprimimos el link en consola para poder probar sin SMTP
         link = f"{FRONTEND_URL}/reset-password?token={token}"
         print(f"\n📧 [MODO DEV] Link de reset para {destinatario}:\n{link}\n")
         return False
 
     try:
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = "MenStyle - Recuperación de contraseña"
-        msg["From"] = formataddr((SMTP_FROM_NAME, SMTP_USER))
-        msg["To"] = destinatario
+        headers = {
+            "accept": "application/json",
+            "api-key": BREVO_API_KEY,
+            "content-type": "application/json",
+        }
 
-        html = _html_reset_password(nombre_usuario, token)
-        msg.attach(MIMEText(html, "html", "utf-8"))
+        payload = {
+            "sender": {
+                "name": SMTP_FROM_NAME,
+                "email": SMTP_USER,
+            },
+            "to": [
+                {
+                    "email": destinatario,
+                    "name": nombre_usuario,
+                }
+            ],
+            "subject": "MenStyle - Recuperación de contraseña",
+            "htmlContent": _html_reset_password(nombre_usuario, token),
+        }
 
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.sendmail(SMTP_USER, [destinatario], msg.as_string())
+        response = requests.post(
+            BREVO_API_URL,
+            headers=headers,
+            json=payload,
+            timeout=15,
+        )
 
-        logger.info("Email de reset enviado a %s", destinatario)
-        return True
+        if response.status_code in (200, 201, 202):
+            logger.info("Email de reset enviado a %s vía Brevo", destinatario)
+            print(f"✅ Email enviado a {destinatario}")
+            return True
+        else:
+            logger.error(
+                "Error de Brevo al enviar a %s: status=%s, body=%s",
+                destinatario, response.status_code, response.text
+            )
+            print(f"❌ Error Brevo: {response.status_code} - {response.text}")
+            return False
 
     except Exception as e:
         logger.error("Error enviando email a %s: %s", destinatario, e)
+        print(f"❌ Excepción: {e}")
         return False

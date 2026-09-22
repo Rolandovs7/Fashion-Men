@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/config.dart';
 import '../core/theme.dart';
+import 'chat_page.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import 'producto_detalle_page.dart';
@@ -80,6 +81,13 @@ class _CatalogoPageState extends State<CatalogoPage> {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
       appBar: AppBar(title: const Text('MENSTYLE')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () =>
+            Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const ChatPage())),
+        backgroundColor: AppTheme.negro,
+        child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+      ),
       body: RefreshIndicator(
         onRefresh: _cargar,
         child: cargando

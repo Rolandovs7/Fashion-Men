@@ -386,3 +386,72 @@ class Reserva {
         .toList(),
   );
 }
+
+class Notificacion {
+  final int id;
+  final int usuarioId;
+  final String titulo;
+  final String mensaje;
+  final bool leida;
+  final DateTime fechaCreacion;
+
+  Notificacion({
+    required this.id,
+    required this.usuarioId,
+    required this.titulo,
+    required this.mensaje,
+    required this.leida,
+    required this.fechaCreacion,
+  });
+
+  factory Notificacion.fromJson(Map<String, dynamic> json) => Notificacion(
+    id: json['id'],
+    usuarioId: json['usuario_id'],
+    titulo: json['titulo'],
+    mensaje: json['mensaje'],
+    leida: json['leida'] ?? false,
+    fechaCreacion: DateTime.parse(json['fecha_creacion']),
+  );
+}
+
+class ProductoRecomendado {
+  final int id;
+  final String nombre;
+  final String? descripcion;
+  final double precio;
+  final int? categoriaId;
+  final String motivo;
+
+  ProductoRecomendado({
+    required this.id,
+    required this.nombre,
+    this.descripcion,
+    required this.precio,
+    this.categoriaId,
+    required this.motivo,
+  });
+
+  factory ProductoRecomendado.fromJson(Map<String, dynamic> json) =>
+      ProductoRecomendado(
+        id: json['id'],
+        nombre: json['nombre'],
+        descripcion: json['descripcion'],
+        precio: (json['precio'] as num).toDouble(),
+        categoriaId: json['categoria_id'],
+        motivo: json['motivo'] ?? '',
+      );
+}
+
+class RespuestaChat {
+  final String respuesta;
+  final List<ProductoRecomendado> productosSugeridos;
+
+  RespuestaChat({required this.respuesta, required this.productosSugeridos});
+
+  factory RespuestaChat.fromJson(Map<String, dynamic> json) => RespuestaChat(
+    respuesta: json['respuesta'],
+    productosSugeridos: (json['productos_sugeridos'] as List? ?? [])
+        .map((e) => ProductoRecomendado.fromJson(e))
+        .toList(),
+  );
+}

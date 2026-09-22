@@ -25,6 +25,11 @@ export class Login {
   password = '';
   error = '';
   cargando = false;
+  mostrarPassword = false;
+
+  togglePassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
 
   iniciarSesion(): void {
     this.error = '';

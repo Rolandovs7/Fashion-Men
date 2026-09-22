@@ -24,9 +24,18 @@
 
       <!-- Logo -->
       <a routerLink="/catalogo" (click)="cerrarMenu()" class="flex items-center gap-3">
-        <!-- Cuadrado con M -->
-        <div class="w-10 h-10 bg-white text-neutral-950 rounded-xl flex items-center justify-center shadow-md leading-none overflow-hidden">
-          <span class="font-black text-2xl leading-none tracking-tighter" style="font-family: 'Arial Black', system-ui, sans-serif; padding-bottom: 2px;">M</span>
+        <!-- Logo M en SVG (robusto, no depende de fuentes del sistema) -->
+        <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
+          <svg viewBox="0 0 40 40" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" fill="white"/>
+            <text x="20" y="29"
+                  text-anchor="middle"
+                  font-family="Arial Black, Arial, Helvetica, sans-serif"
+                  font-weight="900"
+                  font-size="26"
+                  fill="#0a0a0a"
+                  letter-spacing="-1.5">M</text>
+          </svg>
         </div>
         <!-- Texto del logo (oculto en móvil muy chico) -->
         <div class="hidden sm:block leading-none">

@@ -21,11 +21,18 @@
   }
 }
 
-/* Animación para drawer móvil */
-@keyframes slide-in {
-  from { transform: translateX(100%); }
+/* Animación para drawer móvil (desde la izquierda) */
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
   to { transform: translateX(0); }
 }
-.animate-slide-in {
-  animation: slide-in 0.25s ease-out;
+.animate-slide-in-left {
+  animation: slide-in-left 0.25s ease-out;
+}
+
+/* Fix del logo M */
+.logo-M {
+  font-family: 'Arial Black', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.05em;
+  padding-bottom: 3px;
 }

@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 class ApiConfig {
   // Cambiá esto a la URL de Render cuando despliegues a producción.
-  static const String _productionUrl = 'https://menstyle-api.onrender.com';
+  static const String _productionUrl = 'https://menstyle-api-n77g.onrender.com';
   static const bool useProduction =
-      false; // true cuando quieras probar contra Render
+      true; // true cuando quieras probar contra Render
 
   static String get baseUrl {
     if (useProduction) return _productionUrl;

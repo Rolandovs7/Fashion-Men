@@ -8,8 +8,6 @@ import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as img;
 
-import '../core/theme.dart';
-
 /// Pantalla de vestidor virtual: usa la cámara frontal, detecta la
 /// posición del torso de la persona (hombros y caderas) y superpone
 /// la imagen de la prenda escalada a esa posición, en tiempo real.

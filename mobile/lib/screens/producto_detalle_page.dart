@@ -5,13 +5,8 @@ import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import '../services/carrito_service.dart';
 import '../services/auth_service.dart';
+import 'vestidor_virtual_page.dart';
 
-// ============================================================
-// TRAZABILIDAD MENSTYLE
-// CU: CU25 - Consultar Disponibilidad
-// RF: RF08 - El cliente deberá poder consultar disponibilidad por sucursal
-// CAPA: Flutter | BACKEND: GET /api/variantes/producto/{id} (stockDisponible)
-// ============================================================
 class ProductoDetallePage extends StatefulWidget {
   final int productoId;
 
@@ -109,6 +104,25 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
     }
   }
 
+  void _abrirVestidorVirtual() {
+    final url = AppConfig.urlCompleta(producto?.imagenUrl);
+    if (url == null) {
+      setState(
+        () => error = 'Esta prenda no tiene una imagen disponible para probar.',
+      );
+      return;
+    }
+
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => VestidorVirtualPage(
+          imagenPrendaUrl: url,
+          nombrePrenda: producto!.nombre,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,6 +171,16 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
                         ? producto!.descripcion!
                         : 'Sin descripción disponible para esta prenda.',
                     style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      onPressed: _abrirVestidorVirtual,
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      label: const Text('Probar con cámara (AR)'),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (variantes.isEmpty)
@@ -338,8 +362,6 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
   }
 }
 
-/// Widget que muestra la imagen del producto en el detalle.
-/// Si falla, muestra un placeholder.
 class _ImagenDetalle extends StatelessWidget {
   final String? rutaRelativa;
   final String nombre;

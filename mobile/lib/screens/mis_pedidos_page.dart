@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
 import '../models/models.dart';
 import '../services/pedidos_service.dart';
 import '../services/auth_service.dart';
 import '../services/tipos_pago_service.dart';
+import '../services/stripe_service.dart';
 import '../core/theme.dart';
 
-// ============================================================
-// CU21 - Gestionar Pedido (vista del cliente: "Mis pedidos")
-// CU19 - usa el catálogo dinámico de Tipos de Pago al pagar
-// RF: pendiente de confirmar en documentación (relacionado con
-// RF15/RF16 - compra web/móvil, RF18/RF19 - pago)
-// ============================================================
 class MisPedidosPage extends StatefulWidget {
   const MisPedidosPage({super.key});
 
@@ -22,12 +18,16 @@ class MisPedidosPage extends StatefulWidget {
 class _MisPedidosPageState extends State<MisPedidosPage> {
   final pedidosService = PedidosService();
   final tiposPagoService = TiposPagoService();
+  final stripeService = StripeService();
 
   List<Pedido> pedidos = [];
   List<TipoPago> tiposPago = [];
   bool cargando = true;
   String error = '';
   String mensaje = '';
+
+  bool _stripeListo = false;
+  int? _pedidoIdProcesandoStripe;
 
   final etiquetas = const {
     'pendiente': 'Pendiente',
@@ -42,7 +42,6 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   void initState() {
     super.initState();
     _cargar();
-    // CU19 / RF18-RF19 - catálogo dinámico de métodos de pago habilitados
     tiposPagoService.listar().then((tipos) {
       if (mounted) setState(() => tiposPago = tipos);
     });
@@ -196,6 +195,57 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
     }
   }
 
+  Future<void> _pagarConStripe(Pedido pedido) async {
+    setState(() {
+      _pedidoIdProcesandoStripe = pedido.id;
+      error = '';
+      mensaje = '';
+    });
+
+    try {
+      if (!_stripeListo) {
+        final config = await stripeService.obtenerConfig();
+        Stripe.publishableKey = config.publishableKey;
+        await Stripe.instance.applySettings();
+        _stripeListo = true;
+      }
+
+      final intent = await stripeService.crearIntent(pedido.id, moneda: 'usd');
+
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: intent.clientSecret,
+          merchantDisplayName: 'MenStyle',
+        ),
+      );
+
+      await Stripe.instance.presentPaymentSheet();
+
+      final estado = await stripeService.confirmarPago(intent.paymentIntentId);
+
+      if (!mounted) return;
+      setState(() {
+        _pedidoIdProcesandoStripe = null;
+        mensaje = estado == 'succeeded'
+            ? 'Pago con tarjeta exitoso para el pedido #${pedido.id}.'
+            : 'Pago en estado: $estado';
+      });
+      _cargar();
+    } on StripeException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _pedidoIdProcesandoStripe = null;
+        error = e.error.localizedMessage ?? 'El pago fue cancelado.';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _pedidoIdProcesandoStripe = null;
+        error = e.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
   bool _puedeCancelar(Pedido p) =>
       !['cancelado', 'entregado'].contains(p.estado);
 
@@ -295,13 +345,41 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                               ),
                             ),
                             const SizedBox(height: 10),
+                            if (pedido.estado == 'pendiente') ...[
+                              SizedBox(
+                                width: double.infinity,
+                                height: 46,
+                                child: FilledButton.icon(
+                                  onPressed:
+                                      _pedidoIdProcesandoStripe == pedido.id
+                                      ? null
+                                      : () => _pagarConStripe(pedido),
+                                  icon: _pedidoIdProcesandoStripe == pedido.id
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(Icons.credit_card),
+                                  label: Text(
+                                    _pedidoIdProcesandoStripe == pedido.id
+                                        ? 'Procesando...'
+                                        : 'Pagar con tarjeta',
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                            ],
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 if (pedido.estado == 'pendiente')
                                   TextButton(
                                     onPressed: () => _pagar(pedido),
-                                    child: const Text('Pagar ahora'),
+                                    child: const Text('Registrar pago manual'),
                                   ),
                                 if (_puedeCancelar(pedido))
                                   TextButton(

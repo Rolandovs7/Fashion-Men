@@ -4,6 +4,7 @@ import 'catalogo_page.dart';
 import 'carrito_page.dart';
 import 'mis_pedidos_page.dart';
 import 'mis_reservas_page.dart';
+import 'notificaciones_page.dart';
 import 'perfil_page.dart';
 
 class MainShell extends StatefulWidget {
@@ -25,6 +26,7 @@ class _MainShellState extends State<MainShell> {
       const CarritoPage(),
       const MisPedidosPage(),
       const MisReservasPage(),
+      const NotificacionesPage(),
       PerfilPage(usuario: widget.usuario),
     ];
 
@@ -53,6 +55,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Reservas',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
+            label: 'Avisos',
           ),
           NavigationDestination(
             icon: Icon(Icons.account_circle_outlined),

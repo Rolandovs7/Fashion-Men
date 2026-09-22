@@ -36,3 +36,73 @@
   letter-spacing: -0.05em;
   padding-bottom: 3px;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   SISTEMA VISUAL MENSTYLE — Base reutilizable (shared/ui)
+   Paleta: neutral-950 (casi negro) / blanco / ámbar-400.
+   Todas las utilidades viven en Tailwind 4; aquí solo tokens
+   y animaciones compartidas por los componentes base.
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --brand-dark: #0a0a0a;   /* neutral-950  */
+  --brand-ink: #171717;    /* neutral-900  */
+  --brand-accent: #fbbf24; /* amber-400    */
+  --brand-bg: #f4f4f5;     /* neutral-100  */
+  --brand-surface: #ffffff;
+}
+
+/* Fade genérico (backdrops de modales, toasts, avisos) */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out both;
+}
+
+/* Entrada de paneles (modales) */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.18s ease-out both;
+}
+
+/* Entrada lateral (toasts y drawers) */
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.22s ease-out both;
+}
+
+/* Campo base para app-input y app-select. Coincide con la
+   apariencia de los inputs ya usados en la app. */
+.input-base {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #d4d4d8;     /* neutral-300 */
+  background-color: #fafafa;     /* neutral-50  */
+  padding: 0.625rem 0.875rem;    /* 2.5 / 3.5   */
+  font-size: 0.875rem;
+  color: #171717;                /* neutral-900 */
+  outline: none;
+  transition: all 0.15s ease;
+}
+.input-base:focus {
+  background-color: #ffffff;
+  border-color: #0a0a0a;         /* neutral-950 */
+  box-shadow: 0 0 0 2px rgb(10 10 10 / 0.1);
+}
+.input-base:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* Estado de error del campo */
+.input-base.is-error,
+.input-base.is-error:focus {
+  border-color: #f87171;         /* red-400  */
+  box-shadow: 0 0 0 2px rgb(248 113 113 / 0.12);
+}

@@ -2,10 +2,11 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ChatWidget } from './shared/chat-widget/chat-widget';
+import { ToastComponent } from './shared/ui/toast/toast';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ChatWidget],
+  imports: [RouterOutlet, ChatWidget, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

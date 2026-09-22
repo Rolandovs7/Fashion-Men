@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
@@ -6,6 +7,7 @@ import '../services/sucursales_service.dart';
 import '../services/pedidos_service.dart';
 import '../services/reservas_service.dart';
 import '../services/auth_service.dart';
+import '../core/theme.dart';
 
 class _ItemCarritoVista {
   final DetalleCarrito detalle;
@@ -68,10 +70,18 @@ class _CarritoPageState extends State<CarritoPage> {
       final itemsResueltos = <_ItemCarritoVista>[];
       for (final detalle in carrito.detalles) {
         try {
-          final variante = await catalogoService.obtenerVariante(detalle.varianteId);
-          final producto = await catalogoService.obtenerProducto(variante.productoId);
+          final variante = await catalogoService.obtenerVariante(
+            detalle.varianteId,
+          );
+          final producto = await catalogoService.obtenerProducto(
+            variante.productoId,
+          );
           itemsResueltos.add(
-            _ItemCarritoVista(detalle: detalle, variante: variante, producto: producto),
+            _ItemCarritoVista(
+              detalle: detalle,
+              variante: variante,
+              producto: producto,
+            ),
           );
         } catch (_) {
           itemsResueltos.add(_ItemCarritoVista(detalle: detalle));
@@ -93,7 +103,10 @@ class _CarritoPageState extends State<CarritoPage> {
     }
   }
 
-  Future<void> _cambiarCantidad(_ItemCarritoVista item, int nuevaCantidad) async {
+  Future<void> _cambiarCantidad(
+    _ItemCarritoVista item,
+    int nuevaCantidad,
+  ) async {
     if (nuevaCantidad < 1) return;
     try {
       await carritoService.actualizarItem(item.detalle.id, nuevaCantidad);
@@ -114,7 +127,9 @@ class _CarritoPageState extends State<CarritoPage> {
   }
 
   Future<void> _comprarAhora() async {
-    final sucursalId = await _elegirSucursal(titulo: 'Elige la sucursal para tu compra');
+    final sucursalId = await _elegirSucursal(
+      titulo: 'Elige la sucursal para tu compra',
+    );
     if (sucursalId == null) return;
 
     setState(() => procesando = true);
@@ -135,7 +150,9 @@ class _CarritoPageState extends State<CarritoPage> {
   }
 
   Future<void> _reservarParaProbar() async {
-    final sucursalId = await _elegirSucursal(titulo: 'Elige la sucursal para probarte las prendas');
+    final sucursalId = await _elegirSucursal(
+      titulo: 'Elige la sucursal para probarte las prendas',
+    );
     if (sucursalId == null) return;
 
     if (!mounted) return;
@@ -148,14 +165,28 @@ class _CarritoPageState extends State<CarritoPage> {
     if (fecha == null) return;
 
     if (!mounted) return;
-    final hora = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+    final hora = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
     if (hora == null) return;
 
-    final fechaHora = DateTime(fecha.year, fecha.month, fecha.day, hora.hour, hora.minute);
+    final fechaHora = DateTime(
+      fecha.year,
+      fecha.month,
+      fecha.day,
+      hora.hour,
+      hora.minute,
+    );
 
     final detalles = items
         .where((i) => i.variante != null)
-        .map((i) => {'variante_id': i.variante!.id, 'cantidad': i.detalle.cantidad})
+        .map(
+          (i) => {
+            'variante_id': i.variante!.id,
+            'cantidad': i.detalle.cantidad,
+          },
+        )
         .toList();
 
     if (detalles.isEmpty) {
@@ -197,7 +228,10 @@ class _CarritoPageState extends State<CarritoPage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                titulo,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
             ...sucursales.map(
               (s) => ListTile(
@@ -217,6 +251,7 @@ class _CarritoPageState extends State<CarritoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.fondoCarrito,
       appBar: AppBar(title: const Text('Tu carrito')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
@@ -235,7 +270,10 @@ class _CarritoPageState extends State<CarritoPage> {
                       child: Center(
                         child: Text(
                           'Tu carrito está vacío.',
-                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -252,10 +290,16 @@ class _CarritoPageState extends State<CarritoPage> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF262626), Color(0xFF000000)],
+                                  colors: [
+                                    Color(0xFF262626),
+                                    Color(0xFF000000),
+                                  ],
                                 ),
                               ),
-                              child: const Icon(Icons.checkroom, color: Colors.white54),
+                              child: const Icon(
+                                Icons.checkroom,
+                                color: Colors.white54,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -263,35 +307,52 @@ class _CarritoPageState extends State<CarritoPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.producto?.nombre ?? 'Producto no disponible',
-                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                    item.producto?.nombre ??
+                                        'Producto no disponible',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   if (item.variante != null)
                                     Text(
                                       'Talla ${item.variante!.tallaNombre} · ${item.variante!.colorNombre}',
-                                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
                                     ),
                                   Text(
                                     'Bs ${item.subtotal.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontWeight: FontWeight.w900),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             IconButton(
                               onPressed: item.detalle.cantidad > 1
-                                  ? () => _cambiarCantidad(item, item.detalle.cantidad - 1)
+                                  ? () => _cambiarCantidad(
+                                      item,
+                                      item.detalle.cantidad - 1,
+                                    )
                                   : null,
                               icon: const Icon(Icons.remove_circle_outline),
                             ),
                             Text('${item.detalle.cantidad}'),
                             IconButton(
-                              onPressed: () => _cambiarCantidad(item, item.detalle.cantidad + 1),
+                              onPressed: () => _cambiarCantidad(
+                                item,
+                                item.detalle.cantidad + 1,
+                              ),
                               icon: const Icon(Icons.add_circle_outline),
                             ),
                             IconButton(
                               onPressed: () => _eliminarItem(item),
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
                             ),
                           ],
                         ),
@@ -303,10 +364,19 @@ class _CarritoPageState extends State<CarritoPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'Total',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         Text(
                           'Bs ${total.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                          ),
                         ),
                       ],
                     ),
@@ -316,7 +386,9 @@ class _CarritoPageState extends State<CarritoPage> {
                       height: 52,
                       child: FilledButton(
                         onPressed: procesando ? null : _comprarAhora,
-                        child: Text(procesando ? 'Procesando...' : 'Comprar ahora'),
+                        child: Text(
+                          procesando ? 'Procesando...' : 'Comprar ahora',
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -353,7 +425,10 @@ class _Banner extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
-      child: Text(texto, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+      child: Text(
+        texto,
+        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }

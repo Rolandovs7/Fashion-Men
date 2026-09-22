@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import '../models/models.dart';
 import '../services/pedidos_service.dart';
 import '../services/auth_service.dart';
 import '../services/tipos_pago_service.dart';
+import '../core/theme.dart';
 
 // ============================================================
 // CU21 - Gestionar Pedido (vista del cliente: "Mis pedidos")
@@ -80,8 +82,14 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
       builder: (context) => AlertDialog(
         title: Text('¿Cancelar el pedido #${pedido.id}?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sí, cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Sí, cancelar'),
+          ),
         ],
       ),
     );
@@ -105,7 +113,9 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
       isScrollControlled: true,
       builder: (context) => Padding(
         padding: EdgeInsets.only(
-          left: 20, right: 20, top: 20,
+          left: 20,
+          right: 20,
+          top: 20,
           bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
         child: StatefulBuilder(
@@ -113,15 +123,34 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Pagar pedido #${pedido.id}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text(
+                'Pagar pedido #${pedido.id}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text('Total: Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900)),
+              Text(
+                'Total: Bs ${pedido.total.toStringAsFixed(2)}',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 initialValue: metodo,
-                decoration: const InputDecoration(labelText: 'Método de pago', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Método de pago',
+                  border: OutlineInputBorder(),
+                ),
                 items: tiposPago.isNotEmpty
-                    ? tiposPago.map((t) => DropdownMenuItem(value: t.nombre, child: Text(t.nombre))).toList()
+                    ? tiposPago
+                          .map(
+                            (t) => DropdownMenuItem(
+                              value: t.nombre,
+                              child: Text(t.nombre),
+                            ),
+                          )
+                          .toList()
                     : [DropdownMenuItem(value: metodo, child: Text(metodo))],
                 onChanged: (v) => setModalState(() => metodo = v ?? metodo),
               ),
@@ -136,7 +165,9 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => Navigator.pop(context, true),
-                child: Text('Confirmar pago de Bs ${pedido.total.toStringAsFixed(2)}'),
+                child: Text(
+                  'Confirmar pago de Bs ${pedido.total.toStringAsFixed(2)}',
+                ),
               ),
             ],
           ),
@@ -151,16 +182,22 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
         pedidoId: pedido.id,
         metodo: metodo,
         monto: pedido.total,
-        referencia: referenciaController.text.trim().isEmpty ? null : referenciaController.text.trim(),
+        referencia: referenciaController.text.trim().isEmpty
+            ? null
+            : referenciaController.text.trim(),
       );
-      setState(() => mensaje = 'Pago del pedido #${pedido.id} procesado correctamente.');
+      setState(
+        () =>
+            mensaje = 'Pago del pedido #${pedido.id} procesado correctamente.',
+      );
       _cargar();
     } catch (e) {
       setState(() => error = e.toString().replaceFirst('Exception: ', ''));
     }
   }
 
-  bool _puedeCancelar(Pedido p) => !['cancelado', 'entregado'].contains(p.estado);
+  bool _puedeCancelar(Pedido p) =>
+      !['cancelado', 'entregado'].contains(p.estado);
 
   Color _colorEstado(String estado) {
     switch (estado) {
@@ -183,6 +220,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.fondoPedidos,
       appBar: AppBar(title: const Text('Mis pedidos')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
@@ -197,7 +235,10 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                     const Padding(
                       padding: EdgeInsets.only(top: 60),
                       child: Center(
-                        child: Text('Aún no tienes pedidos.', style: TextStyle(color: Colors.grey)),
+                        child: Text(
+                          'Aún no tienes pedidos.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ),
                   ...pedidos.map(
@@ -211,11 +252,20 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Pedido #${pedido.id}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                Text(
+                                  'Pedido #${pedido.id}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _colorEstado(pedido.estado).withValues(alpha: 0.12),
+                                    color: _colorEstado(pedido.estado)
+                                        .withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -230,19 +280,35 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            Text(pedido.fechaPedido.substring(0, 10), style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            Text(
+                              pedido.fechaPedido.substring(0, 10),
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
                             const Divider(height: 20),
-                            Text('Total: Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w900)),
+                            Text(
+                              'Total: Bs ${pedido.total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                             const SizedBox(height: 10),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 if (pedido.estado == 'pendiente')
-                                  TextButton(onPressed: () => _pagar(pedido), child: const Text('Pagar ahora')),
+                                  TextButton(
+                                    onPressed: () => _pagar(pedido),
+                                    child: const Text('Pagar ahora'),
+                                  ),
                                 if (_puedeCancelar(pedido))
                                   TextButton(
                                     onPressed: () => _cancelar(pedido),
-                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                    ),
                                     child: const Text('Cancelar'),
                                   ),
                               ],
@@ -259,14 +325,17 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   }
 
   Widget _banner(String texto, Color color) => Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Text(texto, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
-      );
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color.withValues(alpha: 0.3)),
+    ),
+    child: Text(
+      texto,
+      style: TextStyle(color: color, fontWeight: FontWeight.w600),
+    ),
+  );
 }

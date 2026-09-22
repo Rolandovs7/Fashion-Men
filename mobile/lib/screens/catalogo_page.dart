@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/config.dart';
+import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import 'producto_detalle_page.dart';
@@ -18,7 +19,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
   List<Producto> productos = [];
   List<Categoria> categorias = [];
 
-  int? categoriaSeleccionada; // null = todas
+  int? categoriaSeleccionada;
   String busqueda = '';
 
   bool cargando = true;
@@ -77,12 +78,8 @@ class _CatalogoPageState extends State<CatalogoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'MENSTYLE',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2),
-        ),
-      ),
+      backgroundColor: AppTheme.fondoCatalogo,
+      appBar: AppBar(title: const Text('MENSTYLE')),
       body: RefreshIndicator(
         onRefresh: _cargar,
         child: cargando
@@ -98,9 +95,6 @@ class _CatalogoPageState extends State<CatalogoPage> {
                         decoration: const InputDecoration(
                           hintText: 'Buscar por nombre...',
                           prefixIcon: Icon(Icons.search),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
-                          ),
                           isDense: true,
                         ),
                         onChanged: (v) => setState(() => busqueda = v),
@@ -195,16 +189,28 @@ class _ChipCategoria extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: seleccionado,
-        onSelected: (_) => onTap(),
-        selectedColor: Colors.black,
-        labelStyle: TextStyle(
-          color: seleccionado ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
+      padding: const EdgeInsets.only(right: 10),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          decoration: BoxDecoration(
+            color: seleccionado ? AppTheme.negro : Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: seleccionado ? AppTheme.negro : const Color(0xFFE0E0E0),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: seleccionado ? Colors.white : AppTheme.negro,
+              fontWeight: FontWeight.w600,
+              fontSize: 12.5,
+              letterSpacing: 0.3,
+            ),
+          ),
         ),
       ),
     );
@@ -224,11 +230,21 @@ class _TarjetaProducto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      elevation: 1.5,
-      child: InkWell(
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -237,11 +253,11 @@ class _TarjetaProducto extends StatelessWidget {
                 rutaRelativa: producto.imagenUrl,
                 nombre: producto.nombre,
                 iconoFallback: Icons.checkroom,
-                tamanioIcono: 40,
+                tamanioIcono: 36,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -249,27 +265,29 @@ class _TarjetaProducto extends StatelessWidget {
                     categoriaNombre.toUpperCase(),
                     style: const TextStyle(
                       fontSize: 9,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey,
-                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.grisTexto,
+                      letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     producto.nombre,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13.5,
+                      color: AppTheme.negro,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     'Bs ${producto.precio.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w800,
                       fontSize: 14,
+                      color: AppTheme.negro,
                     ),
                   ),
                 ],
@@ -282,8 +300,6 @@ class _TarjetaProducto extends StatelessWidget {
   }
 }
 
-/// Widget reutilizable: muestra la imagen del producto desde el backend.
-/// Si la URL es nula, está cargando o falla, muestra un placeholder.
 class _ImagenProducto extends StatelessWidget {
   final String? rutaRelativa;
   final String nombre;

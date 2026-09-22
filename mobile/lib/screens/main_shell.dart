@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'catalogo_page.dart';
 import 'carrito_page.dart';
 import 'mis_pedidos_page.dart';
@@ -28,37 +29,34 @@ class _MainShellState extends State<MainShell> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: indiceActual,
-        children: paginas,
-      ),
+      body: IndexedStack(index: indiceActual, children: paginas),
       bottomNavigationBar: NavigationBar(
         selectedIndex: indiceActual,
         onDestinationSelected: (i) => setState(() => indiceActual = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.storefront_outlined),
-            selectedIcon: Icon(Icons.storefront),
+            icon: Icon(Icons.checkroom_outlined),
+            selectedIcon: Icon(Icons.checkroom),
             label: 'Catálogo',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_bag_outlined),
-            selectedIcon: Icon(Icons.shopping_bag),
+            icon: Icon(Icons.local_mall_outlined),
+            selectedIcon: Icon(Icons.local_mall),
             label: 'Carrito',
           ),
           NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
+            icon: Icon(Icons.history_edu_outlined),
+            selectedIcon: Icon(Icons.history_edu),
             label: 'Pedidos',
           ),
           NavigationDestination(
-            icon: Icon(Icons.event_available_outlined),
-            selectedIcon: Icon(Icons.event_available),
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
             label: 'Reservas',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
+            icon: Icon(Icons.account_circle_outlined),
+            selectedIcon: Icon(Icons.account_circle),
             label: 'Perfil',
           ),
         ],

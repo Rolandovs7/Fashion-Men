@@ -1,0 +1,12 @@
+<div class="flex flex-col items-center justify-center gap-3" [class.w-full]="centrado">
+  <div
+    [class]="claseTamano"
+    [class.border-neutral-300]="!claro"
+    [class.border-t-neutral-950]="!claro"
+    [class.border-white/30]="claro"
+    [class.border-t-white]="claro"
+    class="rounded-full animate-spin"></div>
+  @if (texto) {
+    <p [class.text-neutral-700]="!claro" [class.text-neutral-300]="claro" class="text-sm font-semibold">{{ texto }}</p>
+  }
+</div>

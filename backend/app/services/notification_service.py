@@ -2,8 +2,10 @@ from datetime import datetime, timezone, timezone  # ✅ Importar al inicio
 from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, and_
 
 from app.models.notification import Notificacion
+from app.models.user import Usuario
 
 
 def crear_notificacion(
@@ -61,3 +63,37 @@ def marcar_como_leida(
     db.refresh(notificacion)
 
     return notificacion
+
+def notificar_nueva_reserva(
+    db: Session,
+    reserva,
+    sucursal,
+    cliente,
+    cantidad_items: int = 0,
+) -> int:
+    """
+    RF11 — Notifica a encargados de la sucursal + admins de una nueva reserva.
+    Retorna la cantidad de notificaciones creadas.
+    """
+    destinatarios = db.query(Usuario).filter(
+        Usuario.activo.is_(True),
+        or_(
+            Usuario.rol == "administrador",
+            and_(
+                Usuario.rol == "encargado",
+                Usuario.sucursal_id == sucursal.id,
+            )
+        )
+    ).all()
+
+    titulo = f"Nueva reserva en {sucursal.nombre}"
+    mensaje = (
+        f"{cliente.nombre} {cliente.apellido} reservó "
+        f"{cantidad_items} producto(s). "
+        f"Reserva #{reserva.id}. Revisá el panel de reservas."
+    )
+
+    for u in destinatarios:
+        crear_notificacion(db, u.id, titulo, mensaje)
+
+    return len(destinatarios)

@@ -9,7 +9,10 @@ from app.models.product_variant import ProductoVariante
 from app.models.branch import Sucursal
 from app.models.user import Usuario
 from app.schemas.reservation import ReservaCrear
-from app.services.notification_service import crear_notificacion
+from app.services.notification_service import (
+    crear_notificacion,
+    notificar_nueva_reserva,
+)
 
 
 def listar_reservas_usuario(
@@ -153,6 +156,16 @@ def crear_reserva(
             usuario_id=usuario_id,
             titulo="Reserva Creada",
             mensaje=f"Tu reserva #{nueva_reserva.id} ha sido registrada con éxito en estado pendiente."
+        )
+
+        # RF11 — Notificar a encargados/admin de la sucursal
+        cantidad_total = sum(item.cantidad for item in datos.detalles)
+        notificar_nueva_reserva(
+            db=db,
+            reserva=nueva_reserva,
+            sucursal=sucursal,
+            cliente=usuario,
+            cantidad_items=cantidad_total,
         )
 
         db.commit()

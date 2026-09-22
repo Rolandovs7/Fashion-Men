@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
+from app.core.limiter import limiter
 
 from app.api.routes.auth import router as auth_router
 from app.api.routes.categories import router as categories_router
@@ -25,7 +29,7 @@ from app.api.routes.payments import router as payments_router
 from app.api.routes.returns import router as returns_router
 from app.api.routes.users import router as users_router
 from app.api.routes.permissions import router as permissions_router
-from app.api.routes.ia import router as ia_router                              # ← NUEVA (CU31, CU32 - RF25)
+from app.api.routes.ia import router as ia_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.admin import router as admin_router
 
@@ -36,11 +40,14 @@ app = FastAPI(
 )
 
 # ============================================
+# RATE LIMITING
+# ============================================
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ============================================
 # CONFIGURACIÓN CORS
 # ============================================
-# Orígenes permitidos. Se leen de la env var CORS_ORIGINS (separados por coma).
-# En producción: solo dominios MenStyle.
-# En desarrollo local: añade http://localhost:4200
 import os as _os
 
 _default_origins = (
@@ -54,8 +61,6 @@ CORS_ORIGINS = [
     if o.strip()
 ]
 
-# Regex: permite CUALQUIER puerto de localhost/127.0.0.1 durante desarrollo.
-# Necesario para Flutter Web (usa puertos aleatorios) y otras herramientas de dev.
 _CORS_LOCALHOST_REGEX = r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
 
 app.add_middleware(
@@ -96,16 +101,7 @@ app.include_router(users_router, prefix="/api")
 app.include_router(permissions_router, prefix="/api")
 app.include_router(admin_router, prefix="/api", tags=["Admin"])
 
-# ============================================
-# ROUTERS - INTELIGENCIA ARTIFICIAL (RF25)
-# ============================================
-# CU31 - Recibir Recomendaciones (IA)
-# CU32 - Interactuar con Asistente Virtual
 app.include_router(ia_router, prefix="/api/ia", tags=["Inteligencia Artificial"])
-
-# ============================================
-# ROUTERS - REPORTES Y DASHBOARD (RF24)
-# ============================================
 app.include_router(reports_router, prefix="/api/reportes", tags=["Reportes"])
 
 # ============================================

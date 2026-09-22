@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
 # --- Google Gemini (IA real) ---
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from app.models.product import Producto
 from app.models.product_variant import ProductoVariante
@@ -25,11 +26,13 @@ from app.models.order_detail import DetallePedido
 # Configurar Gemini si hay API key
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_DISPONIBLE = False
+GEMINI_CLIENT = None
 
 if GEMINI_API_KEY:
     try:
-        genai.configure(api_key=GEMINI_API_KEY)
+        GEMINI_CLIENT = genai.Client(api_key=GEMINI_API_KEY)
         GEMINI_DISPONIBLE = True
+        print("✅ Gemini configurado correctamente")
     except Exception as e:
         print(f"⚠️ Gemini no se pudo configurar: {e}")
 
@@ -191,12 +194,31 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
         productos_sugeridos = []
 
         # --- Categorías ---
+        # Las categorías en la BD están en PLURAL:
+        # Camisas, Pantalones, Zapatos, Accesorios, Chaquetas,
+        # Poleras, Trajes, Camisetas, Ropa Deportiva
+        # El matching usa LIKE %nombre%, así que usamos el plural
+        # para que coincida.
         categorias_keywords = {
-            "traje": "Traje", "trajes": "Traje",
-            "camisa": "Camisa", "camisas": "Camisa",
-            "pantalon": "Pantalón", "pantalones": "Pantalón", "jean": "Pantalón",
-            "zapato": "Zapato", "zapatos": "Zapato",
-            "accesorio": "Accesorio", "accesorios": "Accesorio",
+            "traje": "Trajes", "trajes": "Trajes",
+            "camisa": "Camisas", "camisas": "Camisas",
+            "camiseta": "Camisetas", "camisetas": "Camisetas",
+            "pantalon": "Pantalones", "pantalones": "Pantalones",
+            "jean": "Pantalones", "jeans": "Pantalones",
+            "zapato": "Zapatos", "zapatos": "Zapatos",
+            "zapatilla": "Zapatos", "zapatillas": "Zapatos",
+            "tenis": "Zapatos",
+            "polera": "Poleras", "poleras": "Poleras",
+            "polo": "Poleras", "polos": "Poleras",
+            "chaqueta": "Chaquetas", "chaquetas": "Chaquetas",
+            "abrigo": "Chaquetas",
+            "accesorio": "Accesorios", "accesorios": "Accesorios",
+            "cinturon": "Accesorios", "cinturones": "Accesorios",
+            "bufanda": "Accesorios", "bufandas": "Accesorios",
+            "gorra": "Accesorios", "gorras": "Accesorios",
+            "short": "Ropa Deportiva", "shorts": "Ropa Deportiva",
+            "deportiv": "Ropa Deportiva", "deportiva": "Ropa Deportiva",
+            "gym": "Ropa Deportiva", "gimnasio": "Ropa Deportiva",
         }
 
         categoria_detectada = None
@@ -291,12 +313,13 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
 
     def _consultar_gemini(self, mensaje: str) -> Optional[str]:
         """
-        Consulta a Google Gemini (IA real).
+        Consulta a Google Gemini (IA real) usando el nuevo SDK google-genai.
         Retorna la respuesta en texto, o None si falla.
         """
-        try:
-            model = genai.GenerativeModel("gemini-3.5-flash-lite")
+        if not GEMINI_DISPONIBLE or GEMINI_CLIENT is None:
+            return None
 
+        try:
             # Contexto con productos reales (para que no invente)
             productos_db = (
                 self.db.query(Producto)
@@ -315,7 +338,11 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
 Cliente: {mensaje}
 Asistente:"""
 
-            response = model.generate_content(prompt)
+            # SDK nuevo: client.models.generate_content
+            response = GEMINI_CLIENT.models.generate_content(
+                model="gemini-3.6-flash",
+                contents=prompt,
+            )
             return response.text.strip()
 
         except Exception as e:

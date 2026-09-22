@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -46,6 +46,12 @@ class Usuario(Base):
         String(30),
         default="cliente",
         nullable=False
+    )
+
+    sucursal_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sucursales.id"),
+        nullable=True,
+        index=True
     )
 
     fecha_creacion: Mapped[datetime] = mapped_column(

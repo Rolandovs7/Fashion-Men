@@ -1,0 +1,124 @@
+<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+
+  <app-header></app-header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+
+    <!-- Header de la página -->
+    <div class="mb-8 flex items-end justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">Notificaciones</h1>
+        <p class="text-sm text-neutral-500 font-medium mt-1">
+          {{ contadorNoLeidas > 0 ? contadorNoLeidas + ' sin leer' : 'Todo al día' }}
+        </p>
+      </div>
+
+      <button
+        (click)="cargar()"
+        class="text-xs font-bold text-neutral-500 hover:text-neutral-900 uppercase tracking-wide transition-colors cursor-pointer flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Actualizar
+      </button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-2xl p-2 shadow-sm border border-neutral-200/80 mb-6 flex gap-1">
+      <button
+        (click)="cambiarFiltro('todas')"
+        [class.bg-neutral-950]="filtro === 'todas'"
+        [class.text-white]="filtro === 'todas'"
+        class="flex-1 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide bg-neutral-50 text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer">
+        Todas
+      </button>
+      <button
+        (click)="cambiarFiltro('no-leidas')"
+        [class.bg-neutral-950]="filtro === 'no-leidas'"
+        [class.text-white]="filtro === 'no-leidas'"
+        class="flex-1 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wide bg-neutral-50 text-neutral-700 hover:bg-neutral-100 transition-all cursor-pointer">
+        No leídas
+      </button>
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
+        {{ error }}
+      </div>
+    }
+
+    <!-- Cargando -->
+    @if (cargando) {
+      <div class="flex flex-col items-center justify-center py-28 text-center">
+        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
+        <p class="text-sm font-semibold text-neutral-700">Cargando notificaciones...</p>
+      </div>
+    } @else if (notificaciones.length === 0) {
+      <!-- Vacío -->
+      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-100 flex items-center justify-center">
+          <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+        </div>
+        <p class="text-sm font-semibold text-neutral-600 mb-2">
+          {{ filtro === 'no-leidas' ? 'No tenés notificaciones sin leer.' : 'Aún no tenés notificaciones.' }}
+        </p>
+        <p class="text-xs text-neutral-400">
+          Acá vas a ver los cambios de tus pedidos y reservas.
+        </p>
+      </div>
+    } @else {
+      <!-- Lista de notificaciones -->
+      <div class="space-y-3">
+        @for (notif of notificaciones; track notif.id) {
+          <div
+            (click)="marcarComoLeida(notif)"
+            [class.bg-white]="notif.leida"
+            [class.bg-amber-50]="!notif.leida"
+            [class.border-amber-200]="!notif.leida"
+            [class.border-neutral-200]="notif.leida"
+            [class.cursor-pointer]="!notif.leida"
+            class="rounded-2xl border shadow-sm p-5 transition-all hover:shadow-md">
+
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-neutral-900 text-white flex items-center justify-center text-xl shrink-0">
+                {{ iconoPara(notif.titulo) }}
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3">
+                  <h3 class="font-bold text-neutral-900 text-sm">{{ notif.titulo }}</h3>
+                  @if (!notif.leida) {
+                    <span class="shrink-0 px-2 py-0.5 rounded-full bg-amber-400 text-neutral-950 text-[10px] font-black uppercase tracking-wide">
+                      Nueva
+                    </span>
+                  }
+                </div>
+
+                <p class="text-sm text-neutral-600 mt-1 leading-relaxed">
+                  {{ notif.mensaje }}
+                </p>
+
+                <p class="text-[11px] text-neutral-400 font-medium mt-2">
+                  {{ tiempoRelativo(notif.fecha_creacion) }}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </main>
+
+  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
+      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
+      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
+    </div>
+  </footer>
+
+</div>

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService, Usuario } from '../../core/services/auth.service';
 import { CarritoService } from '../../core/services/carrito.service';
+import { NotificacionesService } from '../../core/services/notificaciones.service';
 
 @Component({
   selector: 'app-header',
@@ -13,19 +14,24 @@ import { CarritoService } from '../../core/services/carrito.service';
 export class HeaderComponent implements OnInit {
   private authService = inject(AuthService);
   private carritoService = inject(CarritoService);
+  private notifService = inject(NotificacionesService);
   private router = inject(Router);
 
   usuario: Usuario | null = null;
   totalCarrito$ = this.carritoService.contador$;
+  noLeidas$ = this.notifService.noLeidas;
 
   ngOnInit(): void {
     if (this.authService.estaAutenticado()) {
       this.authService.obtenerUsuarioActual().subscribe({
-        next: (usuario) => (this.usuario = usuario)
+        next: (usuario) => {
+          this.usuario = usuario;
+          this.notifService.refrescarContador();
+        }
       });
 
       this.carritoService.obtener().subscribe({
-        error: () => {} // silencioso: si falla, el badge simplemente queda en 0
+        error: () => {}
       });
     }
   }

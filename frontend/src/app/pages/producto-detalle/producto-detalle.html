@@ -1,149 +1,552 @@
-<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+<div class="min-h-screen bg-ms-alabaster text-ms-ink font-sans antialiased flex flex-col">
 
   <app-header></app-header>
 
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 w-full flex-1">
 
-    <a routerLink="/catalogo" class="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-500 hover:text-neutral-900 mb-6 transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      Volver al catálogo
-    </a>
+    <!-- Breadcrumb -->
+    <nav class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ms-slate mb-8" aria-label="Breadcrumb">
+      <a routerLink="/inicio" class="hover:text-ms-ink transition-colors cursor-pointer">Inicio</a>
+      <span class="text-ms-outline select-none">/</span>
+      <a routerLink="/catalogo" class="hover:text-ms-ink transition-colors cursor-pointer">Catálogo</a>
+      @if (categoria) {
+        <span class="text-ms-outline select-none">/</span>
+        <span class="text-ms-slate">{{ categoria.nombre }}</span>
+      }
+      @if (producto) {
+        <span class="text-ms-outline select-none">/</span>
+        <span class="text-ms-ink truncate max-w-[30ch]">{{ producto.nombre }}</span>
+      }
+    </nav>
 
     @if (cargando) {
-      <div class="flex flex-col items-center justify-center py-28 text-center">
-        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-semibold text-neutral-700">Cargando producto...</p>
+      <!-- Esqueleto de carga -->
+      <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 lg:gap-12">
+        <app-skeleton tipo="imagen" clase="!aspect-4/5 w-full rounded-2xl"></app-skeleton>
+        <div class="space-y-5">
+          <app-skeleton tipo="texto" clase="w-1/3"></app-skeleton>
+          <app-skeleton tipo="titulo"></app-skeleton>
+          <app-skeleton tipo="texto" clase="w-1/2"></app-skeleton>
+          <app-skeleton tipo="texto"></app-skeleton>
+          <app-skeleton tipo="texto" clase="w-3/4"></app-skeleton>
+          <app-skeleton tipo="bloque"></app-skeleton>
+          <app-skeleton tipo="bloque"></app-skeleton>
+        </div>
       </div>
     } @else if (!producto) {
-      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
-        <p class="text-sm font-semibold text-neutral-600">{{ error || 'Producto no disponible.' }}</p>
-      </div>
+      <!-- Producto no encontrado / error -->
+      <app-empty-state
+        icono="🧥"
+        titulo="Producto no disponible"
+        [descripcion]="error || 'No pudimos encontrar esta prenda, pero hay mucho más por explorar.'">
+        <div class="flex flex-wrap justify-center gap-2">
+          <app-button variant="secundario" (click)="reintentar()">Reintentar</app-button>
+          <app-button variant="primario" (click)="irCatalogo()">Volver al catálogo</app-button>
+        </div>
+      </app-empty-state>
     } @else {
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <!-- Layout editorial 60 / 40 -->
+      <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 lg:gap-12">
 
-        <!-- Imagen del producto -->
-        <div class="h-72 sm:h-96 rounded-2xl bg-neutral-100 overflow-hidden shadow-md flex items-center justify-center">
-          @if (producto.imagen_url) {
-            <img
-              [src]="producto.imagen_url"
-              [alt]="producto.nombre"
-              class="w-full h-full object-cover"
-              (error)="onImagenError($event)"
-            />
-          } @else {
-            <div class="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center">
-              <svg class="w-24 h-24 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+        <!-- Galería -->
+        <div class="lg:sticky lg:top-24 self-start w-full">
+          <div class="relative rounded-2xl overflow-hidden bg-ms-stone shadow-card group">
+            @if (producto.imagen_url) {
+              <img
+                [src]="producto.imagen_url"
+                [alt]="producto.nombre"
+                class="aspect-4/5 w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                (error)="onImagenError($event)"
+              />
+            } @else {
+              <div class="aspect-4/5 w-full bg-gradient-to-br from-ms-ink via-ms-black to-black flex items-center justify-center">
+                <svg class="w-24 h-24 text-ms-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+                </svg>
+              </div>
+            }
+
+            @if (badgeProducto(); as bd) {
+              <div class="absolute top-4 left-4">
+                <app-badge [tipo]="bd.tipo" [etiqueta]="bd.etiqueta"></app-badge>
+              </div>
+            }
+
+            <button
+              (click)="toggleDeseo()"
+              [attr.aria-label]="deseado ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+              class="absolute top-4 right-4 w-11 h-11 rounded-full bg-ms-white/85 backdrop-blur flex items-center justify-center shadow-card transition-all hover:scale-105 active:scale-95 cursor-pointer">
+              <svg class="w-5 h-5" [attr.fill]="deseado ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24"
+                [class.text-ms-amber-soft]="deseado" [class.text-ms-ink]="!deseado">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
-            </div>
-          }
+            </button>
+          </div>
+          <p class="mt-3 text-[11px] uppercase tracking-widest text-ms-slate">Fotografía editorial · MenStyle</p>
         </div>
 
-        <!-- Información y selección -->
-        <div>
-          @if (categoria) {
-            <span class="text-[11px] font-bold uppercase tracking-widest text-neutral-400">{{ categoria.nombre }}</span>
-          }
-          <h1 class="text-3xl font-black text-neutral-900 mt-1">{{ producto.nombre }}</h1>
-          <p class="text-2xl font-black text-neutral-900 mt-3">Bs {{ producto.precio.toFixed(2) }}</p>
-          <p class="text-sm text-neutral-600 mt-4 leading-relaxed">
-            {{ producto.descripcion || 'Sin descripción disponible para esta prenda.' }}
-          </p>
+        <!-- Información -->
+        <div class="flex flex-col gap-8">
 
-          <!-- Selección de talla -->
+          <!-- Encabezado -->
+          <div>
+            @if (categoria) {
+              <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">{{ categoria.nombre }}</p>
+            }
+            <h1 class="mt-2 font-display text-3xl sm:text-4xl text-ms-ink leading-tight">{{ producto.nombre }}</h1>
+
+            <div class="mt-4 flex items-baseline gap-3 flex-wrap">
+              <span class="text-2xl text-ms-ink">
+                <app-price [valor]="tieneDescuento ? precioConDescuento : producto.precio"></app-price>
+              </span>
+              @if (tieneDescuento) {
+                <span class="text-base text-ms-slate line-through">
+                  <app-price [valor]="producto.precio"></app-price>
+                </span>
+                <app-badge tipo="aviso" [etiqueta]="'-' + descuento!.porcentaje + '%'"></app-badge>
+              }
+            </div>
+          </div>
+
+          <!-- Descripción corta expandible -->
+          <div>
+            @if (descripcionExpandida) {
+              <p class="text-sm text-ms-slate leading-relaxed">
+                {{ producto.descripcion || 'Sin descripción disponible para esta prenda.' }}
+              </p>
+            } @else {
+              <p class="text-sm text-ms-slate leading-relaxed">
+                {{ descripcionCorta || 'Sin descripción disponible para esta prenda.' }}
+              </p>
+            }
+            @if (descripcionLarga) {
+              <button
+                (click)="descripcionExpandida = !descripcionExpandida"
+                class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-ms-amber hover:underline transition-colors cursor-pointer">
+                {{ descripcionExpandida ? 'Ver menos' : 'Ver más' }}
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                  [class.rotate-180]="descripcionExpandida">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+            }
+          </div>
+
           @if (variantes.length > 0) {
-            <div class="mt-8">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Talla</h3>
-              <div class="flex flex-wrap gap-2">
-                @for (talla of tallasUnicas(); track talla) {
-                  <span class="px-3 py-1.5 rounded-lg text-xs font-bold border border-neutral-200 bg-neutral-50 text-neutral-700">
-                    {{ talla }}
-                  </span>
+            <!-- Talla -->
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-bold">Talla</span>
+                @if (tallaSeleccionada) {
+                  <span class="text-xs font-bold text-ms-ink">{{ tallaSeleccionada }}</span>
+                } @else {
+                  <span class="text-xs italic text-ms-slate">Elegí tu talla</span>
                 }
               </div>
-            </div>
-
-            <!-- Selección de variante (talla + color combinados) -->
-            <div class="mt-6">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3">Elige talla y color</h3>
-              <div class="flex flex-wrap gap-2">
-                @for (variante of variantes; track variante.id) {
+              <div class="grid grid-cols-4 gap-2">
+                @for (talla of tallasUnicas(); track talla) {
                   <button
-                    (click)="seleccionarVariante(variante)"
-                    [disabled]="variante.stock_disponible === 0"
-                    [class.border-neutral-950]="varianteSeleccionada?.id === variante.id"
-                    [class.ring-2]="varianteSeleccionada?.id === variante.id"
-                    [class.ring-neutral-950]="varianteSeleccionada?.id === variante.id"
-                    class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-neutral-200 bg-white hover:border-neutral-400 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-neutral-200 cursor-pointer">
-                    <span
-                      class="w-4 h-4 rounded-full border border-neutral-300 shrink-0"
-                      [style.background-color]="variante.color_codigo_hex || '#d4d4d4'">
-                    </span>
-                    <span class="text-xs font-bold text-neutral-800">{{ variante.talla_nombre }} · {{ variante.color_nombre }}</span>
+                    (click)="seleccionarTalla(talla)"
+                    [disabled]="!tallaDisponible(talla)"
+                    [attr.aria-pressed]="tallaSeleccionada === talla"
+                    [attr.aria-label]="'Talla ' + talla + (tallaDisponible(talla) ? '' : ' (sin stock)')"
+                    [class.bg-ms-black]="tallaSeleccionada === talla"
+                    [class.text-ms-white]="tallaSeleccionada === talla"
+                    [class.border-ms-black]="tallaSeleccionada === talla"
+                    [class.opacity-40]="!tallaDisponible(talla)"
+                    [class.line-through]="!tallaDisponible(talla)"
+                    class="py-2.5 rounded-xl border border-ms-stone-200 bg-ms-white text-sm font-bold text-ms-ink transition-all hover:border-ms-ink disabled:cursor-not-allowed cursor-pointer text-center">
+                    {{ talla }}
                   </button>
                 }
               </div>
             </div>
 
+            <!-- Color -->
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-bold">Color</span>
+                @if (colorSeleccionado) {
+                  <span class="text-xs font-bold text-ms-ink">{{ colorSeleccionado.nombre }}</span>
+                } @else {
+                  <span class="text-xs italic text-ms-slate">Elegí talla y color</span>
+                }
+              </div>
+              <div class="flex flex-wrap gap-2.5">
+                @for (variante of coloresParaTalla(tallaSeleccionada ?? ''); track variante.id) {
+                  <button
+                    (click)="seleccionarColor(variante)"
+                    [disabled]="variante.stock_disponible === 0"
+                    [attr.aria-label]="'Color ' + variante.color_nombre + ' (' + variante.stock_disponible + ' disponibles)'"
+                    [attr.title]="variante.color_nombre + ' · ' + (variante.stock_disponible > 0 ? variante.stock_disponible + ' disponibles' : 'sin stock')"
+                    [class.ring-2]="colorSeleccionado?.id === variante.id"
+                    [class.ring-ms-ink]="colorSeleccionado?.id === variante.id"
+                    [class.ring-offset-2]="colorSeleccionado?.id === variante.id"
+                    [class.opacity-40]="variante.stock_disponible === 0"
+                    [class.cursor-not-allowed]="variante.stock_disponible === 0"
+                    class="relative w-9 h-9 rounded-full border border-ms-stone-200 transition-all hover:scale-110 cursor-pointer"
+                    [style.background-color]="variante.color_codigo_hex || '#d4d4d4'">
+                    @if (colorSeleccionado?.id === variante.id) {
+                      <span class="absolute inset-0 flex items-center justify-center text-ms-white" [style.text-shadow]="'0 1px 2px rgba(0,0,0,0.6)'">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </span>
+                    }
+                  </button>
+                }
+                @if (varianteSeleccionada && coloresParaTalla(tallaSeleccionada ?? '').length === 0) {
+                  <span class="text-xs italic text-ms-slate self-center">Sin colores para esta talla.</span>
+                }
+              </div>
+            </div>
+
+            <!-- Disponibilidad -->
             @if (varianteSeleccionada) {
-              <p class="mt-3 text-xs font-semibold" [class.text-emerald-600]="stockDisponible > 0" [class.text-red-600]="stockDisponible === 0">
-                {{ stockDisponible > 0 ? stockDisponible + ' unidades disponibles' : 'Sin stock para esta combinación' }}
+              <p class="text-xs font-semibold" [class.text-emerald-700]="stockDisponible > 0" [class.text-red-600]="stockDisponible === 0">
+                @if (stockDisponible > 0) {
+                  {{ stockDisponible }} {{ stockDisponible === 1 ? 'unidad disponible' : 'unidades disponibles' }}
+                } @else {
+                  Sin stock para esta combinación
+                }
               </p>
             }
 
             <!-- Cantidad -->
-            <div class="mt-6 flex items-center gap-4">
-              <label class="text-xs font-bold uppercase tracking-wider text-neutral-500">Cantidad</label>
-              <input
-                type="number"
-                [(ngModel)]="cantidad"
-                min="1"
-                [max]="stockDisponible || 1"
-                class="w-20 rounded-xl border border-neutral-300 px-3 py-2 text-sm text-center outline-none focus:border-neutral-950"
-              />
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-bold">Cantidad</span>
+              <div class="inline-flex items-center gap-1 rounded-xl border border-ms-stone-200 bg-ms-white p-1">
+                <button
+                  (click)="decrementar()"
+                  [disabled]="cantidad <= 1"
+                  aria-label="Reducir cantidad"
+                  class="w-9 h-9 rounded-lg flex items-center justify-center text-ms-ink transition-colors hover:bg-ms-stone disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+                  </svg>
+                </button>
+                <span class="w-10 text-center text-sm font-black tabular-nums text-ms-ink">{{ cantidad }}</span>
+                <button
+                  (click)="incrementar()"
+                  [disabled]="!tieneStock || cantidad >= stockDisponible"
+                  aria-label="Aumentar cantidad"
+                  class="w-9 h-9 rounded-lg flex items-center justify-center text-ms-ink transition-colors hover:bg-ms-stone disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16M20 12H4" />
+                  </svg>
+                </button>
+              </div>
             </div>
-          } @else {
-            <p class="mt-6 text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl p-3">
-              Este producto aún no tiene tallas ni colores configurados.
-            </p>
           }
 
+          <!-- Avisos -->
           @if (mensaje) {
-            <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700 font-medium">
-              {{ mensaje }}
-            </div>
+            <app-alert tipo="exito" titulo="¡Listo!" [mensaje]="mensaje">
+              <button (click)="irCarrito()" class="mt-2 inline-flex items-center gap-1 text-xs font-bold text-ms-amber hover:underline transition-colors cursor-pointer">
+                Ver carrito
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12" />
+                </svg>
+              </button>
+            </app-alert>
+          }
+          @if (error && producto) {
+            <app-alert tipo="error" titulo="Ups" [mensaje]="error"></app-alert>
           }
 
-          @if (error) {
-            <div class="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 font-medium">
-              {{ error }}
-            </div>
-          }
+          <!-- Acciones -->
+          <div class="flex flex-col gap-3">
+            @if (variantes.length > 0) {
+              <app-button variant="primario" [block]="true" size="lg" [loading]="agregando"
+                [disabled]="agregando || !tieneStock"
+                (click)="agregarAlCarrito()">
+                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {{ agregando ? 'Agregando…' : 'Agregar al carrito' }}
+              </app-button>
 
-          <div class="mt-6 flex gap-3">
-            <button
-              (click)="agregarAlCarrito()"
-              [disabled]="agregando || variantes.length === 0 || stockDisponible === 0"
-              class="flex-1 flex justify-center items-center gap-2 rounded-xl bg-neutral-950 px-5 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-              {{ agregando ? 'Agregando...' : 'Agregar al carrito' }}
-            </button>
+              @if (tieneStock) {
+                <app-button variant="secundario" [block]="true" size="lg" (click)="reservar()">
+                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Reservar
+                </app-button>
+              } @else {
+                <app-button variant="fantasma" [block]="true" (click)="avisarDisponible()">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  Avísame cuando llegue
+                </app-button>
+              }
+            } @else {
+              <app-button variant="primario" [block]="true" size="lg" [disabled]="true">
+                Sin tallas disponibles
+              </app-button>
+              <app-button variant="fantasma" [block]="true" (click)="avisarDisponible()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                Avísame cuando llegue
+              </app-button>
+            }
+
+            <p class="text-[11px] text-ms-slate/80 text-center flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm2-2V6a2 2 0 012-2h6M5 8h12M5 12h12" />
+              </svg>
+              Envío gratis desde Bs 300 · Devoluciones en 30 días
+            </p>
           </div>
+
+          <!-- Info extra -->
+          <div class="border-t border-ms-stone-200 divide-y divide-ms-stone-200">
+            <details class="group">
+              <summary class="flex items-center justify-between py-3.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-ms-ink list-none">
+                Despacho y envío
+                <svg class="w-4 h-4 text-ms-slate transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="pb-4 text-sm text-ms-slate leading-relaxed">
+                Despachamos en 24-48 horas hábiles. Podés retirar en el punto de venta o coordinar la entrega a domicilio.
+              </p>
+            </details>
+            <details class="group">
+              <summary class="flex items-center justify-between py-3.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-ms-ink list-none">
+                Cambios y devoluciones
+                <svg class="w-4 h-4 text-ms-slate transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="pb-4 text-sm text-ms-slate leading-relaxed">
+                Tenés 30 días para cambios por talla o color. La prenda debe conservar su etiqueta y estado original.
+              </p>
+            </details>
+            <details class="group">
+              <summary class="flex items-center justify-between py-3.5 cursor-pointer text-xs font-bold uppercase tracking-wider text-ms-ink list-none">
+                Cuidados de la prenda
+                <svg class="w-4 h-4 text-ms-slate transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <p class="pb-4 text-sm text-ms-slate leading-relaxed">
+                Seguí las instrucciones de la etiqueta. Recomendamos lavado en frío, secado a la sombra y planchado a temperatura media.
+              </p>
+            </details>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="mt-20 border-t border-ms-stone-200"></div>
+
+      <!-- Pestañas -->
+      <section>
+        <div class="flex gap-8 overflow-x-auto">
+          <button
+            (click)="seleccionarTab('descripcion')"
+            [class.text-ms-ink]="tabActivo === 'descripcion'"
+            [class.border-ms-amber]="tabActivo === 'descripcion'"
+            [class.text-ms-slate]="tabActivo !== 'descripcion'"
+            [class.border-transparent]="tabActivo !== 'descripcion'"
+            class="pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors hover:text-ms-ink cursor-pointer">
+            Descripción
+          </button>
+          <button
+            (click)="seleccionarTab('especificaciones')"
+            [class.text-ms-ink]="tabActivo === 'especificaciones'"
+            [class.border-ms-amber]="tabActivo === 'especificaciones'"
+            [class.text-ms-slate]="tabActivo !== 'especificaciones'"
+            [class.border-transparent]="tabActivo !== 'especificaciones'"
+            class="pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors hover:text-ms-ink cursor-pointer">
+            Especificaciones
+          </button>
+          <button
+            (click)="seleccionarTab('cuidados')"
+            [class.text-ms-ink]="tabActivo === 'cuidados'"
+            [class.border-ms-amber]="tabActivo === 'cuidados'"
+            [class.text-ms-slate]="tabActivo !== 'cuidados'"
+            [class.border-transparent]="tabActivo !== 'cuidados'"
+            class="pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors hover:text-ms-ink cursor-pointer">
+            Cuidados
+          </button>
         </div>
 
-      </div>
+        <div class="py-8 max-w-3xl">
+          @switch (tabActivo) {
+            @case ('descripcion') {
+              <div>
+                <p class="text-sm text-ms-slate leading-relaxed">
+                  {{ producto.descripcion || 'Sin descripción disponible para esta prenda.' }}
+                </p>
+                @if (producto.descripcion && producto.descripcion.length > 450) {
+                  <p class="mt-4 font-display text-lg text-ms-ink">El detalle lo hace todo</p>
+                  <p class="mt-2 text-sm text-ms-slate leading-relaxed">
+                    Piedras fundamentales de una colección atemporal: tejidos nobles, cortes limpios y una paleta
+                    pensada para combinar sin esfuerzo entre temporadas.
+                  </p>
+                }
+              </div>
+            }
+            @case ('especificaciones') {
+              <div class="overflow-hidden rounded-2xl border border-ms-stone-200">
+                <table class="w-full text-sm">
+                  <tbody class="divide-y divide-ms-stone-200">
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold w-1/3">Categoría</th>
+                      <td class="py-3 px-4 text-ms-ink font-semibold">{{ categoria?.nombre ?? '—' }}</td>
+                    </tr>
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold">Código</th>
+                      <td class="py-3 px-4 text-ms-ink font-semibold">{{ codigo }}</td>
+                    </tr>
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold">Precio</th>
+                      <td class="py-3 px-4 text-ms-ink font-semibold"><app-price [valor]="tieneDescuento ? precioConDescuento : producto.precio"></app-price></td>
+                    </tr>
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold">Descuento</th>
+                      <td class="py-3 px-4 text-ms-ink font-semibold">
+                        @if (tieneDescuento) {
+                          {{ descuento!.porcentaje }}% OFF
+                        } @else {
+                          Sin descuentos vigentes
+                        }
+                      </td>
+                    </tr>
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold">Disponibilidad</th>
+                      <td class="py-3 px-4 text-ms-ink font-semibold">
+                        {{ variantes.length > 0 ? 'Tallas y colores seleccionables' : 'Pendiente de configuración' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <th class="text-left py-3 px-4 bg-ms-white text-[11px] uppercase tracking-wider text-ms-slate font-bold">Material</th>
+                      <td class="py-3 px-4 text-ms-slate">Consultar etiqueta de la prenda</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            }
+            @case ('cuidados') {
+              <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                  <span class="w-9 h-9 rounded-xl bg-ms-stone flex items-center justify-center text-ms-ink shrink-0">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 19l-3-3m0 0l-3 3m3-3v8" />
+                    </svg>
+                  </span>
+                  <p class="text-sm text-ms-slate leading-relaxed mt-1">Lavar en frío con colores similares. No usar blanqueador.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="w-9 h-9 rounded-xl bg-ms-stone flex items-center justify-center text-ms-ink shrink-0">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10v-1H7v1zM12 3a4 4 0 00-4 4c0 1.5.6 2.6 1.3 3.8C10 12 10.5 13 10.5 14h3c0-1 .5-2 1.2-3.2C15.4 9.6 16 8.5 16 7a4 4 0 00-4-4z" />
+                    </svg>
+                  </span>
+                  <p class="text-sm text-ms-slate leading-relaxed mt-1">Secar a la sombra y planchar a temperatura media.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                  <span class="w-9 h-9 rounded-xl bg-ms-stone flex items-center justify-center text-ms-ink shrink-0">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </span>
+                  <p class="text-sm text-ms-slate leading-relaxed mt-1">Reservar para prendas de fibras delicadas o de diseño.</p>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </section>
+
+      <!-- Relacionados -->
+      @if (relacionados.length > 0) {
+        <section class="mt-16">
+          <div class="flex items-end justify-between mb-6">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Colección</p>
+              <h2 class="mt-1 font-display text-2xl text-ms-ink">También te puede gustar</h2>
+            </div>
+            <a routerLink="/catalogo" class="inline-flex items-center gap-1 text-xs font-bold text-ms-amber hover:underline transition-colors cursor-pointer">
+              Ver todo
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12" />
+              </svg>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6">
+            @for (rel of relacionados; track rel.id) {
+              <a (click)="irProducto(rel.id)" class="group cursor-pointer">
+                <div class="relative rounded-2xl overflow-hidden bg-ms-stone">
+                  @if (rel.imagen_url) {
+                    <img
+                      [src]="rel.imagen_url"
+                      [alt]="rel.nombre"
+                      class="aspect-4/5 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  } @else {
+                    <div class="aspect-4/5 bg-gradient-to-br {{ acentoPara(rel.id) }} flex items-center justify-center">
+                      <svg class="w-12 h-12 text-ms-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
+                      </svg>
+                    </div>
+                  }
+                  @if (rel.descuento_id != null) {
+                    <div class="absolute top-3 left-3">
+                      <app-badge tipo="acento" etiqueta="Oferta"></app-badge>
+                    </div>
+                  }
+                </div>
+                <h3 class="mt-3 text-sm font-bold text-ms-ink group-hover:text-ms-amber transition-colors line-clamp-1">{{ rel.nombre }}</h3>
+                <p class="text-xs text-ms-slate mt-0.5"><app-price [valor]="rel.precio"></app-price></p>
+              </a>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Banda de recomendaciones IA -->
+      @if (recomendaciones.length > 0) {
+        <section class="mt-16 relative overflow-hidden rounded-2xl bg-ms-ink text-ms-white p-8 lg:p-10 shadow-card">
+          <div class="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-ms-amber/25 blur-3xl pointer-events-none" aria-hidden="true"></div>
+          <div class="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-ms-amber/10 blur-3xl pointer-events-none" aria-hidden="true"></div>
+
+          <div class="relative">
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-ms-amber-soft animate-pulse"></span>
+              <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Asistente MenStyle · IA</p>
+            </div>
+            <h2 class="mt-2 font-display text-2xl text-ms-white">Nuestro asesor sugiere</h2>
+            <p class="mt-2 text-sm text-ms-white/70 max-w-xl">
+              Según el producto que estás viendo, estas prendas redondean tu outfit.
+            </p>
+
+            <div class="mt-6 grid sm:grid-cols-3 gap-4">
+              @for (rec of recomendaciones; track rec.id) {
+                <button
+                  (click)="irProducto(rec.id)"
+                  class="text-left rounded-xl border border-ms-white/15 bg-ms-white/5 p-4 transition-colors hover:bg-ms-white/10 cursor-pointer">
+                  <p class="text-sm font-bold text-ms-white">{{ rec.nombre }}</p>
+                  <p class="text-[11px] text-ms-amber-soft mt-1 leading-relaxed">{{ rec.motivo }}</p>
+                  <p class="text-xs text-ms-white/80 mt-2 font-bold"><app-price [valor]="rec.precio"></app-price></p>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      }
 
     }
 
   </main>
 
-  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
-      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 
 </div>

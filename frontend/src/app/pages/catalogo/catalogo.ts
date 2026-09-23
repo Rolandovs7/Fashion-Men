@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -43,7 +43,7 @@ import {
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css'
 })
-export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
+export class Catalogo implements OnInit {
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
@@ -85,76 +85,11 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     'from-zinc-800 to-neutral-950'
   ];
 
-  // ── Sticky robusto: IntersectionObserver + ResizeObserver ──────
-  @ViewChild('sentinel', { static: false }) sentinel?: ElementRef<HTMLElement>;
-  @ViewChild('contenedorFiltros', { static: false }) contenedorFiltros?: ElementRef<HTMLElement>;
-  @ViewChild('filtrosBar', { static: false }) filtrosBar?: ElementRef<HTMLElement>;
-
-  // Altura del app-header en px. Ajusta este valor a la altura real de tu header.
-  readonly OFFSET_HEADER = 76;
-
-  filtrosFijo = false;
-  barHeight = 0;
-  containerLeft = 0;
-  containerWidth = 0;
-
-  private io?: IntersectionObserver;
-  private ro?: ResizeObserver;
-  private windowResizeHandler = () => this.medirAncho();
-
   ngOnInit(): void {
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
   }
-
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.medirAncho();
-      this.iniciarObservadores();
-    }, 0);
-    window.addEventListener('resize', this.windowResizeHandler);
-  }
-
-  ngOnDestroy(): void {
-    this.io?.disconnect();
-    this.ro?.disconnect();
-    window.removeEventListener('resize', this.windowResizeHandler);
-  }
-
-  private iniciarObservadores(): void {
-    if (this.sentinel) {
-      this.io = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          this.filtrosFijo = !entry.isIntersecting;
-          this.cdr.detectChanges();
-        },
-        { rootMargin: `-${this.OFFSET_HEADER}px 0px 0px 0px`, threshold: 0 }
-      );
-      this.io.observe(this.sentinel.nativeElement);
-    }
-
-    if (this.filtrosBar) {
-      this.ro = new ResizeObserver((entries) => {
-        const nuevoAlto = entries[0].contentRect.height;
-        if (Math.abs(nuevoAlto - this.barHeight) > 0.5) {
-          this.barHeight = nuevoAlto;
-          this.cdr.detectChanges();
-        }
-      });
-      this.ro.observe(this.filtrosBar.nativeElement);
-    }
-  }
-
-  private medirAncho(): void {
-    if (!this.contenedorFiltros) return;
-    const rect = this.contenedorFiltros.nativeElement.getBoundingClientRect();
-    this.containerLeft = rect.left;
-    this.containerWidth = rect.width;
-    this.cdr.detectChanges();
-  }
-  // ── Fin lógica sticky ────────────────────────────────────────
 
   cargarDatos(): void {
     this.cargando = true;
@@ -176,7 +111,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
         );
         this.cargando = false;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirAncho(), 0);
       },
       error: () => {
         this.error = 'No se pudo cargar el catálogo. Intenta nuevamente más tarde.';
@@ -211,7 +145,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       next: (resp) => {
         this.recomendaciones = resp.recomendaciones;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirAncho(), 0);
       },
       error: () => {
         this.recomendaciones = [];

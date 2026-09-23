@@ -12,6 +12,7 @@ export interface Variante {
   color_codigo_hex?: string | null;
   color_imagen_url?: string | null;
   nombre_variante?: string | null;
+  imagen_url?: string | null;
   activo: boolean;
   stock_disponible: number;
 }
@@ -21,6 +22,7 @@ export interface VarianteCrear {
   talla_id: number;
   color_id: number;
   nombre_variante?: string | null;
+  imagen_url?: string | null;
 }
 
 export interface Talla {
@@ -72,7 +74,7 @@ export class VariantesService {
 
   actualizarVariante(
     id: number,
-    datos: { activo?: boolean; nombre_variante?: string | null }
+    datos: { activo?: boolean; nombre_variante?: string | null; imagen_url?: string | null }
   ): Observable<Variante> {
     return this.http.put<Variante>(
       `${this.apiUrl}/variantes/${id}`,

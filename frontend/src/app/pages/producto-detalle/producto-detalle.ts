@@ -63,7 +63,7 @@ export class ProductoDetalle implements OnInit {
   variantes: Variante[] = [];
 
   tallaSeleccionada: string | null = null;
-  colorSeleccionado: { id: number; nombre: string; codigoHex: string | null; imagenUrl: string | null } | null = null;
+  colorSeleccionado: { id: number; nombre: string; codigoHex: string | null } | null = null;
   cantidad = 1;
 
   relacionados: Producto[] = [];
@@ -80,7 +80,7 @@ export class ProductoDetalle implements OnInit {
   mensaje = '';
 
   private idsNuevos = new Set<number>();
-  private colorImgFallida = new Set<number>();
+  private imagenesFallidas = new Set<string>();
   private acentos = [
     'from-neutral-800 to-neutral-950',
     'from-amber-900/60 to-neutral-950',
@@ -121,8 +121,7 @@ export class ProductoDetalle implements OnInit {
               this.colorSeleccionado = {
                 id: inicial.color_id,
                 nombre: inicial.color_nombre,
-                codigoHex: inicial.color_codigo_hex ?? null,
-                imagenUrl: inicial.color_imagen_url ?? null
+                codigoHex: inicial.color_codigo_hex ?? null
               };
             }
             this.cargando = false;
@@ -220,8 +219,7 @@ export class ProductoDetalle implements OnInit {
     this.colorSeleccionado = {
       id: color.color_id,
       nombre: color.color_nombre,
-      codigoHex: color.color_codigo_hex ?? null,
-      imagenUrl: color.color_imagen_url ?? null
+      codigoHex: color.color_codigo_hex ?? null
     };
     this.mensaje = '';
     this.error = '';
@@ -268,11 +266,30 @@ export class ProductoDetalle implements OnInit {
     return variante != null && variante.stock_disponible > 0;
   }
 
-  /** Imagen principal: la del color seleccionado, o la genérica del producto. */
+  /**
+   * Imagen principal: la de la variante (talla + color) seleccionada.
+   * Prioridad: 1) varianteActual().imagen_url, 2) producto.imagen_url, 3) null.
+   */
   get imagenPrincipal(): string | null {
+    const variante = this.varianteActual ?? this.varianteConImagenDelColor();
+    const urlVariante = variante?.imagen_url ? this.normalizarImagen(variante.imagen_url) : null;
+    if (urlVariante && !this.imagenesFallidas.has(urlVariante)) {
+      return urlVariante;
+    }
+
+    const urlProducto = this.producto?.imagen_url ? this.normalizarImagen(this.producto.imagen_url) : null;
+    if (urlProducto && !this.imagenesFallidas.has(urlProducto)) {
+      return urlProducto;
+    }
+
+    return null;
+  }
+
+  /** Variante con imagen del color seleccionado (si aún no hay talla elegida). */
+  private varianteConImagenDelColor(): Variante | null {
+    if (!this.colorSeleccionado) return null;
     const color = this.colorSeleccionado;
-    const colorUrl = color && !this.colorImgFallida.has(color.id) ? color.imagenUrl : null;
-    return this.normalizarImagen(colorUrl ?? this.producto?.imagen_url ?? null);
+    return this.variantes.find(v => v.color_id === color.id && v.imagen_url) ?? null;
   }
 
   private normalizarImagen(url: string | null): string | null {
@@ -381,22 +398,16 @@ export class ProductoDetalle implements OnInit {
   }
 
   /**
-   * Fallback si la imagen del producto no carga: la oculta y
-   * el @else del template muestra el placeholder SVG.
+   * Fallback si la imagen no carga: la marca como fallida y
+   * el getter imagenPrincipal baja al siguiente candidato
+   * (variante → producto → placeholder SVG).
    */
   onImagenError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.style.display = 'none';
-    const color = this.colorSeleccionado;
-    if (color && this.colorImgFallida.has(color.id)) {
-      // Ya cayó al genérico del producto antes; nada que hacer.
-      return;
-    }
-    if (color && color.imagenUrl) {
-      // La imagen del color no carga: se cae al fallback genérico del producto.
-      this.colorImgFallida.add(color.id);
-    } else if (this.producto) {
-      this.producto.imagen_url = null;
+    const url = this.imagenPrincipal;
+    if (url) {
+      this.imagenesFallidas.add(url);
     }
     this.cdr.detectChanges();
   }

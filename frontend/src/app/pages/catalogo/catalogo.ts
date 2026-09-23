@@ -105,7 +105,7 @@ export class Catalogo implements OnInit {
 
     this.productosService.listar().subscribe({
       next: (productos) => {
-        this.productos = productos.filter(p => p.activo);
+        this.productos = productos.filter(p => p.activo).sort((a, b) => a.id - b.id);
         this.idsNuevos = new Set(
           [...this.productos].sort((a, b) => b.id - a.id).slice(0, 6).map(p => p.id)
         );

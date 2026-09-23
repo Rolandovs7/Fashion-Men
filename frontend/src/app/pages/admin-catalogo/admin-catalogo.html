@@ -377,6 +377,11 @@
                     <option [value]="color.id">{{ color.nombre }}</option>
                   }
                 </select>
+                <input
+                  [(ngModel)]="nuevaVariante.nombre_variante"
+                  type="text"
+                  placeholder="Nombre de variante (opcional)"
+                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
                 <button
                   (click)="crearVariante()"
                   [disabled]="guardando"
@@ -398,15 +403,40 @@
               <table class="w-full text-left text-sm">
                 <thead>
                   <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+                    <th class="py-3 px-5">Nombre de variante</th>
                     <th class="py-3 px-5">Talla</th>
                     <th class="py-3 px-5">Color</th>
                     <th class="py-3 px-5">Stock disponible</th>
                     <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-100">
                   @for (variante of variantesDelProducto; track variante.id) {
                     <tr>
+                      <td class="py-3 px-5">
+                        @if (varianteEditandoId === variante.id) {
+                          <div class="flex items-center gap-2">
+                            <input
+                              [(ngModel)]="nombreVarianteEditando"
+                              type="text"
+                              class="w-full rounded-lg border border-neutral-300 px-2.5 py-1.5 text-sm outline-none focus:border-neutral-950">
+                            <button
+                              (click)="guardarVariante()"
+                              [disabled]="guardando"
+                              class="px-2.5 py-1.5 rounded-lg bg-neutral-950 text-white text-xs font-bold hover:bg-neutral-800 transition-all disabled:opacity-50 cursor-pointer">
+                              {{ guardando ? '...' : 'Guardar' }}
+                            </button>
+                            <button
+                              (click)="cancelarEdicionVariante()"
+                              class="px-2.5 py-1.5 rounded-lg border border-neutral-300 text-xs font-bold hover:bg-neutral-50 transition-all cursor-pointer">
+                              Cancelar
+                            </button>
+                          </div>
+                        } @else {
+                          <span class="font-semibold">{{ variante.nombre_variante || '—' }}</span>
+                        }
+                      </td>
                       <td class="py-3 px-5 font-bold">{{ variante.talla_nombre }}</td>
                       <td class="py-3 px-5">
                         <span class="inline-flex items-center gap-2">
@@ -422,9 +452,18 @@
                           {{ variante.activo ? 'Activa' : 'Inactiva' }}
                         </span>
                       </td>
+                      <td class="py-3 px-5">
+                        @if (varianteEditandoId !== variante.id) {
+                          <button
+                            (click)="editarVariante(variante)"
+                            class="px-2.5 py-1.5 rounded-lg border border-neutral-300 text-xs font-bold hover:bg-neutral-50 transition-all cursor-pointer">
+                            Editar
+                          </button>
+                        }
+                      </td>
                     </tr>
                   } @empty {
-                    <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Este producto aún no tiene variantes.</td></tr>
+                    <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">Este producto aún no tiene variantes.</td></tr>
                   }
                 </tbody>
               </table>

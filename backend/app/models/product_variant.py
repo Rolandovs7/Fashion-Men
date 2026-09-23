@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, Boolean
+from sqlalchemy import ForeignKey, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -25,6 +25,11 @@ class ProductoVariante(Base):
     color_id: Mapped[int] = mapped_column(
         ForeignKey("colores.id"),
         nullable=False
+    )
+
+    nombre_variante: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True
     )
 
     activo: Mapped[bool] = mapped_column(

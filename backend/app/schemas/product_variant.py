@@ -7,10 +7,12 @@ class VarianteCrear(BaseModel):
     producto_id: int
     talla_id: int
     color_id: int
+    nombre_variante: Optional[str] = None
 
 
 class VarianteActualizar(BaseModel):
     activo: Optional[bool] = None
+    nombre_variante: Optional[str] = None
 
 
 class VarianteRespuesta(BaseModel):
@@ -22,6 +24,7 @@ class VarianteRespuesta(BaseModel):
     color_nombre: str
     color_codigo_hex: Optional[str] = None
     color_imagen_url: Optional[str] = None
+    nombre_variante: Optional[str] = None
     activo: bool
     stock_disponible: int = 0
 

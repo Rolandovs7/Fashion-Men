@@ -175,6 +175,15 @@ export class Catalogo implements OnInit {
     return !!(this.busqueda.trim() || this.categoriaSeleccionada || this.filtroTalla || this.filtroColor);
   }
 
+  /** Cantidad de filtros aplicados (sin contar la búsqueda). */
+  get contadorFiltros(): number {
+    let n = 0;
+    if (this.categoriaSeleccionada) n++;
+    if (this.filtroTalla) n++;
+    if (this.filtroColor) n++;
+    return n;
+  }
+
   get chips(): { tipo: 'busqueda' | 'categoria' | 'talla' | 'color'; etiqueta: string }[] {
     const lista: { tipo: 'busqueda' | 'categoria' | 'talla' | 'color'; etiqueta: string }[] = [];
     if (this.busqueda.trim()) lista.push({ tipo: 'busqueda', etiqueta: `"${this.busqueda.trim()}"` });

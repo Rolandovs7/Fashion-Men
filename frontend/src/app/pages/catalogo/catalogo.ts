@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -43,7 +43,7 @@ import {
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css'
 })
-export class Catalogo implements OnInit {
+export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
@@ -86,11 +86,54 @@ export class Catalogo implements OnInit {
     'from-zinc-800 to-neutral-950'
   ];
 
+  // ── Sticky manual por JS (no depende de overflow/transform de padres) ──
+  @ViewChild('filtrosAnchor', { static: false }) filtrosAnchor?: ElementRef<HTMLElement>;
+  @ViewChild('filtrosBar', { static: false }) filtrosBar?: ElementRef<HTMLElement>;
+
+  filtrosFijo = false;
+  filtrosAltoPlaceholder = 0;
+  private anchorTop = 0;
+  private scrollHandler = () => this.onScrollFiltros();
+  private resizeHandler = () => this.medirAnchor();
+
   ngOnInit(): void {
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
   }
+
+  ngAfterViewInit(): void {
+    // Esperamos un tick para que el DOM (incluyendo recomendaciones) esté pintado
+    setTimeout(() => this.medirAnchor(), 0);
+    window.addEventListener('scroll', this.scrollHandler, { passive: true });
+    window.addEventListener('resize', this.resizeHandler);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('scroll', this.scrollHandler);
+    window.removeEventListener('resize', this.resizeHandler);
+  }
+
+  private medirAnchor(): void {
+    if (!this.filtrosAnchor) return;
+    const rect = this.filtrosAnchor.nativeElement.getBoundingClientRect();
+    this.anchorTop = rect.top + window.scrollY;
+    if (this.filtrosBar) {
+      this.filtrosAltoPlaceholder = this.filtrosBar.nativeElement.offsetHeight;
+    }
+    this.onScrollFiltros();
+  }
+
+  private readonly OFFSET_HEADER = 76; // ajusta a la altura real de tu app-header
+
+  private onScrollFiltros(): void {
+    const debeEstarFijo = window.scrollY + this.OFFSET_HEADER >= this.anchorTop;
+    if (debeEstarFijo !== this.filtrosFijo) {
+      this.filtrosFijo = debeEstarFijo;
+      this.cdr.detectChanges();
+    }
+  }
+  // ── Fin lógica sticky manual ──
 
   cargarDatos(): void {
     this.cargando = true;
@@ -112,6 +155,7 @@ export class Catalogo implements OnInit {
         );
         this.cargando = false;
         this.cdr.detectChanges();
+        setTimeout(() => this.medirAnchor(), 0);
       },
       error: () => {
         this.error = 'No se pudo cargar el catálogo. Intenta nuevamente más tarde.';
@@ -148,6 +192,7 @@ export class Catalogo implements OnInit {
       next: (resp) => {
         this.recomendaciones = resp.recomendaciones;
         this.cdr.detectChanges();
+        setTimeout(() => this.medirAnchor(), 0);
       },
       error: () => {
         // Silencioso: si falla, no mostramos la sección

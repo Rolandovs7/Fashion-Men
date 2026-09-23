@@ -33,6 +33,27 @@ from app.api.routes.ia import router as ia_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.admin import router as admin_router
 
+# ============================================
+# MIGRACIONES (Alembic upgrade head al arrancar)
+# Se ejecuta antes de crear la app y configurar routers,
+# para que el esquema esté al día en el deploy de Render.
+# ============================================
+from alembic.config import Config
+from alembic import command
+
+
+def ejecutar_migraciones() -> None:
+    """Aplica las migraciones pendientes (no crashea la app si fallan)."""
+    try:
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        print("✅ Migraciones aplicadas correctamente")
+    except Exception as e:
+        print(f"⚠️ Error ejecutando migraciones: {e}")
+
+
+ejecutar_migraciones()
+
 app = FastAPI(
     title="MenStyle API",
     description="API de comercio electrónico de ropa masculina",

@@ -1,5 +1,49 @@
 /* You can add global styles to this file, and also import other style files */
 @import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════
+   SISTEMA VISUAL MENSTYLE — Tokens "Quiet Editorial Luxury"
+   Genera las utilidades ms-* usadas en Catalogo y Producto
+   (bg-ms-alabaster, text-ms-ink, font-display, shadow-card...).
+   ═══════════════════════════════════════════════════════════ */
+@theme {
+  /* Paleta editorial */
+  --color-ms-black: #0a0a0a;
+  --color-ms-ink: #171717;
+  --color-ms-white: #ffffff;
+  --color-ms-alabaster: #fafaf9;
+  --color-ms-cream: #fef3c7;
+  --color-ms-stone: #f5f5f4;
+  --color-ms-stone-200: #e7e5e4;
+  --color-ms-slate: #525252;
+  --color-ms-outline: #c4c7c7;
+  --color-ms-amber: #d97706;
+  --color-ms-amber-soft: #fe932c;
+
+  /* Tipografías */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Sombras ultra difusas (las originales del Home) */
+  --shadow-card: 0 16px 36px -12px rgb(10 10 10 / 0.06),
+                 0 4px 12px -4px rgb(10 10 10 / 0.03);
+  --shadow-modal-soft: 0 24px 48px -12px rgb(10 10 10 / 0.12);
+
+  /* Animaciones del Home */
+  --animate-scroll-hint: scroll-hint 2s ease-in-out infinite;
+  --animate-fade-up: fade-up 0.6s ease-out both;
+
+  @keyframes scroll-hint {
+    0%   { transform: scaleY(0); transform-origin: top; }
+    45%  { transform: scaleY(1); transform-origin: top; }
+    55%  { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
 /* Impresión de comprobante/nota de venta (CU20) */
 @media print {
   body * {

@@ -2,7 +2,7 @@
 
   <app-header></app-header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 w-full flex-1">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 w-full flex-1">
 
     <!-- Breadcrumb -->
     <nav class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-ms-slate mb-8" aria-label="Breadcrumb">
@@ -21,8 +21,10 @@
 
     @if (cargando) {
       <!-- Esqueleto de carga -->
-      <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 lg:gap-12">
-        <app-skeleton tipo="imagen" clase="!aspect-4/5 w-full rounded-2xl"></app-skeleton>
+      <div class="grid grid-cols-1 lg:grid-cols-[5fr_4fr] gap-10 lg:gap-14">
+        <div class="mx-auto w-full max-w-[500px]">
+          <app-skeleton tipo="imagen" clase="!aspect-4/5 w-full rounded-2xl"></app-skeleton>
+        </div>
         <div class="space-y-5">
           <app-skeleton tipo="texto" clase="w-1/3"></app-skeleton>
           <app-skeleton tipo="titulo"></app-skeleton>
@@ -46,21 +48,21 @@
       </app-empty-state>
     } @else {
 
-      <!-- Layout editorial 60 / 40 -->
-      <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-10 lg:gap-12">
+      <!-- Layout editorial ~55 / 45 -->
+      <div class="grid grid-cols-1 lg:grid-cols-[5fr_4fr] gap-10 lg:gap-14">
 
         <!-- Galería -->
-        <div class="lg:sticky lg:top-24 self-start w-full">
-          <div class="relative rounded-2xl overflow-hidden bg-ms-stone shadow-card group">
+        <div class="mx-auto w-full max-w-[500px] lg:sticky lg:top-24 self-start">
+          <div class="relative aspect-4/5 max-h-[600px] rounded-2xl overflow-hidden bg-ms-stone shadow-card group">
             @if (producto.imagen_url) {
               <img
                 [src]="producto.imagen_url"
                 [alt]="producto.nombre"
-                class="aspect-4/5 w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 (error)="onImagenError($event)"
               />
             } @else {
-              <div class="aspect-4/5 w-full bg-gradient-to-br from-ms-ink via-ms-black to-black flex items-center justify-center">
+              <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-ms-ink via-ms-black to-black">
                 <svg class="w-24 h-24 text-ms-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
                 </svg>
@@ -139,7 +141,12 @@
               <div class="flex items-center justify-between mb-3">
                 <span class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-bold">Talla</span>
                 @if (tallaSeleccionada) {
-                  <span class="text-xs font-bold text-ms-ink">{{ tallaSeleccionada }}</span>
+                  <span class="inline-flex items-center gap-1 rounded-full bg-ms-cream border border-ms-amber/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ms-amber">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {{ tallaSeleccionada }}
+                  </span>
                 } @else {
                   <span class="text-xs italic text-ms-slate">Elegí tu talla</span>
                 }
@@ -152,11 +159,17 @@
                     [attr.aria-pressed]="tallaSeleccionada === talla"
                     [attr.aria-label]="'Talla ' + talla + (tallaDisponible(talla) ? '' : ' (sin stock)')"
                     [class.bg-ms-black]="tallaSeleccionada === talla"
+                    [class.bg-ms-white]="tallaSeleccionada !== talla"
                     [class.text-ms-white]="tallaSeleccionada === talla"
+                    [class.text-ms-ink]="tallaSeleccionada !== talla"
                     [class.border-ms-black]="tallaSeleccionada === talla"
+                    [class.border-ms-stone-200]="tallaSeleccionada !== talla"
+                    [class.ring-2]="tallaSeleccionada === talla"
+                    [class.ring-ms-amber-soft]="tallaSeleccionada === talla"
+                    [class.ring-offset-1]="tallaSeleccionada === talla"
                     [class.opacity-40]="!tallaDisponible(talla)"
                     [class.line-through]="!tallaDisponible(talla)"
-                    class="py-2.5 rounded-xl border border-ms-stone-200 bg-ms-white text-sm font-bold text-ms-ink transition-all hover:border-ms-ink disabled:cursor-not-allowed cursor-pointer text-center">
+                    class="py-2.5 rounded-xl border text-sm font-bold transition-all hover:border-ms-ink disabled:cursor-not-allowed cursor-pointer text-center">
                     {{ talla }}
                   </button>
                 }
@@ -168,7 +181,10 @@
               <div class="flex items-center justify-between mb-3">
                 <span class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-bold">Color</span>
                 @if (colorSeleccionado) {
-                  <span class="text-xs font-bold text-ms-ink">{{ colorSeleccionado.nombre }}</span>
+                  <span class="inline-flex items-center gap-1.5 rounded-full bg-ms-cream border border-ms-amber/30 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-ms-amber">
+                    <span class="w-2.5 h-2.5 rounded-full border border-ms-amber/40 shrink-0" [style.background-color]="colorSeleccionado.codigoHex || '#d4d4d4'"></span>
+                    {{ colorSeleccionado.nombre }}
+                  </span>
                 } @else {
                   <span class="text-xs italic text-ms-slate">Elegí talla y color</span>
                 }

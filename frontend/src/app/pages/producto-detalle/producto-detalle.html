@@ -155,9 +155,8 @@
                 @for (talla of tallasUnicas(); track talla) {
                   <button
                     (click)="seleccionarTalla(talla)"
-                    [disabled]="!tallaDisponible(talla)"
                     [attr.aria-pressed]="tallaSeleccionada === talla"
-                    [attr.aria-label]="'Talla ' + talla + (tallaDisponible(talla) ? '' : ' (sin stock)')"
+                    [attr.aria-label]="'Talla ' + talla"
                     [class.bg-ms-black]="tallaSeleccionada === talla"
                     [class.bg-ms-white]="tallaSeleccionada !== talla"
                     [class.text-ms-white]="tallaSeleccionada === talla"
@@ -167,9 +166,7 @@
                     [class.ring-2]="tallaSeleccionada === talla"
                     [class.ring-ms-amber-soft]="tallaSeleccionada === talla"
                     [class.ring-offset-1]="tallaSeleccionada === talla"
-                    [class.opacity-40]="!tallaDisponible(talla)"
-                    [class.line-through]="!tallaDisponible(talla)"
-                    class="py-2.5 rounded-xl border text-sm font-bold transition-all hover:border-ms-ink disabled:cursor-not-allowed cursor-pointer text-center">
+                    class="py-2.5 rounded-xl border text-sm font-bold transition-all hover:border-ms-ink cursor-pointer text-center">
                     {{ talla }}
                   </button>
                 }

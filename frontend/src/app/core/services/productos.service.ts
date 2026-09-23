@@ -69,6 +69,14 @@ export class ProductosService {
     );
   }
 
+  cambiarActivo(id: number, activo: boolean): Observable<Producto> {
+    return this.http.put<Producto>(
+      `${this.apiUrl}/${id}`,
+      { activo },
+      { headers: this.headers() }
+    );
+  }
+
   eliminar(id: number): Observable<any> {
     return this.http.delete(
       `${this.apiUrl}/${id}`,

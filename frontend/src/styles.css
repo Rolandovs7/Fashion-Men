@@ -106,3 +106,8 @@
   border-color: #f87171;         /* red-400  */
   box-shadow: 0 0 0 2px rgb(248 113 113 / 0.12);
 }
+
+/* Fix sticky: app-root debe ser block */
+app-root {
+  display: block;
+}

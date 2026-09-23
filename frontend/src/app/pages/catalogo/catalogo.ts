@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -85,20 +85,22 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     'from-zinc-800 to-neutral-950'
   ];
 
-  // ── Sticky manual por JS ──────────────────────────────────────
-  @ViewChild('filtrosAnchor', { static: false }) filtrosAnchor?: ElementRef<HTMLElement>;
+  // ── Sticky robusto: IntersectionObserver + ResizeObserver ──────
+  @ViewChild('sentinel', { static: false }) sentinel?: ElementRef<HTMLElement>;
+  @ViewChild('contenedorFiltros', { static: false }) contenedorFiltros?: ElementRef<HTMLElement>;
   @ViewChild('filtrosBar', { static: false }) filtrosBar?: ElementRef<HTMLElement>;
 
   // Altura del app-header en px. Ajusta este valor a la altura real de tu header.
   readonly OFFSET_HEADER = 76;
 
   filtrosFijo = false;
-  filtrosAltoPlaceholder = 0;
+  barHeight = 0;
   containerLeft = 0;
   containerWidth = 0;
 
-  private anchorTop = 0;
-  private scrollHandler = () => this.onScrollFiltros();
+  private io?: IntersectionObserver;
+  private ro?: ResizeObserver;
+  private windowResizeHandler = () => this.medirAncho();
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -107,43 +109,52 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.medirTodo(), 0);
-    window.addEventListener('scroll', this.scrollHandler, { passive: true });
+    setTimeout(() => {
+      this.medirAncho();
+      this.iniciarObservadores();
+    }, 0);
+    window.addEventListener('resize', this.windowResizeHandler);
   }
 
   ngOnDestroy(): void {
-    window.removeEventListener('scroll', this.scrollHandler);
+    this.io?.disconnect();
+    this.ro?.disconnect();
+    window.removeEventListener('resize', this.windowResizeHandler);
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    this.medirTodo();
-  }
-
-  private medirTodo(): void {
-    if (!this.filtrosAnchor) return;
-    const anchorEl = this.filtrosAnchor.nativeElement;
-    const rect = anchorEl.getBoundingClientRect();
-
-    this.anchorTop = rect.top + window.scrollY;
-    this.containerLeft = rect.left;
-    this.containerWidth = rect.width;
+  private iniciarObservadores(): void {
+    if (this.sentinel) {
+      this.io = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+          this.filtrosFijo = !entry.isIntersecting;
+          this.cdr.detectChanges();
+        },
+        { rootMargin: `-${this.OFFSET_HEADER}px 0px 0px 0px`, threshold: 0 }
+      );
+      this.io.observe(this.sentinel.nativeElement);
+    }
 
     if (this.filtrosBar) {
-      this.filtrosAltoPlaceholder = this.filtrosBar.nativeElement.offsetHeight;
+      this.ro = new ResizeObserver((entries) => {
+        const nuevoAlto = entries[0].contentRect.height;
+        if (Math.abs(nuevoAlto - this.barHeight) > 0.5) {
+          this.barHeight = nuevoAlto;
+          this.cdr.detectChanges();
+        }
+      });
+      this.ro.observe(this.filtrosBar.nativeElement);
     }
-    this.onScrollFiltros();
-    this.cdr.detectChanges();
   }
 
-  private onScrollFiltros(): void {
-    const debeEstarFijo = window.scrollY + this.OFFSET_HEADER >= this.anchorTop;
-    if (debeEstarFijo !== this.filtrosFijo) {
-      this.filtrosFijo = debeEstarFijo;
-      this.cdr.detectChanges();
-    }
+  private medirAncho(): void {
+    if (!this.contenedorFiltros) return;
+    const rect = this.contenedorFiltros.nativeElement.getBoundingClientRect();
+    this.containerLeft = rect.left;
+    this.containerWidth = rect.width;
+    this.cdr.detectChanges();
   }
-  // ── Fin lógica sticky manual ──────────────────────────────────
+  // ── Fin lógica sticky ────────────────────────────────────────
 
   cargarDatos(): void {
     this.cargando = true;
@@ -165,7 +176,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
         );
         this.cargando = false;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirTodo(), 0);
+        setTimeout(() => this.medirAncho(), 0);
       },
       error: () => {
         this.error = 'No se pudo cargar el catálogo. Intenta nuevamente más tarde.';
@@ -200,7 +211,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       next: (resp) => {
         this.recomendaciones = resp.recomendaciones;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirTodo(), 0);
+        setTimeout(() => this.medirAncho(), 0);
       },
       error: () => {
         this.recomendaciones = [];

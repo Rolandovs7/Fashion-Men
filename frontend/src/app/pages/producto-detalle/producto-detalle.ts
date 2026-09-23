@@ -188,6 +188,17 @@ export class ProductoDetalle implements OnInit {
     return [...new Set(this.variantes.map(v => v.talla_nombre))];
   }
 
+  /** Colores únicos del producto (sin repetir por talla). */
+  coloresUnicos(): Variante[] {
+    const vistos = new Map<number, Variante>();
+    for (const v of this.variantes) {
+      if (!vistos.has(v.color_id)) {
+        vistos.set(v.color_id, v);
+      }
+    }
+    return [...vistos.values()];
+  }
+
   coloresParaTalla(talla: string): Variante[] {
     return this.variantes.filter(v => v.talla_nombre === talla);
   }
@@ -198,20 +209,53 @@ export class ProductoDetalle implements OnInit {
     this.error = '';
   }
 
-  seleccionarTalla(talla: string): void {
-    const opciones = this.coloresParaTalla(talla);
-    if (opciones.length === 0) return;
-    const preferida = opciones.find(v => v.stock_disponible > 0) ?? opciones[0];
-    this.seleccionarVariante(preferida);
+  /** Variante con stock para talla+color (talla null = cualquier talla). */
+  private varianteDisponible(talla: string | null, colorId: number): Variante | null {
+    return this.variantes.find(v =>
+      v.color_id === colorId &&
+      (talla === null || v.talla_nombre === talla) &&
+      v.stock_disponible > 0
+    ) ?? null;
   }
 
-  seleccionarColor(variante: Variante): void {
-    if (variante.stock_disponible === 0) return;
-    this.seleccionarVariante(variante);
-  }
-
+  /** ¿Esta talla tiene stock con el color actualmente seleccionado? */
   tallaDisponible(talla: string): boolean {
-    return this.coloresParaTalla(talla).some(v => v.stock_disponible > 0);
+    const color = this.varianteSeleccionada;
+    return this.variantes.some(v =>
+      v.talla_nombre === talla &&
+      (color === null || v.color_id === color.color_id) &&
+      v.stock_disponible > 0
+    );
+  }
+
+  /** ¿Este color tiene stock con la talla actualmente seleccionada? */
+  colorDisponible(colorId: number): boolean {
+    return this.varianteDisponible(this.tallaSeleccionada, colorId) !== null;
+  }
+
+  seleccionarTalla(talla: string): void {
+    const colorActual = this.varianteSeleccionada;
+    // Si el color elegido sigue disponible en la nueva talla, se conserva.
+    if (colorActual) {
+      const conservar = this.varianteDisponible(talla, colorActual.color_id);
+      if (conservar) {
+        this.seleccionarVariante(conservar);
+        return;
+      }
+    }
+    // Si no, se auto-selecciona el primer color con stock de esa talla.
+    const preferida = this.variantes
+      .filter(v => v.talla_nombre === talla && v.stock_disponible > 0)[0];
+    if (preferida) {
+      this.seleccionarVariante(preferida);
+    }
+  }
+
+  seleccionarColor(color: Variante): void {
+    const variante = this.varianteDisponible(this.tallaSeleccionada, color.color_id);
+    if (variante) {
+      this.seleccionarVariante(variante);
+    }
   }
 
   incrementar(): void {

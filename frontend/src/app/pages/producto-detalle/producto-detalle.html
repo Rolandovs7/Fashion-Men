@@ -190,20 +190,20 @@
                 }
               </div>
               <div class="flex flex-wrap gap-2.5">
-                @for (variante of coloresParaTalla(tallaSeleccionada ?? ''); track variante.id) {
+                @for (color of coloresUnicos(); track color.id) {
                   <button
-                    (click)="seleccionarColor(variante)"
-                    [disabled]="variante.stock_disponible === 0"
-                    [attr.aria-label]="'Color ' + variante.color_nombre + ' (' + variante.stock_disponible + ' disponibles)'"
-                    [attr.title]="variante.color_nombre + ' · ' + (variante.stock_disponible > 0 ? variante.stock_disponible + ' disponibles' : 'sin stock')"
-                    [class.ring-2]="colorSeleccionado?.id === variante.id"
-                    [class.ring-ms-ink]="colorSeleccionado?.id === variante.id"
-                    [class.ring-offset-2]="colorSeleccionado?.id === variante.id"
-                    [class.opacity-40]="variante.stock_disponible === 0"
-                    [class.cursor-not-allowed]="variante.stock_disponible === 0"
+                    (click)="seleccionarColor(color)"
+                    [disabled]="!colorDisponible(color.id)"
+                    [attr.aria-label]="'Color ' + color.color_nombre + (colorDisponible(color.id) ? '' : ' (sin stock)')"
+                    [attr.title]="color.color_nombre + (colorDisponible(color.id) ? '' : ' · sin stock')"
+                    [class.ring-2]="colorSeleccionado?.id === color.id"
+                    [class.ring-ms-ink]="colorSeleccionado?.id === color.id"
+                    [class.ring-offset-2]="colorSeleccionado?.id === color.id"
+                    [class.opacity-40]="!colorDisponible(color.id)"
+                    [class.cursor-not-allowed]="!colorDisponible(color.id)"
                     class="relative w-9 h-9 rounded-full border border-ms-stone-200 transition-all hover:scale-110 cursor-pointer"
-                    [style.background-color]="variante.color_codigo_hex || '#d4d4d4'">
-                    @if (colorSeleccionado?.id === variante.id) {
+                    [style.background-color]="color.color_codigo_hex || '#d4d4d4'">
+                    @if (colorSeleccionado?.id === color.id) {
                       <span class="absolute inset-0 flex items-center justify-center text-ms-white" [style.text-shadow]="'0 1px 2px rgba(0,0,0,0.6)'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
@@ -211,9 +211,6 @@
                       </span>
                     }
                   </button>
-                }
-                @if (varianteSeleccionada && coloresParaTalla(tallaSeleccionada ?? '').length === 0) {
-                  <span class="text-xs italic text-ms-slate self-center">Sin colores para esta talla.</span>
                 }
               </div>
             </div>
@@ -224,7 +221,7 @@
                 @if (stockDisponible > 0) {
                   {{ stockDisponible }} {{ stockDisponible === 1 ? 'unidad disponible' : 'unidades disponibles' }}
                 } @else {
-                  Sin stock para esta combinación
+                  Sin stock disponible en esta combinación
                 }
               </p>
             }
@@ -300,7 +297,7 @@
               }
             } @else {
               <app-button variant="primario" [block]="true" size="lg" [disabled]="true">
-                Sin tallas disponibles
+                Sin stock disponible
               </app-button>
               <app-button variant="fantasma" [block]="true" (click)="avisarDisponible()">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

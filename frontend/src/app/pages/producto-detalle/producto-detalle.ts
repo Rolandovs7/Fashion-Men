@@ -236,10 +236,9 @@ export class ProductoDetalle implements OnInit {
     ) ?? null;
   }
 
-  /** Nombre visible: el de la variante si está definido, si no el del producto. */
+  /** Nombre visible: siempre el del producto (el color es un atributo, no cambia el nombre). */
   get nombreTitulo(): string {
-    const nombreVariante = this.varianteActual?.nombre_variante?.trim();
-    return nombreVariante || this.producto?.nombre || '';
+    return this.producto?.nombre || '';
   }
 
   incrementar(): void {

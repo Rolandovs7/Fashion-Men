@@ -79,6 +79,7 @@ export class ProductoDetalle implements OnInit {
   mensaje = '';
 
   private idsNuevos = new Set<number>();
+  private colorImgFallida = new Set<number>();
   private acentos = [
     'from-neutral-800 to-neutral-950',
     'from-amber-900/60 to-neutral-950',
@@ -288,13 +289,27 @@ export class ProductoDetalle implements OnInit {
     return this.varianteSeleccionada?.talla_nombre ?? null;
   }
 
-  get colorSeleccionado(): { id: number; nombre: string; codigoHex: string | null } | null {
+  get colorSeleccionado(): { id: number; nombre: string; codigoHex: string | null; imagenUrl: string | null } | null {
     if (!this.varianteSeleccionada) return null;
     return {
       id: this.varianteSeleccionada.color_id,
       nombre: this.varianteSeleccionada.color_nombre,
-      codigoHex: this.varianteSeleccionada.color_codigo_hex ?? null
+      codigoHex: this.varianteSeleccionada.color_codigo_hex ?? null,
+      imagenUrl: this.varianteSeleccionada.color_imagen_url ?? null
     };
+  }
+
+  /** Imagen principal: la del color seleccionado, o la genérica del producto. */
+  get imagenPrincipal(): string | null {
+    const color = this.colorSeleccionado;
+    const colorUrl = color && !this.colorImgFallida.has(color.id) ? color.imagenUrl : null;
+    return this.normalizarImagen(colorUrl ?? this.producto?.imagen_url ?? null);
+  }
+
+  private normalizarImagen(url: string | null): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return url.startsWith('/') ? url : '/' + url;
   }
 
   get tieneDescuento(): boolean {
@@ -402,7 +417,11 @@ export class ProductoDetalle implements OnInit {
   onImagenError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.style.display = 'none';
-    if (this.producto) {
+    const color = this.colorSeleccionado;
+    if (color && this.varianteSeleccionada?.color_imagen_url && !this.colorImgFallida.has(color.id)) {
+      // La imagen del color no carga: se cae al fallback genérico del producto.
+      this.colorImgFallida.add(color.id);
+    } else if (this.producto) {
       this.producto.imagen_url = null;
     }
     this.cdr.detectChanges();

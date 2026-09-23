@@ -87,7 +87,7 @@ export class AdminCatalogo implements OnInit {
   nuevaTemporada = { nombre: '', descripcion: '' };
   nuevaColeccion = { nombre: '', descripcion: '' };
   nuevaTalla = { nombre: '' };
-  nuevoColor = { nombre: '', codigo_hex: '#000000' };
+nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
   nuevoTipoPrenda = { nombre: '', descripcion: '' };
   nuevaMarca = { nombre: '', descripcion: '' };
   nuevoDescuento = { nombre: '', porcentaje: 0, fecha_inicio: '', fecha_fin: '' };
@@ -674,10 +674,14 @@ export class AdminCatalogo implements OnInit {
     this.guardando = true;
     this.error = '';
 
-    this.variantesService.crearColor(this.nuevoColor.nombre.trim(), this.nuevoColor.codigo_hex).subscribe({
+    this.variantesService.crearColor(
+      this.nuevoColor.nombre.trim(),
+      this.nuevoColor.codigo_hex,
+      this.nuevoColor.imagen_url.trim() || null
+    ).subscribe({
       next: (color) => {
         this.colores = [...this.colores, color];
-        this.nuevoColor = { nombre: '', codigo_hex: '#000000' };
+        this.nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
         this.guardando = false;
         this.mensaje = 'Color creado correctamente.';
         this.cdr.detectChanges();

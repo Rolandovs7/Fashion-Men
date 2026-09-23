@@ -38,6 +38,7 @@ def _serializar_variante(db: Session, variante: ProductoVariante) -> dict:
         "color_id": variante.color_id,
         "color_nombre": color.nombre if color else "—",
         "color_codigo_hex": color.codigo_hex if color else None,
+        "color_imagen_url": color.imagen_url if color else None,
         "activo": variante.activo,
         "stock_disponible": _calcular_stock_disponible(db, variante.id)
     }

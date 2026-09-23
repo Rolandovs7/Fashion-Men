@@ -10,6 +10,7 @@ export interface Variante {
   color_id: number;
   color_nombre: string;
   color_codigo_hex?: string | null;
+  color_imagen_url?: string | null;
   activo: boolean;
   stock_disponible: number;
 }
@@ -30,6 +31,7 @@ export interface Color {
   id: number;
   nombre: string;
   codigo_hex?: string | null;
+  imagen_url?: string | null;
   activo: boolean;
 }
 
@@ -89,10 +91,10 @@ export class VariantesService {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`);
   }
 
-  crearColor(nombre: string, codigoHex: string | null): Observable<Color> {
+  crearColor(nombre: string, codigoHex: string | null, imagenUrl: string | null = null): Observable<Color> {
     return this.http.post<Color>(
       `${this.apiUrl}/colores`,
-      { nombre, codigo_hex: codigoHex },
+      { nombre, codigo_hex: codigoHex, imagen_url: imagenUrl },
       { headers: this.headers() }
     );
   }

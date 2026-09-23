@@ -21,6 +21,7 @@ class VarianteRespuesta(BaseModel):
     color_id: int
     color_nombre: str
     color_codigo_hex: Optional[str] = None
+    color_imagen_url: Optional[str] = None
     activo: bool
     stock_disponible: int = 0
 

@@ -131,7 +131,7 @@ nuevaTalla = { nombre: '' };
 
     this.productosService.listar().subscribe({
       next: (productos) => {
-        this.productos = productos;
+        this.productos = [...productos].sort((a, b) => a.id - b.id);
         this.cargando = false;
         this.cdr.detectChanges();
       },

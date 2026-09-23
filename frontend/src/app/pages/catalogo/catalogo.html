@@ -33,9 +33,42 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- 2 · BARRA DE FILTROS (STICKY) — CORREGIDA                -->
+    <!-- 2 · IA · Recomendados para vos (AHORA VA PRIMERO)       -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <section class="sticky top-20 lg:top-24 z-30 mb-8 isolate">
+    @if (recomendaciones.length > 0) {
+      <section class="mb-10 relative bg-ms-black text-ms-white rounded-2xl overflow-hidden shadow-card">
+        <div class="absolute -right-20 -top-20 w-[300px] h-[300px] rounded-full bg-ms-amber/15 blur-3xl pointer-events-none"></div>
+        <div class="relative p-6 lg:p-8">
+          <div class="flex items-center gap-2.5 mb-4">
+            <svg class="w-4 h-4 text-ms-amber-soft" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.6L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z"/>
+            </svg>
+            <h2 class="font-display text-xl lg:text-2xl text-ms-white">Recomendados para vos</h2>
+            <app-badge tipo="acento" etiqueta="IA"></app-badge>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            @for (prod of recomendaciones; track prod.id) {
+              <button
+                (click)="verRecomendado(prod)"
+                class="text-left rounded-xl bg-ms-white/[0.05] border border-ms-white/10 p-4 hover:border-ms-amber hover:bg-ms-white/[0.08] transition-all duration-300 cursor-pointer group">
+                <h3 class="font-display text-sm text-ms-white truncate group-hover:text-ms-amber-soft transition-colors">
+                  {{ prod.nombre }}
+                </h3>
+                <p class="text-xs text-ms-white/60 mt-1 line-clamp-1">{{ prod.motivo }}</p>
+                <div class="mt-2 text-ms-white">
+                  <app-price [valor]="prod.precio"></app-price>
+                </div>
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 3 · BARRA DE FILTROS (STICKY) — AHORA VA DESPUÉS         -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="sticky top-[76px] lg:top-24 z-30 mb-8 isolate">
       <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">
 
         <!-- Fila 1: búsqueda + acciones (mobile) -->
@@ -97,39 +130,6 @@
         </div>
       }
     </section>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- 3 · IA · Recomendados para vos                          -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    @if (recomendaciones.length > 0) {
-      <section class="mb-10 relative bg-ms-black text-ms-white rounded-2xl overflow-hidden shadow-card">
-        <div class="absolute -right-20 -top-20 w-[300px] h-[300px] rounded-full bg-ms-amber/15 blur-3xl pointer-events-none"></div>
-        <div class="relative p-6 lg:p-8">
-          <div class="flex items-center gap-2.5 mb-4">
-            <svg class="w-4 h-4 text-ms-amber-soft" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.6L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z"/>
-            </svg>
-            <h2 class="font-display text-xl lg:text-2xl text-ms-white">Recomendados para vos</h2>
-            <app-badge tipo="acento" etiqueta="IA"></app-badge>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            @for (prod of recomendaciones; track prod.id) {
-              <button
-                (click)="verRecomendado(prod)"
-                class="text-left rounded-xl bg-ms-white/[0.05] border border-ms-white/10 p-4 hover:border-ms-amber hover:bg-ms-white/[0.08] transition-all duration-300 cursor-pointer group">
-                <h3 class="font-display text-sm text-ms-white truncate group-hover:text-ms-amber-soft transition-colors">
-                  {{ prod.nombre }}
-                </h3>
-                <p class="text-xs text-ms-white/60 mt-1 line-clamp-1">{{ prod.motivo }}</p>
-                <div class="mt-2 text-ms-white">
-                  <app-price [valor]="prod.precio"></app-price>
-                </div>
-              </button>
-            }
-          </div>
-        </div>
-      </section>
-    }
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- 4 · ESTADOS (error / carga / vacío)                     -->

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, inject, ChangeDetectorRef, ElementRef, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -59,7 +59,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   categorias: Categoria[] = [];
   recomendaciones: ProductoSugerido[] = [];
 
-  // Filtros (empty string = "todos")
   busqueda = '';
   categoriaSeleccionada = '';
   filtroTalla = '';
@@ -86,15 +85,20 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     'from-zinc-800 to-neutral-950'
   ];
 
-  // ── Sticky manual por JS (no depende de overflow/transform de padres) ──
+  // ── Sticky manual por JS ──────────────────────────────────────
   @ViewChild('filtrosAnchor', { static: false }) filtrosAnchor?: ElementRef<HTMLElement>;
   @ViewChild('filtrosBar', { static: false }) filtrosBar?: ElementRef<HTMLElement>;
 
+  // Altura del app-header en px. Ajusta este valor a la altura real de tu header.
+  readonly OFFSET_HEADER = 76;
+
   filtrosFijo = false;
   filtrosAltoPlaceholder = 0;
+  containerLeft = 0;
+  containerWidth = 0;
+
   private anchorTop = 0;
   private scrollHandler = () => this.onScrollFiltros();
-  private resizeHandler = () => this.medirAnchor();
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -103,28 +107,34 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Esperamos un tick para que el DOM (incluyendo recomendaciones) esté pintado
-    setTimeout(() => this.medirAnchor(), 0);
+    setTimeout(() => this.medirTodo(), 0);
     window.addEventListener('scroll', this.scrollHandler, { passive: true });
-    window.addEventListener('resize', this.resizeHandler);
   }
 
   ngOnDestroy(): void {
     window.removeEventListener('scroll', this.scrollHandler);
-    window.removeEventListener('resize', this.resizeHandler);
   }
 
-  private medirAnchor(): void {
+  @HostListener('window:resize')
+  onResize(): void {
+    this.medirTodo();
+  }
+
+  private medirTodo(): void {
     if (!this.filtrosAnchor) return;
-    const rect = this.filtrosAnchor.nativeElement.getBoundingClientRect();
+    const anchorEl = this.filtrosAnchor.nativeElement;
+    const rect = anchorEl.getBoundingClientRect();
+
     this.anchorTop = rect.top + window.scrollY;
+    this.containerLeft = rect.left;
+    this.containerWidth = rect.width;
+
     if (this.filtrosBar) {
       this.filtrosAltoPlaceholder = this.filtrosBar.nativeElement.offsetHeight;
     }
     this.onScrollFiltros();
+    this.cdr.detectChanges();
   }
-
-  private readonly OFFSET_HEADER = 76; // ajusta a la altura real de tu app-header
 
   private onScrollFiltros(): void {
     const debeEstarFijo = window.scrollY + this.OFFSET_HEADER >= this.anchorTop;
@@ -133,7 +143,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
-  // ── Fin lógica sticky manual ──
+  // ── Fin lógica sticky manual ──────────────────────────────────
 
   cargarDatos(): void {
     this.cargando = true;
@@ -155,7 +165,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
         );
         this.cargando = false;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirAnchor(), 0);
+        setTimeout(() => this.medirTodo(), 0);
       },
       error: () => {
         this.error = 'No se pudo cargar el catálogo. Intenta nuevamente más tarde.';
@@ -165,7 +175,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /** Carga tallas y colores del catálogo (para los selectores). */
   cargarCatalogoTallasYColores(): void {
     this.variantesService.listarTallas().subscribe({
       next: (tallas) => {
@@ -184,7 +193,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  /** Carga recomendaciones IA (solo si el usuario está logueado). */
   cargarRecomendaciones(): void {
     if (!this.authService.estaAutenticado()) return;
 
@@ -192,10 +200,9 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       next: (resp) => {
         this.recomendaciones = resp.recomendaciones;
         this.cdr.detectChanges();
-        setTimeout(() => this.medirAnchor(), 0);
+        setTimeout(() => this.medirTodo(), 0);
       },
       error: () => {
-        // Silencioso: si falla, no mostramos la sección
         this.recomendaciones = [];
       }
     });
@@ -284,11 +291,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     this.paginaActual = 1;
   }
 
-  /**
-   * Los filtros de talla/color necesitan las variantes por producto.
-   * Se cargan de forma perezosa (solo cuando se activan esos filtros)
-   * y se cachean en `variantesMap` para evitar repetir peticiones.
-   */
   private cargarVariantesSiFalta(): void {
     if ((!this.filtroTalla && !this.filtroColor) || this.cargandoVariantes) return;
 
@@ -335,7 +337,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       case 'precio-desc': copia.sort((a, b) => b.precio - a.precio); break;
       case 'nombre': copia.sort((a, b) => a.nombre.localeCompare(b.nombre)); break;
       case 'novedades': copia.sort((a, b) => b.id - a.id); break;
-      default: break; // relevancia = orden del backend
+      default: break;
     }
     return copia;
   }
@@ -373,7 +375,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  /** Badge principal de la prenda (derivado de datos reales). */
   badgeProducto(p: Producto): { etiqueta: string; tipo: 'acento' | 'aviso' } | null {
     if (p.descuento_id) return { etiqueta: 'Oferta', tipo: 'aviso' };
     if (this.idsNuevos.has(p.id)) return { etiqueta: 'Nuevo', tipo: 'acento' };
@@ -392,7 +393,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** El carrito exige talla+color, así que "Agregar" conduce al detalle. */
   agregarProducto(p: Producto): void {
     this.toastService.info('Elegí talla y color en el detalle para agregar al carrito.');
     this.verProducto(p);

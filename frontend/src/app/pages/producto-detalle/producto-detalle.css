@@ -1,3 +1,15 @@
 :host {
   display: block;
 }
+
+/* Detalle de producto MenStyle — Quiet Editorial Luxury
+   La mayoría del estilo vive en estilos MS + utilidades Tailwind.
+   Acá solo ajustes puntuales que no tienen utility disponible. */
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+summary::marker {
+  content: '';
+}

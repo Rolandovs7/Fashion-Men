@@ -88,7 +88,9 @@ export class AdminCatalogo implements OnInit {
     proveedor_id: 0, temporada_id: 0, coleccion_id: 0,
     tipo_prenda_id: 0, marca_id: 0, descuento_id: 0
   };
-  nuevaVariante = { talla_id: 0, color_id: 0 };
+nuevaVariante = { talla_id: 0, color_id: 0, nombre_variante: '' };
+  varianteEditandoId: number | null = null;
+  nombreVarianteEditando = '';
   nuevaSucursal = { nombre: '', direccion: '', ciudad: '', telefono: '' };
   nuevoProveedor = { nombre: '', contacto: '', telefono: '', email: '', direccion: '' };
   nuevaTemporada = { nombre: '', descripcion: '' };
@@ -422,17 +424,55 @@ nuevaTalla = { nombre: '' };
     this.variantesService.crear({
       producto_id: this.productoSeleccionadoId,
       talla_id: Number(this.nuevaVariante.talla_id),
-      color_id: Number(this.nuevaVariante.color_id)
+      color_id: Number(this.nuevaVariante.color_id),
+      nombre_variante: this.nuevaVariante.nombre_variante?.trim() || null
     }).subscribe({
       next: () => {
         this.guardando = false;
         this.mensaje = 'Variante creada correctamente.';
-        this.nuevaVariante = { talla_id: 0, color_id: 0 };
+        this.nuevaVariante = { talla_id: 0, color_id: 0, nombre_variante: '' };
         this.cargarVariantesDelProducto();
       },
       error: (error) => {
         this.guardando = false;
         this.error = error.error?.detail || 'No se pudo crear la variante.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  editarVariante(variante: Variante): void {
+    this.varianteEditandoId = variante.id;
+    this.nombreVarianteEditando = variante.nombre_variante || '';
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cancelarEdicionVariante(): void {
+    this.varianteEditandoId = null;
+    this.nombreVarianteEditando = '';
+  }
+
+  guardarVariante(): void {
+    if (!this.varianteEditandoId) return;
+
+    this.guardando = true;
+    this.error = '';
+
+    this.variantesService.actualizarVariante(this.varianteEditandoId, {
+      nombre_variante: this.nombreVarianteEditando.trim() || null
+    }).subscribe({
+      next: () => {
+        this.guardando = false;
+        this.cancelarEdicionVariante();
+        this.mensaje = 'Variante actualizada correctamente.';
+        this.toastService.exito('Nombre de variante actualizado.');
+        this.cargarVariantesDelProducto();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo actualizar la variante.';
+        this.toastService.error('No se pudo actualizar la variante.');
         this.cdr.detectChanges();
       }
     });

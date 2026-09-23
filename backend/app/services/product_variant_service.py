@@ -39,6 +39,7 @@ def _serializar_variante(db: Session, variante: ProductoVariante) -> dict:
         "color_nombre": color.nombre if color else "—",
         "color_codigo_hex": color.codigo_hex if color else None,
         "color_imagen_url": color.imagen_url if color else None,
+        "nombre_variante": variante.nombre_variante,
         "activo": variante.activo,
         "stock_disponible": _calcular_stock_disponible(db, variante.id)
     }
@@ -119,6 +120,7 @@ def crear_variante(db: Session, datos: VarianteCrear) -> dict:
         producto_id=datos.producto_id,
         talla_id=datos.talla_id,
         color_id=datos.color_id,
+        nombre_variante=datos.nombre_variante,
         activo=True
     )
 
@@ -138,6 +140,9 @@ def actualizar_variante(
 
     if datos.activo is not None:
         variante.activo = datos.activo
+
+    if datos.nombre_variante is not None:
+        variante.nombre_variante = datos.nombre_variante
 
     db.commit()
     db.refresh(variante)

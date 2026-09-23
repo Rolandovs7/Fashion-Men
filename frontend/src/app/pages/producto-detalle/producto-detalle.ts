@@ -62,7 +62,8 @@ export class ProductoDetalle implements OnInit {
   categoria: Categoria | null = null;
   variantes: Variante[] = [];
 
-  varianteSeleccionada: Variante | null = null;
+  tallaSeleccionada: string | null = null;
+  colorSeleccionado: { id: number; nombre: string; codigoHex: string | null; imagenUrl: string | null } | null = null;
   cantidad = 1;
 
   relacionados: Producto[] = [];
@@ -114,7 +115,16 @@ export class ProductoDetalle implements OnInit {
         this.variantesService.listarPorProducto(id).subscribe({
           next: (variantes) => {
             this.variantes = variantes;
-            this.varianteSeleccionada = variantes.find(v => v.stock_disponible > 0) ?? variantes[0] ?? null;
+            const inicial = variantes.find(v => v.stock_disponible > 0) ?? variantes[0] ?? null;
+            if (inicial) {
+              this.tallaSeleccionada = inicial.talla_nombre;
+              this.colorSeleccionado = {
+                id: inicial.color_id,
+                nombre: inicial.color_nombre,
+                codigoHex: inicial.color_codigo_hex ?? null,
+                imagenUrl: inicial.color_imagen_url ?? null
+              };
+            }
             this.cargando = false;
             this.cdr.detectChanges();
           },
@@ -200,63 +210,36 @@ export class ProductoDetalle implements OnInit {
     return [...vistos.values()];
   }
 
-  coloresParaTalla(talla: string): Variante[] {
-    return this.variantes.filter(v => v.talla_nombre === talla);
-  }
-
-  seleccionarVariante(variante: Variante): void {
-    this.varianteSeleccionada = variante;
+  seleccionarTalla(talla: string): void {
+    this.tallaSeleccionada = talla;
     this.mensaje = '';
     this.error = '';
   }
 
-  /** Variante con stock para talla+color (talla null = cualquier talla). */
-  private varianteDisponible(talla: string | null, colorId: number): Variante | null {
+  seleccionarColor(color: Variante): void {
+    this.colorSeleccionado = {
+      id: color.color_id,
+      nombre: color.color_nombre,
+      codigoHex: color.color_codigo_hex ?? null,
+      imagenUrl: color.color_imagen_url ?? null
+    };
+    this.mensaje = '';
+    this.error = '';
+  }
+
+  /** Variante concreta (talla + color) seleccionada en este momento. */
+  get varianteActual(): Variante | null {
+    if (!this.tallaSeleccionada || !this.colorSeleccionado) return null;
     return this.variantes.find(v =>
-      v.color_id === colorId &&
-      (talla === null || v.talla_nombre === talla) &&
-      v.stock_disponible > 0
+      v.talla_nombre === this.tallaSeleccionada &&
+      v.color_id === this.colorSeleccionado!.id
     ) ?? null;
   }
 
-  /** ¿Esta talla tiene stock con el color actualmente seleccionado? */
-  tallaDisponible(talla: string): boolean {
-    const color = this.varianteSeleccionada;
-    return this.variantes.some(v =>
-      v.talla_nombre === talla &&
-      (color === null || v.color_id === color.color_id) &&
-      v.stock_disponible > 0
-    );
-  }
-
-  /** ¿Este color tiene stock con la talla actualmente seleccionada? */
-  colorDisponible(colorId: number): boolean {
-    return this.varianteDisponible(this.tallaSeleccionada, colorId) !== null;
-  }
-
-  seleccionarTalla(talla: string): void {
-    const colorActual = this.varianteSeleccionada;
-    // Si el color elegido sigue disponible en la nueva talla, se conserva.
-    if (colorActual) {
-      const conservar = this.varianteDisponible(talla, colorActual.color_id);
-      if (conservar) {
-        this.seleccionarVariante(conservar);
-        return;
-      }
-    }
-    // Si no, se auto-selecciona el primer color con stock de esa talla.
-    const preferida = this.variantes
-      .filter(v => v.talla_nombre === talla && v.stock_disponible > 0)[0];
-    if (preferida) {
-      this.seleccionarVariante(preferida);
-    }
-  }
-
-  seleccionarColor(color: Variante): void {
-    const variante = this.varianteDisponible(this.tallaSeleccionada, color.color_id);
-    if (variante) {
-      this.seleccionarVariante(variante);
-    }
+  /** Nombre visible: el de la variante si está definido, si no el del producto. */
+  get nombreTitulo(): string {
+    const nombreVariante = this.varianteActual?.nombre_variante?.trim();
+    return nombreVariante || this.producto?.nombre || '';
   }
 
   incrementar(): void {
@@ -278,25 +261,12 @@ export class ProductoDetalle implements OnInit {
   }
 
   get stockDisponible(): number {
-    return this.varianteSeleccionada?.stock_disponible ?? 0;
+    return this.varianteActual?.stock_disponible ?? 0;
   }
 
   get tieneStock(): boolean {
-    return this.varianteSeleccionada != null && this.varianteSeleccionada.stock_disponible > 0;
-  }
-
-  get tallaSeleccionada(): string | null {
-    return this.varianteSeleccionada?.talla_nombre ?? null;
-  }
-
-  get colorSeleccionado(): { id: number; nombre: string; codigoHex: string | null; imagenUrl: string | null } | null {
-    if (!this.varianteSeleccionada) return null;
-    return {
-      id: this.varianteSeleccionada.color_id,
-      nombre: this.varianteSeleccionada.color_nombre,
-      codigoHex: this.varianteSeleccionada.color_codigo_hex ?? null,
-      imagenUrl: this.varianteSeleccionada.color_imagen_url ?? null
-    };
+    const variante = this.varianteActual;
+    return variante != null && variante.stock_disponible > 0;
   }
 
   /** Imagen principal: la del color seleccionado, o la genérica del producto. */
@@ -352,13 +322,14 @@ export class ProductoDetalle implements OnInit {
   }
 
   agregarAlCarrito(): void {
-    if (!this.varianteSeleccionada) {
+    const variante = this.varianteActual;
+    if (!variante) {
       this.error = 'Selecciona una talla y color disponibles.';
       return;
     }
 
-    if (this.cantidad < 1 || this.cantidad > this.stockDisponible) {
-      this.error = `Elige una cantidad entre 1 y ${this.stockDisponible}.`;
+    if (this.cantidad < 1 || this.cantidad > variante.stock_disponible) {
+      this.error = `Elige una cantidad entre 1 y ${variante.stock_disponible}.`;
       return;
     }
 
@@ -366,7 +337,7 @@ export class ProductoDetalle implements OnInit {
     this.error = '';
     this.mensaje = '';
 
-    this.carritoService.agregarItem(this.varianteSeleccionada.id, this.cantidad).subscribe({
+    this.carritoService.agregarItem(variante.id, this.cantidad).subscribe({
       next: () => {
         this.agregando = false;
         this.mensaje = 'Prenda agregada al carrito.';
@@ -386,7 +357,7 @@ export class ProductoDetalle implements OnInit {
   }
 
   reservar(): void {
-    if (!this.varianteSeleccionada) {
+    if (!this.varianteActual) {
       this.toastService.aviso('Primero elegí talla y color.');
       return;
     }
@@ -418,7 +389,11 @@ export class ProductoDetalle implements OnInit {
     const img = event.target as HTMLImageElement;
     img.style.display = 'none';
     const color = this.colorSeleccionado;
-    if (color && this.varianteSeleccionada?.color_imagen_url && !this.colorImgFallida.has(color.id)) {
+    if (color && this.colorImgFallida.has(color.id)) {
+      // Ya cayó al genérico del producto antes; nada que hacer.
+      return;
+    }
+    if (color && color.imagenUrl) {
       // La imagen del color no carga: se cae al fallback genérico del producto.
       this.colorImgFallida.add(color.id);
     } else if (this.producto) {

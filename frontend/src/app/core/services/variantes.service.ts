@@ -91,6 +91,17 @@ export class VariantesService {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`);
   }
 
+  actualizarColor(
+    id: number,
+    datos: { nombre?: string; codigo_hex?: string | null; imagen_url?: string | null; activo?: boolean }
+  ): Observable<Color> {
+    return this.http.put<Color>(
+      `${this.apiUrl}/colores/${id}`,
+      datos,
+      { headers: this.headers() }
+    );
+  }
+
   crearColor(nombre: string, codigoHex: string | null, imagenUrl: string | null = null): Observable<Color> {
     return this.http.post<Color>(
       `${this.apiUrl}/colores`,

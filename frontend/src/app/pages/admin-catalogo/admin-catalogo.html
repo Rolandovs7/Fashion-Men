@@ -323,6 +323,8 @@
                       <button (click)="editarProducto(producto)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (producto.activo) {
                         <button (click)="eliminarProducto(producto)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                      } @else {
+                        <button (click)="reactivarProducto(producto)" class="text-xs font-bold text-emerald-600 hover:text-emerald-800 cursor-pointer">Reactivar</button>
                       }
                     </td>
                   </tr>
@@ -822,7 +824,8 @@
                         {{ color.activo ? 'Activo' : 'Inactivo' }}
                       </span>
                     </td>
-                    <td class="py-3 px-5 text-right">
+                    <td class="py-3 px-5 text-right space-x-3">
+                      <button (click)="editarColor(color)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (color.activo) {
                         <button (click)="eliminarColor(color)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
                       }
@@ -1021,5 +1024,47 @@
     }
 
   </div>
+
+  <!-- Modal edición de color -->
+  <app-modal
+    [abierto]="colorModalAbierto"
+    titulo="Editar color"
+    ancho="sm"
+    (cerrar)="cancelarEdicionColor()">
+    <div class="space-y-4">
+      <app-input
+        label="Nombre"
+        [(ngModel)]="colorEditando.nombre"
+        placeholder="Ej. Azul marino"
+        [required]="true"></app-input>
+
+      <div class="flex items-end gap-3">
+        <app-input
+          label="Código HEX"
+          [(ngModel)]="colorEditando.codigo_hex"
+          placeholder="#000000"></app-input>
+        <div class="flex flex-col">
+          <span class="text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">Muestra</span>
+          <span class="w-10 h-11 rounded-xl border border-neutral-300" [style.background-color]="colorEditando.codigo_hex || '#d4d4d4'"></span>
+        </div>
+      </div>
+
+      <app-input
+        label="Imagen URL"
+        [(ngModel)]="colorEditando.imagen_url"
+        placeholder="/imagenes/negro.jpg"
+        hint="Si el color tiene imagen, el detalle la muestra al seleccionarlo."></app-input>
+
+      <label class="flex items-center gap-3 cursor-pointer">
+        <input type="checkbox" [(ngModel)]="colorEditando.activo" class="w-4 h-4 rounded cursor-pointer" />
+        <span class="text-sm font-semibold text-neutral-700">Color activo</span>
+      </label>
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <app-button variant="secundario" [block]="true" (click)="cancelarEdicionColor()">Cancelar</app-button>
+        <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarColor()">Guardar</app-button>
+      </div>
+    </div>
+  </app-modal>
 
 </app-admin-shell>

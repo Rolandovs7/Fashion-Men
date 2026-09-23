@@ -12,6 +12,12 @@ import { TiposPrendaService, TipoPrenda } from '../../core/services/tipos-prenda
 import { MarcasService, Marca } from '../../core/services/marcas.service';
 import { DescuentosService, Descuento } from '../../core/services/descuentos.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import {
+  ModalComponent,
+  ButtonComponent,
+  InputComponent,
+  ToastService
+} from '../../shared/ui';
 
 type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'proveedores' | 'temporadas' | 'colecciones' | 'tallas' | 'colores' | 'tipos-prenda' | 'marcas' | 'descuentos';
 
@@ -35,7 +41,7 @@ type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'provee
 // ============================================================
 @Component({
   selector: 'app-admin-catalogo',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent],
   templateUrl: './admin-catalogo.html',
   styleUrl: './admin-catalogo.css'
 })
@@ -50,6 +56,7 @@ export class AdminCatalogo implements OnInit {
   private tiposPrendaService = inject(TiposPrendaService);
   private marcasService = inject(MarcasService);
   private descuentosService = inject(DescuentosService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   pestana: Pestana = 'categorias';
@@ -86,8 +93,13 @@ export class AdminCatalogo implements OnInit {
   nuevoProveedor = { nombre: '', contacto: '', telefono: '', email: '', direccion: '' };
   nuevaTemporada = { nombre: '', descripcion: '' };
   nuevaColeccion = { nombre: '', descripcion: '' };
-  nuevaTalla = { nombre: '' };
-nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
+nuevaTalla = { nombre: '' };
+  nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
+
+  // Edición de colores (modal)
+  colorEditandoId: number | null = null;
+  colorModalAbierto = false;
+  colorEditando = { nombre: '', codigo_hex: '#000000', imagen_url: '', activo: true };
   nuevoTipoPrenda = { nombre: '', descripcion: '' };
   nuevaMarca = { nombre: '', descripcion: '' };
   nuevoDescuento = { nombre: '', porcentaje: 0, fecha_inicio: '', fecha_fin: '' };
@@ -335,6 +347,22 @@ nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
       },
       error: () => {
         this.error = 'No se pudo desactivar el producto.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarProducto(producto: Producto): void {
+    this.productosService.cambiarActivo(producto.id, true).subscribe({
+      next: (reactivado) => {
+        this.productos = this.productos.map(p => p.id === reactivado.id ? reactivado : p);
+        this.mensaje = `Producto "${reactivado.nombre}" reactivado.`;
+        this.toastService.exito(`Producto "${reactivado.nombre}" reactivado.`);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo reactivar el producto.';
+        this.toastService.error('No se pudo reactivar el producto.');
         this.cdr.detectChanges();
       }
     });
@@ -705,6 +733,59 @@ nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
       },
       error: () => {
         this.error = 'No se pudo desactivar el color.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  editarColor(color: Color): void {
+    this.colorEditandoId = color.id;
+    this.colorEditando = {
+      nombre: color.nombre,
+      codigo_hex: color.codigo_hex || '#000000',
+      imagen_url: color.imagen_url || '',
+      activo: color.activo
+    };
+    this.colorModalAbierto = true;
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cancelarEdicionColor(): void {
+    this.colorModalAbierto = false;
+    this.colorEditandoId = null;
+    this.colorEditando = { nombre: '', codigo_hex: '#000000', imagen_url: '', activo: true };
+  }
+
+  guardarColor(): void {
+    if (!this.colorEditandoId) return;
+
+    if (!this.colorEditando.nombre.trim()) {
+      this.error = 'El nombre del color es obligatorio.';
+      return;
+    }
+
+    this.guardando = true;
+    this.error = '';
+
+    this.variantesService.actualizarColor(this.colorEditandoId, {
+      nombre: this.colorEditando.nombre.trim(),
+      codigo_hex: this.colorEditando.codigo_hex || null,
+      imagen_url: this.colorEditando.imagen_url.trim() || null,
+      activo: this.colorEditando.activo
+    }).subscribe({
+      next: (color) => {
+        this.colores = this.colores.map(c => c.id === color.id ? color : c);
+        this.cancelarEdicionColor();
+        this.guardando = false;
+        this.mensaje = 'Color actualizado correctamente.';
+        this.toastService.exito('Color actualizado correctamente.');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo actualizar el color.';
+        this.toastService.error('No se pudo actualizar el color.');
         this.cdr.detectChanges();
       }
     });

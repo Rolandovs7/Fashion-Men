@@ -66,16 +66,21 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- 3 · BARRA DE FILTROS (STICKY MANUAL POR JS)              -->
+    <!-- 3 · BARRA DE FILTROS (STICKY con IntersectionObserver)   -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <div #filtrosAnchor class="mb-8"
-      [style.height.px]="filtrosFijo ? filtrosAltoPlaceholder : null">
+    <div #contenedorFiltros class="mb-8">
+      <!-- Sensor invisible: cuando sale de vista, activa el fixed -->
+      <div #sentinel style="height:1px;"></div>
+
+      <!-- Placeholder que reserva el espacio cuando la barra es fixed -->
+      <div [style.height.px]="filtrosFijo ? barHeight : null"></div>
 
       <section #filtrosBar
         [style.position]="filtrosFijo ? 'fixed' : 'static'"
         [style.top.px]="filtrosFijo ? OFFSET_HEADER : null"
         [style.left.px]="filtrosFijo ? containerLeft : null"
         [style.width.px]="filtrosFijo ? containerWidth : null"
+        [style.margin-top]="filtrosFijo ? null : '0'"
         class="z-30">
 
         <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">

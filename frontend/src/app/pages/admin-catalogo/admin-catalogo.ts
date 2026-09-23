@@ -88,7 +88,7 @@ export class AdminCatalogo implements OnInit {
     proveedor_id: 0, temporada_id: 0, coleccion_id: 0,
     tipo_prenda_id: 0, marca_id: 0, descuento_id: 0
   };
-nuevaVariante = { talla_id: 0, color_id: 0 };
+  nuevaVariante = { talla_id: 0, color_id: 0, imagen_url: '' };
   nuevaSucursal = { nombre: '', direccion: '', ciudad: '', telefono: '' };
   nuevoProveedor = { nombre: '', contacto: '', telefono: '', email: '', direccion: '' };
   nuevaTemporada = { nombre: '', descripcion: '' };
@@ -422,17 +422,62 @@ nuevaTalla = { nombre: '' };
     this.variantesService.crear({
       producto_id: this.productoSeleccionadoId,
       talla_id: Number(this.nuevaVariante.talla_id),
-      color_id: Number(this.nuevaVariante.color_id)
+      color_id: Number(this.nuevaVariante.color_id),
+      imagen_url: this.nuevaVariante.imagen_url.trim() || null
     }).subscribe({
       next: () => {
         this.guardando = false;
         this.mensaje = 'Variante creada correctamente.';
-        this.nuevaVariante = { talla_id: 0, color_id: 0 };
+        this.nuevaVariante = { talla_id: 0, color_id: 0, imagen_url: '' };
         this.cargarVariantesDelProducto();
       },
       error: (error) => {
         this.guardando = false;
         this.error = error.error?.detail || 'No se pudo crear la variante.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ----- Imagen de variante (modal) -----
+  varianteImagenEditandoId: number | null = null;
+  varianteImagenModalAbierto = false;
+  varianteImagenEditandoUrl = '';
+
+  editarImagenVariante(variante: Variante): void {
+    this.varianteImagenEditandoId = variante.id;
+    this.varianteImagenEditandoUrl = variante.imagen_url || '';
+    this.varianteImagenModalAbierto = true;
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cancelarEdicionImagenVariante(): void {
+    this.varianteImagenModalAbierto = false;
+    this.varianteImagenEditandoId = null;
+    this.varianteImagenEditandoUrl = '';
+  }
+
+  guardarImagenVariante(): void {
+    if (!this.varianteImagenEditandoId) return;
+
+    this.guardando = true;
+    this.error = '';
+
+    this.variantesService.actualizarVariante(this.varianteImagenEditandoId, {
+      imagen_url: this.varianteImagenEditandoUrl.trim() || null
+    }).subscribe({
+      next: () => {
+        this.guardando = false;
+        this.mensaje = 'Imagen de variante actualizada.';
+        this.toastService.exito('Imagen de variante actualizada.');
+        this.cargarVariantesDelProducto();
+        this.cancelarEdicionImagenVariante();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo actualizar la imagen de la variante.';
+        this.toastService.error('No se pudo actualizar la imagen de la variante.');
         this.cdr.detectChanges();
       }
     });

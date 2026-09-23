@@ -377,6 +377,11 @@
                     <option [value]="color.id">{{ color.nombre }}</option>
                   }
                 </select>
+                <input
+                  type="text"
+                  [(ngModel)]="nuevaVariante.imagen_url"
+                  placeholder="Imagen URL (opcional, ej. /imagenes/camisas/camisa-formal-azul.jpg)"
+                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
                 <button
                   (click)="crearVariante()"
                   [disabled]="guardando"
@@ -400,8 +405,10 @@
                   <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
                     <th class="py-3 px-5">Talla</th>
                     <th class="py-3 px-5">Color</th>
+                    <th class="py-3 px-5">Imagen URL</th>
                     <th class="py-3 px-5">Stock disponible</th>
                     <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-neutral-100">
@@ -414,6 +421,25 @@
                           {{ variante.color_nombre }}
                         </span>
                       </td>
+                      <td class="py-3 px-5">
+                        @if (variante.imagen_url) {
+                          <button
+                            (click)="editarImagenVariante(variante)"
+                            [title]="'Editar imagen: ' + variante.imagen_url"
+                            class="inline-flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+                            <span class="w-8 h-9 rounded-lg overflow-hidden border border-neutral-200 shrink-0">
+                              <img [src]="variante.imagen_url" alt="" class="w-full h-full object-cover" />
+                            </span>
+                            <span class="text-xs font-medium text-neutral-500 truncate max-w-[150px]">{{ variante.imagen_url }}</span>
+                          </button>
+                        } @else {
+                          <button
+                            (click)="editarImagenVariante(variante)"
+                            class="text-xs font-medium text-neutral-400 hover:text-neutral-700 cursor-pointer">
+                            Sin imagen · Agregar
+                          </button>
+                        }
+                      </td>
                       <td class="py-3 px-5 font-semibold">{{ variante.stock_disponible }}</td>
                       <td class="py-3 px-5">
                         <span class="px-2 py-1 rounded-md text-xs font-bold"
@@ -422,9 +448,12 @@
                           {{ variante.activo ? 'Activa' : 'Inactiva' }}
                         </span>
                       </td>
+                      <td class="py-3 px-5 text-right space-x-3">
+                        <button (click)="editarImagenVariante(variante)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Imagen</button>
+                      </td>
                     </tr>
                   } @empty {
-                    <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Este producto aún no tiene variantes.</td></tr>
+                    <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">Este producto aún no tiene variantes.</td></tr>
                   }
                 </tbody>
               </table>
@@ -1063,6 +1092,41 @@
       <div class="grid grid-cols-2 gap-2 pt-2">
         <app-button variant="secundario" [block]="true" (click)="cancelarEdicionColor()">Cancelar</app-button>
         <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarColor()">Guardar</app-button>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal edición de imagen de variante -->
+  <app-modal
+    [abierto]="varianteImagenModalAbierto"
+    titulo="Editar imagen de variante"
+    ancho="sm"
+    (cerrar)="cancelarEdicionImagenVariante()">
+    <div class="space-y-4">
+      <p class="text-sm text-neutral-500">
+        La imagen de la variante es la que se muestra en el detalle del producto al
+        seleccionar esa talla y color.
+      </p>
+
+      <app-input
+        label="Imagen URL"
+        [(ngModel)]="varianteImagenEditandoUrl"
+        placeholder="/imagenes/camisas/camisa-formal-azul.jpg"
+        hint="Ruta local dentro de public/imagenes/ o URL completa."></app-input>
+
+      @if (varianteImagenEditandoUrl.trim()) {
+        <div class="flex flex-col items-start gap-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-neutral-600">Vista previa</span>
+          <img
+            [src]="varianteImagenEditandoUrl.trim()"
+            alt="Vista previa"
+            class="w-28 h-32 rounded-xl border border-neutral-200 object-cover" />
+        </div>
+      }
+
+      <div class="grid grid-cols-2 gap-2 pt-2">
+        <app-button variant="secundario" [block]="true" (click)="cancelarEdicionImagenVariante()">Cancelar</app-button>
+        <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarImagenVariante()">Guardar</app-button>
       </div>
     </div>
   </app-modal>

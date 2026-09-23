@@ -32,6 +32,11 @@ class ProductoVariante(Base):
         nullable=True
     )
 
+    imagen_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True
+    )
+
     activo: Mapped[bool] = mapped_column(
         Boolean,
         default=True,

@@ -1,88 +1,134 @@
-<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+<div class="min-h-screen bg-ms-alabaster text-ms-ink font-sans antialiased flex flex-col">
 
   <app-header></app-header>
 
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 w-full flex-1">
 
-    <div class="mb-8">
-      <h1 class="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">Mis reservas</h1>
-      <p class="text-sm text-neutral-500 font-medium mt-1">Prendas apartadas para probarte en tienda</p>
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <a routerLink="/inicio" class="hover:text-ms-amber transition-colors cursor-pointer">Inicio</a>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Mis reservas</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="mb-10">
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">MenStyle · Apartado en tienda</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Mis reservas</h1>
+      <p class="mt-2 text-sm text-ms-slate">Prendas apartadas para probarte en tienda.</p>
+      @if (!cargando && reservas.length > 0) {
+        <p class="mt-3 text-xs font-bold uppercase tracking-[0.2em] text-ms-slate">
+          {{ reservasActivas }} {{ reservasActivas === 1 ? 'reserva activa' : 'reservas activas' }}
+        </p>
+      }
     </div>
 
+    <!-- Aviso de éxito (tras cancelar) -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
-        {{ mensaje }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
       </div>
     }
 
+    <!-- Error -->
     @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
-        {{ error }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
+        <div class="mt-3">
+          <app-button variant="secundario" size="sm" (click)="cargarReservas()">Reintentar</app-button>
+        </div>
       </div>
     }
 
+    <!-- Cargando -->
     @if (cargando) {
-      <div class="flex flex-col items-center justify-center py-28 text-center">
-        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-semibold text-neutral-700">Cargando tus reservas...</p>
+      <div class="flex flex-col items-center justify-center py-28 gap-4" aria-busy="true">
+        <app-loader size="lg"></app-loader>
+        <p class="text-sm font-semibold text-ms-slate">Cargando tus reservas…</p>
       </div>
-    } @else if (reservas.length === 0) {
-      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
-        <p class="text-sm font-semibold text-neutral-600 mb-4">Aún no tienes reservas.</p>
-        <a routerLink="/catalogo" class="inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all">
-          Ir al catálogo
-        </a>
-      </div>
-    } @else {
-      <div class="space-y-4">
+    }
+
+    <!-- Vacío -->
+    @else if (reservas.length === 0) {
+      <app-empty-state
+        icono="📅"
+        titulo="Aún no tenés reservas"
+        descripcion="Apartá prendas en la tienda y gestionalas desde acá. Tu próxima visita te espera.">
+        <app-button variant="primario" size="lg" (click)="irAlCatalogo()">Ir al catálogo</app-button>
+      </app-empty-state>
+    }
+
+    <!-- Lista de reservas -->
+    @else {
+      <div class="space-y-5">
         @for (reserva of reservas; track reserva.id) {
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-5">
-            <div class="flex items-start justify-between gap-4 mb-3">
+          <article class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-5 sm:p-6 animate-fade-in">
+
+            <!-- Cabecera y estado -->
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
               <div>
-                <p class="font-bold text-neutral-900">Reserva #{{ reserva.id }}</p>
-                <p class="text-xs text-neutral-400 font-medium mt-0.5">
-                  {{ nombreSucursal(reserva.sucursal_id) }} · {{ reserva.fecha_reserva | fechaBolivia }}
+                <p class="font-display text-lg text-ms-ink">Reserva #{{ reserva.id }}</p>
+                <p class="text-xs text-ms-slate font-medium mt-1">
+                  {{ nombreSucursal(reserva.sucursal_id) }} · {{ reserva.fecha_reserva | fechaBolivia:'dd/MM/yyyy' }}
                 </p>
               </div>
-              <span class="px-3 py-1 rounded-lg text-xs font-bold shrink-0" [class]="claseEstado(reserva.estado)">
-                {{ etiquetasEstado[reserva.estado] || reserva.estado }}
-              </span>
+              <app-badge [tipo]="tipoBadge(reserva.estado)" [etiqueta]="etiquetasEstado[reserva.estado] || reserva.estado"></app-badge>
             </div>
 
-            <div class="border-t border-neutral-100 pt-3 space-y-1.5">
+            <!-- Detalles -->
+            <div class="border-t border-ms-stone-200 pt-4">
               @for (detalle of reserva.detalles; track detalle.id) {
-                <div class="flex justify-between text-sm text-neutral-600">
-                  <span>Variante #{{ detalle.variante_id }}</span>
-                  <span class="font-semibold text-neutral-800">{{ detalle.cantidad }} unid.</span>
+                <div class="flex justify-between items-center text-sm py-1">
+                  <span class="text-ms-slate">Variante #{{ detalle.variante_id }}</span>
+                  <span class="font-bold text-ms-ink">{{ detalle.cantidad }} unid.</span>
                 </div>
               }
             </div>
 
+            <!-- Observaciones -->
             @if (reserva.observaciones) {
-              <p class="text-xs text-neutral-500 italic mt-3">"{{ reserva.observaciones }}"</p>
+              <p class="text-xs text-ms-slate italic mt-3">“{{ reserva.observaciones }}”</p>
             }
 
+            <!-- Acción -->
             @if (puedeCancelar(reserva)) {
-              <div class="flex justify-end mt-4 pt-3 border-t border-neutral-100">
-                <button
-                  (click)="cancelarReserva(reserva)"
-                  class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wide transition-colors cursor-pointer">
+              <div class="flex flex-wrap items-center justify-end gap-2 mt-4 pt-4 border-t border-ms-stone-200">
+                <app-button variant="peligro" size="sm" (click)="abrirCancelacion(reserva)">
                   Cancelar reserva
-                </button>
+                </app-button>
               </div>
             }
-          </div>
+
+          </article>
         }
       </div>
     }
 
   </main>
 
-  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
-      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
-    </div>
-  </footer>
+  <app-footer></app-footer>
+
+  <!-- Confirmación de cancelación -->
+  @if (reservaACancelar) {
+    <app-modal
+      titulo="Cancelar reserva #{{ reservaACancelar.id }}"
+      ancho="sm"
+      [abierto]="true"
+      (cerrar)="cerrarConfirmacionCancelacion()">
+      <p class="text-sm text-ms-slate">
+        ¿Seguro que querés cancelar la reserva
+        <span class="font-bold text-ms-ink">#{{ reservaACancelar.id }}</span>?
+        Esta acción no se puede deshacer.
+      </p>
+      <div class="mt-6 flex flex-col gap-2.5">
+        <app-button variant="peligro" [block]="true" (click)="confirmarCancelacion()">
+          Sí, cancelar reserva
+        </app-button>
+        <app-button variant="fantasma" [block]="true" (click)="cerrarConfirmacionCancelacion()">
+          Mantener reserva
+        </app-button>
+      </div>
+    </app-modal>
+  }
 
 </div>

@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 // ============================================================
 @Component({
   selector: 'app-reset-password',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ButtonComponent, InputComponent, AlertComponent],
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.css'
 })
@@ -83,6 +83,9 @@ export class ResetPassword implements OnInit {
         this.cargando = false;
         this.exito = true;
         this.cdr.detectChanges();
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
       },
       error: (error) => {
         this.cargando = false;

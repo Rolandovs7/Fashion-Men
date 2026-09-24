@@ -1,159 +1,154 @@
-<div class="min-h-screen bg-gradient-to-br from-neutral-950 via-neutral-900 to-black flex items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+<div class="lg:grid lg:grid-cols-[11fr_9fr] min-h-screen">
 
-  <div class="w-full max-w-md space-y-8">
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- PANEL EDITORIAL (izquierda, solo desktop)       -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <aside class="relative hidden lg:flex flex-col justify-between min-h-screen overflow-hidden bg-ms-ink text-ms-white p-10 xl:p-14">
 
-    <!-- Marca / Branding -->
-    <div class="text-center">
-      <span class="inline-block px-3.5 py-1 text-[11px] font-bold uppercase tracking-widest text-amber-400 bg-neutral-900/90 border border-neutral-800 rounded-full mb-3 shadow-inner">
-        Plataforma E-Commerce • FashionStore
-      </span>
-      <h1 class="text-4xl sm:text-5xl font-black tracking-[0.25em] text-white uppercase drop-shadow-md">
-        MENSTYLE
-      </h1>
-      <p class="mt-2 text-neutral-400 text-sm font-medium tracking-wide">
-        Moda masculina a tu estilo
-      </p>
-    </div>
+    <div aria-hidden="true" class="absolute -top-44 -right-40 w-[480px] h-[480px] rounded-full bg-ms-amber/20 blur-[140px]"></div>
+    <div aria-hidden="true" class="absolute -bottom-56 -left-44 w-[540px] h-[540px] rounded-full bg-white/5 blur-[120px]"></div>
+    <div aria-hidden="true" class="absolute inset-0 opacity-[0.05]"
+         style="background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px); background-size: 56px 56px;"></div>
+    <div aria-hidden="true" class="absolute -bottom-28 -right-10 font-display text-[24rem] leading-none text-white/[0.04] select-none">M</div>
 
-    <!-- Tarjeta Principal -->
-    <div class="bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-6 sm:p-10 transition-all">
+    <div class="relative z-10 flex min-h-full flex-col justify-between gap-12">
+      <a routerLink="/catalogo" class="inline-flex items-center gap-2.5 w-max cursor-pointer">
+        <span class="w-9 h-9 rounded-xl bg-ms-amber text-ms-black flex items-center justify-center font-black text-lg">M</span>
+        <span class="font-display text-2xl tracking-[0.18em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+      </a>
 
-      <div class="mb-8 text-center sm:text-left">
-        <h2 class="text-2xl font-bold text-neutral-900 tracking-tight">
-          Crear cuenta
+      <div class="max-w-md space-y-5">
+        <p class="text-[11px] uppercase tracking-[0.35em] text-ms-amber font-bold">Quiet Editorial Luxury</p>
+        <h2 class="font-display text-5xl xl:text-[3.5rem] leading-[1.05] tracking-[-0.02em]">
+          Tu próximo capítulo <em class="italic text-ms-amber">de estilo.</em>
         </h2>
-        <p class="mt-1.5 text-sm text-neutral-500">
-          Regístrate para comenzar a comprar en MenStyle
+        <p class="text-sm leading-relaxed text-white/60">
+          Curaduría selecta de prendas masculinas, pensada para acompañar la elegancia de cada día.
         </p>
       </div>
 
-      <!-- Alerta de Error -->
-      @if (error) {
-        <div class="mb-6 rounded-xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-700 flex items-start space-x-3">
-          <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      <div class="flex items-center justify-between text-xs text-white/50">
+        <a routerLink="/catalogo" class="inline-flex items-center gap-2 font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
           </svg>
-          <span class="font-medium">{{ error }}</span>
+          Volver a la tienda
+        </a>
+        <span>© 2026 MenStyle</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- FORMULARIO (derecha)                            -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <main class="flex min-h-screen items-center justify-center bg-ms-alabaster px-4 sm:px-8 lg:px-12 py-12">
+    <div class="w-full max-w-md animate-fade-up">
+
+      <!-- Wordmark móvil -->
+      <div class="lg:hidden text-center mb-8">
+        <a routerLink="/catalogo" class="inline-flex items-center gap-2 cursor-pointer">
+          <span class="w-8 h-8 rounded-lg bg-ms-amber text-ms-black flex items-center justify-center font-black">M</span>
+          <span class="font-display text-xl tracking-[0.18em] text-ms-ink">MENSTYLE<span class="text-ms-amber">.</span></span>
+        </a>
+      </div>
+
+      <!-- Encabezado -->
+      <div class="mb-8">
+        <p class="text-[11px] uppercase tracking-[0.3em] text-ms-amber font-bold">Crea tu cuenta</p>
+        <h1 class="mt-3 font-display text-4xl lg:text-[2.75rem] leading-tight tracking-[-0.02em] text-ms-ink">Unite a MenStyle</h1>
+        <p class="mt-3 text-sm text-ms-slate">Crea tu cuenta para acceder a beneficios exclusivos.</p>
+      </div>
+
+      <!-- Alertas -->
+      @if (mensaje) {
+        <div class="mb-6">
+          <app-alert tipo="exito" titulo="Cuenta creada" [mensaje]="mensaje"></app-alert>
         </div>
       }
-
-      <!-- Alerta de Éxito -->
-      @if (mensaje) {
-        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50/90 p-4 text-sm text-emerald-700 flex items-start space-x-3">
-          <svg class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-          </svg>
-          <span class="font-medium">{{ mensaje }}</span>
+      @if (error) {
+        <div class="mb-6">
+          <app-alert tipo="error" titulo="No se pudo registrar" [mensaje]="error"></app-alert>
         </div>
       }
 
       <!-- Formulario -->
       <form (ngSubmit)="registrar()" class="space-y-5">
 
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="nombre" class="mb-2 block text-sm font-semibold text-neutral-800">Nombre</label>
-            <input
-              id="nombre"
-              type="text"
-              name="nombre"
-              [(ngModel)]="nombre"
-              placeholder="Tu nombre"
-              class="w-full rounded-xl border border-neutral-300 bg-neutral-50/50 px-4 py-3 text-sm text-neutral-900 outline-none transition-all duration-200 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10"
-            />
-          </div>
+        <app-input
+          type="text"
+          label="Nombre completo"
+          [(ngModel)]="nombre"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Tu nombre completo"
+          autocomplete="name"
+          [required]="true"></app-input>
 
-          <div>
-            <label for="apellido" class="mb-2 block text-sm font-semibold text-neutral-800">Apellido</label>
-            <input
-              id="apellido"
-              type="text"
-              name="apellido"
-              [(ngModel)]="apellido"
-              placeholder="Tu apellido"
-              class="w-full rounded-xl border border-neutral-300 bg-neutral-50/50 px-4 py-3 text-sm text-neutral-900 outline-none transition-all duration-200 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10"
-            />
-          </div>
-        </div>
+        <app-input
+          type="email"
+          label="Correo electrónico"
+          [(ngModel)]="email"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="tu@correo.com"
+          autocomplete="email"
+          [required]="true"></app-input>
 
+        <app-input
+          type="password"
+          label="Contraseña"
+          [(ngModel)]="password"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Crea una contraseña"
+          autocomplete="new-password"
+          [required]="true"
+          hint="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo."></app-input>
+
+        <app-input
+          type="password"
+          label="Confirmar contraseña"
+          [(ngModel)]="password2"
+          [ngModelOptions]="{ standalone: true }"
+          placeholder="Repetí tu contraseña"
+          autocomplete="new-password"
+          [required]="true"
+          [error]="errorPassword2"></app-input>
+
+        <!-- Checkbox términos (custom) -->
         <div>
-          <label for="email" class="mb-2 block text-sm font-semibold text-neutral-800">Correo electrónico</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
-              </svg>
-            </div>
-            <input
-              id="email"
-              type="email"
-              name="email"
-              [(ngModel)]="email"
-              placeholder="correo@ejemplo.com"
-              class="w-full rounded-xl border border-neutral-300 bg-neutral-50/50 pl-11 pr-4 py-3 text-sm text-neutral-900 outline-none transition-all duration-200 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10"
-            />
-          </div>
+          <button
+            type="button"
+            role="checkbox"
+            [attr.aria-checked]="aceptaTerminos"
+            (click)="aceptaTerminos = !aceptaTerminos"
+            class="flex items-start gap-3 text-left cursor-pointer group">
+            <span class="mt-0.5 w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors"
+                  [class.bg-ms-black]="aceptaTerminos"
+                  [class.border-ms-ink]="aceptaTerminos"
+                  [class.border-ms-outline]="!aceptaTerminos">
+              @if (aceptaTerminos) {
+                <svg class="w-3.5 h-3.5 text-ms-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              }
+            </span>
+            <span class="text-sm text-ms-slate">
+              Acepto los <span class="font-bold text-ms-ink group-hover:text-ms-amber transition-colors">términos y condiciones</span> de MenStyle.
+            </span>
+          </button>
         </div>
 
-        <div>
-          <label for="password" class="mb-2 block text-sm font-semibold text-neutral-800">Contraseña</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-            </div>
-            <input
-              id="password"
-              type="password"
-              name="password"
-              [(ngModel)]="password"
-              placeholder="Crea una contraseña"
-              class="w-full rounded-xl border border-neutral-300 bg-neutral-50/50 pl-11 pr-4 py-3 text-sm text-neutral-900 outline-none transition-all duration-200 placeholder:text-neutral-400 focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10"
-            />
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          [disabled]="cargando"
-          class="w-full flex justify-center items-center rounded-xl bg-neutral-950 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-neutral-950/20 transition-all duration-200 hover:bg-neutral-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
-
-          @if (cargando) {
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Creando cuenta...
-          } @else {
-            Registrarse
-          }
-        </button>
-
+        <app-button variant="acento" size="lg" [block]="true" [loading]="cargando" [disabled]="cargando" type="submit">
+          {{ cargando ? 'Creando cuenta...' : 'Crear cuenta' }}
+        </app-button>
       </form>
 
-      <div class="mt-8 border-t border-neutral-200/60 pt-6 text-center">
-        <p class="text-sm text-neutral-600">
-          ¿Ya tienes una cuenta?
-          <a
-            (click)="volverLogin()"
-            class="font-bold text-neutral-950 hover:underline transition-all ml-1 cursor-pointer">
-            Iniciar sesión
-          </a>
-        </p>
-      </div>
-
-    </div>
-
-    <div class="text-center space-y-1">
-      <p class="text-xs font-medium text-neutral-400">
-        © 2026 FashionStore • MenStyle
+      <p class="mt-8 text-center text-sm text-ms-slate">
+        ¿Ya tenés cuenta?
+        <a routerLink="/login" class="font-bold text-ms-ink hover:text-ms-amber transition-colors cursor-pointer">Ingresa</a>
       </p>
-      <p class="text-[11px] text-neutral-600">
-        Sistemas II — MSc. Ing. Angélica Garzón Cuéllar
-      </p>
-    </div>
 
-  </div>
+      <p class="mt-10 text-center text-[11px] text-ms-slate/70">© 2026 MenStyle · Sistemas II · U.A.G.R.M.</p>
+    </div>
+  </main>
 
 </div>

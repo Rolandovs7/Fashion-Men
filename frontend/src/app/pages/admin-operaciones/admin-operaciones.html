@@ -1,120 +1,176 @@
 <app-admin-shell titulo="Pedidos y Reservas">
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Pedidos y Reservas</span>
+    </nav>
+
+    <!-- Encabezado -->
     <div class="mb-8">
-      <p class="text-sm text-neutral-500 font-medium">Gestiona el estado de las compras y reservas de todos los clientes</p>
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Operaciones</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Pedidos y Reservas</h1>
+      <p class="mt-2 text-sm text-ms-slate">Gestiona el estado de las compras y reservas de todos los clientes.</p>
     </div>
 
-    <div class="flex gap-2 mb-6 border-b border-neutral-200">
+    <!-- Tabs -->
+    <div class="flex gap-6 px-4 sm:px-6 bg-ms-white border-b border-ms-stone-200 rounded-t-2xl mb-8">
       <button
         (click)="cambiarPestana('pedidos')"
-        [class.border-neutral-950]="pestana === 'pedidos'"
-        [class.text-neutral-950]="pestana === 'pedidos'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Pedidos ({{ pedidos.length }})
+        [class.border-ms-amber]="pestana === 'pedidos'"
+        [class.text-ms-ink]="pestana === 'pedidos'"
+        [class.text-ms-slate]="pestana !== 'pedidos'"
+        class="pb-3 pt-4 text-sm font-bold border-b-2 border-transparent hover:text-ms-ink transition-all cursor-pointer">
+        Pedidos
+        <span class="ml-1.5 px-2 py-0.5 rounded-full bg-ms-stone text-ms-slate text-[10px] font-black">{{ pedidos.length }}</span>
       </button>
       <button
         (click)="cambiarPestana('reservas')"
-        [class.border-neutral-950]="pestana === 'reservas'"
-        [class.text-neutral-950]="pestana === 'reservas'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Reservas ({{ reservas.length }})
+        [class.border-ms-amber]="pestana === 'reservas'"
+        [class.text-ms-ink]="pestana === 'reservas'"
+        [class.text-ms-slate]="pestana !== 'reservas'"
+        class="pb-3 pt-4 text-sm font-bold border-b-2 border-transparent hover:text-ms-ink transition-all cursor-pointer">
+        Reservas
+        <span class="ml-1.5 px-2 py-0.5 rounded-full bg-ms-stone text-ms-slate text-[10px] font-black">{{ reservas.length }}</span>
       </button>
     </div>
 
+    <!-- Mensajes -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
-        {{ mensaje }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
       </div>
     }
-
     @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
-        {{ error }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
       </div>
     }
 
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- TABLA DE PEDIDOS                                -->
+    <!-- ═══════════════════════════════════════════════ -->
     @if (pestana === 'pedidos') {
-      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-              <th class="py-3 px-5">Pedido</th>
-              <th class="py-3 px-5">Cliente</th>
-              <th class="py-3 px-5">Fecha</th>
-              <th class="py-3 px-5">Total</th>
-              <th class="py-3 px-5">Estado</th>
-              <th class="py-3 px-5 text-right">Comprobante</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-neutral-100">
-            @for (pedido of pedidos; track pedido.id) {
-              <tr>
-                <td class="py-3 px-5 font-bold">#{{ pedido.id }}</td>
-                <td class="py-3 px-5 text-neutral-500">Usuario #{{ pedido.usuario_id }}</td>
-                <td class="py-3 px-5 text-neutral-500">{{ pedido.fecha_pedido | fechaBolivia }}</td>
-                <td class="py-3 px-5 font-semibold">Bs {{ pedido.total.toFixed(2) }}</td>
-                <td class="py-3 px-5">
-                  <select
-                    [ngModel]="pedido.estado"
-                    (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
-                    [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
-                    class="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-bold outline-none focus:border-neutral-950 disabled:opacity-50">
-                    @for (estado of estadosPedido; track estado) {
-                      <option [value]="estado">{{ estado }}</option>
-                    }
-                  </select>
-                </td>
-                <td class="py-3 px-5 text-right">
-                  <button (click)="verComprobante(pedido)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Ver</button>
-                </td>
+
+      @if (cargando) {
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5 sm:p-6 space-y-4" aria-busy="true">
+          <app-skeleton tipo="titulo" clase="w-1/4"></app-skeleton>
+          @for (fila of [1, 2, 3, 4]; track fila) {
+            <div class="flex items-center gap-4">
+              <app-skeleton tipo="texto" clase="w-12"></app-skeleton>
+              <app-skeleton tipo="texto"></app-skeleton>
+              <app-skeleton tipo="texto" clase="w-1/3"></app-skeleton>
+            </div>
+          }
+        </div>
+      } @else if (pedidos.length === 0) {
+        <app-empty-state
+          icono="🛍️"
+          titulo="No hay pedidos registrados"
+          descripcion="Cuando los clientes realicen compras, sus pedidos van a aparecer acá para gestionar el estado.">
+        </app-empty-state>
+      } @else {
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+          <table class="w-full text-left text-sm min-w-[760px]">
+            <thead>
+              <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                <th class="py-3.5 px-5">Pedido</th>
+                <th class="py-3.5 px-5">Cliente</th>
+                <th class="py-3.5 px-5">Fecha</th>
+                <th class="py-3.5 px-5">Total</th>
+                <th class="py-3.5 px-5">Estado</th>
+                <th class="py-3.5 px-5 text-right">Comprobante</th>
               </tr>
-            } @empty {
-              <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">No hay pedidos registrados.</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody class="divide-y divide-ms-stone-200">
+              @for (pedido of pedidos; track pedido.id) {
+                <tr class="hover:bg-ms-stone/60 transition-colors">
+                  <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">#{{ pedido.id }}</td>
+                  <td class="py-3.5 px-5 text-ms-slate">Usuario #{{ pedido.usuario_id }}</td>
+                  <td class="py-3.5 px-5 text-ms-slate whitespace-nowrap">{{ pedido.fecha_pedido | fechaBolivia }}</td>
+                  <td class="py-3.5 px-5 font-semibold text-ms-ink"><app-price [valor]="pedido.total"></app-price></td>
+                  <td class="py-3.5 px-5">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <app-badge [tipo]="tipoBadgePedido(pedido.estado)" [etiqueta]="capitalizar(pedido.estado)"></app-badge>
+                      <select
+                        [ngModel]="pedido.estado"
+                        (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
+                        [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
+                        aria-label="Estado del pedido #{{ pedido.id }}"
+                        class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
+                        @for (estado of estadosPedido; track estado) {
+                          <option [value]="estado">{{ estado }}</option>
+                        }
+                      </select>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-5 text-right">
+                    <app-button variant="fantasma" size="sm" (click)="verComprobante(pedido)">Ver</app-button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
     }
 
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- TABLA DE RESERVAS                               -->
+    <!-- ═══════════════════════════════════════════════ -->
     @if (pestana === 'reservas') {
-      <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-              <th class="py-3 px-5">Reserva</th>
-              <th class="py-3 px-5">Cliente</th>
-              <th class="py-3 px-5">Sucursal</th>
-              <th class="py-3 px-5">Fecha</th>
-              <th class="py-3 px-5">Estado</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-neutral-100">
-            @for (reserva of reservas; track reserva.id) {
-              <tr>
-                <td class="py-3 px-5 font-bold">#{{ reserva.id }}</td>
-                <td class="py-3 px-5 text-neutral-500">Usuario #{{ reserva.usuario_id }}</td>
-                <td class="py-3 px-5 text-neutral-500">{{ nombreSucursal(reserva.sucursal_id) }}</td>
-                <td class="py-3 px-5 text-neutral-500">{{ reserva.fecha_reserva | fechaBolivia }}</td>
-                <td class="py-3 px-5">
-                  <select
-                    [ngModel]="reserva.estado"
-                    (ngModelChange)="cambiarEstadoReserva(reserva, $event)"
-                    [disabled]="reserva.estado === 'cancelada' || reserva.estado === 'completada'"
-                    class="rounded-lg border border-neutral-300 px-2.5 py-1.5 text-xs font-bold outline-none focus:border-neutral-950 disabled:opacity-50">
-                    @for (estado of estadosReserva; track estado) {
-                      <option [value]="estado">{{ estado }}</option>
-                    }
-                  </select>
-                </td>
+
+      @if (reservas.length === 0) {
+        <app-empty-state
+          icono="📅"
+          titulo="No hay reservas registradas"
+          descripcion="Cuando los clientes aparten prendas, sus reservas van a aparecer acá para gestionar el estado.">
+        </app-empty-state>
+      } @else {
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+          <table class="w-full text-left text-sm min-w-[640px]">
+            <thead>
+              <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                <th class="py-3.5 px-5">Reserva</th>
+                <th class="py-3.5 px-5">Cliente</th>
+                <th class="py-3.5 px-5">Sucursal</th>
+                <th class="py-3.5 px-5">Fecha</th>
+                <th class="py-3.5 px-5">Estado</th>
               </tr>
-            } @empty {
-              <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">No hay reservas registradas.</td></tr>
-            }
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody class="divide-y divide-ms-stone-200">
+              @for (reserva of reservas; track reserva.id) {
+                <tr class="hover:bg-ms-stone/60 transition-colors">
+                  <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">#{{ reserva.id }}</td>
+                  <td class="py-3.5 px-5 text-ms-slate">Usuario #{{ reserva.usuario_id }}</td>
+                  <td class="py-3.5 px-5 text-ms-slate">{{ nombreSucursal(reserva.sucursal_id) }}</td>
+                  <td class="py-3.5 px-5 text-ms-slate whitespace-nowrap">{{ reserva.fecha_reserva | fechaBolivia }}</td>
+                  <td class="py-3.5 px-5">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <app-badge [tipo]="tipoBadgeReserva(reserva.estado)" [etiqueta]="capitalizar(reserva.estado)"></app-badge>
+                      <select
+                        [ngModel]="reserva.estado"
+                        (ngModelChange)="cambiarEstadoReserva(reserva, $event)"
+                        [disabled]="reserva.estado === 'cancelada' || reserva.estado === 'completada'"
+                        aria-label="Estado de la reserva #{{ reserva.id }}"
+                        class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
+                        @for (estado of estadosReserva; track estado) {
+                          <option [value]="estado">{{ estado }}</option>
+                        }
+                      </select>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
     }
 
   </div>

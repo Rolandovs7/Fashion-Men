@@ -197,6 +197,7 @@ def crear_pedido_desde_carrito(
     try:
         nuevo_pedido = Pedido(
             usuario_id=usuario_id,
+            sucursal_id=datos.sucursal_id,
             fecha_pedido=datetime.now(timezone.utc),
             estado="pendiente",
             total=total_pedido.quantize(Decimal("0.01"))
@@ -279,9 +280,38 @@ def cancelar_pedido_cliente(
         )
 
     # Identificar inventarios para la reposición de stock de forma segura.
+    # Si el pedido tiene sucursal_id (emitido en la creación), se repone el
+    # stock SOLO en esa sucursal. Pedidos viejos sin sucursal_id usan la
+    # lógica anterior (requieren una única sucursal activa por variante).
     inventarios_a_reponer: list[tuple[Inventario, int]] = []
 
     for detalle in pedido.detalles:
+
+        if pedido.sucursal_id:
+
+            inventario = db.query(Inventario).filter(
+                Inventario.variante_id == detalle.variante_id,
+                Inventario.sucursal_id == pedido.sucursal_id
+            ).first()
+
+            if not inventario:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"No existe inventario registrado para la variante "
+                        f"ID {detalle.variante_id} en la sucursal "
+                        f"del pedido #{pedido.id}."
+                    )
+                )
+
+            inventarios_a_reponer.append(
+                (
+                    inventario,
+                    detalle.cantidad
+                )
+            )
+
+            continue
 
         inventarios_variante = db.query(Inventario).join(
             Sucursal,
@@ -563,6 +593,7 @@ def crear_venta_presencial(
     try:
         nuevo_pedido = Pedido(
             usuario_id=datos.usuario_id,
+            sucursal_id=datos.sucursal_id,
             fecha_pedido=datetime.now(timezone.utc),
             estado="pagado",
             total=total_pedido.quantize(Decimal("0.01"))

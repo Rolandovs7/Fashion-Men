@@ -38,6 +38,7 @@ class DetallePedidoRespuesta(BaseModel):
 class PedidoRespuesta(BaseModel):
     id: int
     usuario_id: int
+    sucursal_id: Optional[int] = None
     fecha_pedido: datetime
     estado: str
     total: float

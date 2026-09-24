@@ -14,6 +14,7 @@ export interface DetallePedido {
 export interface Pedido {
   id: number;
   usuario_id: number;
+  sucursal_id?: number | null;
   fecha_pedido: string;
   estado: string;
   total: number;

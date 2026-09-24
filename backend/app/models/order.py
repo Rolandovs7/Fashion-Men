@@ -19,6 +19,11 @@ class Pedido(Base):
         nullable=False
     )
 
+    sucursal_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sucursales.id"),
+        nullable=True
+    )
+
     fecha_pedido: Mapped[datetime] = mapped_column(
         DateTime,
         default=datetime.utcnow,

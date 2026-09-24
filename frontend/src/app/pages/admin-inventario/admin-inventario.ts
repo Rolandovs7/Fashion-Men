@@ -1,18 +1,14 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { InventarioService, Inventario } from '../../core/services/inventario.service';
 import { SucursalesService, Sucursal } from '../../core/services/sucursales.service';
 import { ProductosService, Producto } from '../../core/services/productos.service';
 import { VariantesService, Variante } from '../../core/services/variantes.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import { ButtonComponent } from '../../shared/ui/button/button';
 
-interface FilaInventario {
-  inventario: Inventario;
-  variante?: Variante;
-  producto?: Producto;
+interface FilaInventario extends Inventario {
   editando?: boolean;
   cantidadEdit?: number;
   reservadaEdit?: number;
@@ -20,7 +16,7 @@ interface FilaInventario {
 
 @Component({
   selector: 'app-admin-inventario',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent],
   templateUrl: './admin-inventario.html',
   styleUrl: './admin-inventario.css'
 })
@@ -46,6 +42,11 @@ export class AdminInventario implements OnInit {
   error = '';
   mensaje = '';
 
+  paginaActual = 0;
+  pageSize = 20;
+  totalPaginas = 0;
+  totalRegistros = 0;
+
   ngOnInit(): void {
     this.sucursalesService.listar(true).subscribe({
       next: (sucursales) => {
@@ -67,6 +68,7 @@ export class AdminInventario implements OnInit {
   }
 
   cambiarSucursal(): void {
+    this.paginaActual = 0;
     this.cargarInventario();
   }
 
@@ -76,8 +78,18 @@ export class AdminInventario implements OnInit {
     this.cargando = true;
     this.error = '';
 
-    this.inventarioService.listar(this.sucursalSeleccionadaId).subscribe({
-      next: (inventarios) => this.resolverFilas(inventarios),
+    this.inventarioService.listarDetalladoPaginado(
+      this.sucursalSeleccionadaId,
+      this.paginaActual,
+      this.pageSize
+    ).subscribe({
+      next: (resp) => {
+        this.filas = resp.items.map(item => ({ ...item }));
+        this.totalRegistros = resp.total;
+        this.totalPaginas = resp.total_pages;
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
       error: () => {
         this.error = 'No se pudo cargar el inventario de esta sucursal.';
         this.cargando = false;
@@ -86,46 +98,10 @@ export class AdminInventario implements OnInit {
     });
   }
 
-  private resolverFilas(inventarios: Inventario[]): void {
-    if (inventarios.length === 0) {
-      this.filas = [];
-      this.cargando = false;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    const solicitudesVariantes = inventarios.map((inv) =>
-      this.variantesService.obtenerPorId(inv.variante_id).pipe(catchError(() => of(null)))
-    );
-
-    forkJoin(solicitudesVariantes).subscribe((variantes) => {
-      const productoIds = [...new Set(variantes.filter((v): v is Variante => !!v).map(v => v.producto_id))];
-
-      if (productoIds.length === 0) {
-        this.filas = inventarios.map(inv => ({ inventario: inv }));
-        this.cargando = false;
-        this.cdr.detectChanges();
-        return;
-      }
-
-      const solicitudesProductos = productoIds.map((id) =>
-        this.productosService.obtener(id).pipe(catchError(() => of(null)))
-      );
-
-      forkJoin(solicitudesProductos).subscribe((productos) => {
-        const mapaProductos = new Map<number, Producto>();
-        productos.forEach(p => { if (p) mapaProductos.set(p.id, p); });
-
-        this.filas = inventarios.map((inv, i) => {
-          const variante = variantes[i] ?? undefined;
-          const producto = variante ? mapaProductos.get(variante.producto_id) : undefined;
-          return { inventario: inv, variante, producto };
-        });
-
-        this.cargando = false;
-        this.cdr.detectChanges();
-      });
-    });
+  cambiarPagina(p: number): void {
+    if (p < 0 || p >= this.totalPaginas) return;
+    this.paginaActual = p;
+    this.cargarInventario();
   }
 
   cargarVariantesDelProducto(): void {
@@ -163,6 +139,7 @@ export class AdminInventario implements OnInit {
         this.productoSeleccionadoId = null;
         this.varianteSeleccionadaId = null;
         this.cantidadNueva = 0;
+        this.paginaActual = 0;
         this.cargarInventario();
       },
       error: (error) => {
@@ -175,8 +152,8 @@ export class AdminInventario implements OnInit {
 
   editarFila(fila: FilaInventario): void {
     fila.editando = true;
-    fila.cantidadEdit = fila.inventario.cantidad;
-    fila.reservadaEdit = fila.inventario.cantidad_reservada;
+    fila.cantidadEdit = fila.cantidad;
+    fila.reservadaEdit = fila.cantidad_reservada;
   }
 
   cancelarEdicion(fila: FilaInventario): void {
@@ -189,12 +166,13 @@ export class AdminInventario implements OnInit {
       return;
     }
 
-    this.inventarioService.actualizar(fila.inventario.id, {
+    this.inventarioService.actualizar(fila.id, {
       cantidad: fila.cantidadEdit,
       cantidad_reservada: fila.reservadaEdit
     }).subscribe({
       next: (actualizado) => {
-        fila.inventario = actualizado;
+        fila.cantidad = actualizado.cantidad;
+        fila.cantidad_reservada = actualizado.cantidad_reservada;
         fila.editando = false;
         this.mensaje = 'Inventario actualizado correctamente.';
         this.cdr.detectChanges();
@@ -209,11 +187,10 @@ export class AdminInventario implements OnInit {
   eliminarFila(fila: FilaInventario): void {
     if (!confirm('¿Eliminar este registro de inventario?')) return;
 
-    this.inventarioService.eliminar(fila.inventario.id).subscribe({
+    this.inventarioService.eliminar(fila.id).subscribe({
       next: () => {
-        this.filas = this.filas.filter(f => f !== fila);
         this.mensaje = 'Registro de inventario eliminado.';
-        this.cdr.detectChanges();
+        this.cargarInventario();
       },
       error: () => {
         this.error = 'No se pudo eliminar el registro.';

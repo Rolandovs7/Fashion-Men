@@ -28,13 +28,8 @@
       </div>
 
       <div class="flex items-center justify-between text-xs text-white/50">
-        <a routerLink="/catalogo" class="inline-flex items-center gap-2 font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          Volver a la tienda
-        </a>
-        <span>© 2026 MenStyle</span>
+        <a routerLink="/login" class="font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">¿Ya tenés cuenta? Ingresa</a>
+        <span>© 2026 MenStyle · Sistemas II · U.A.G.R.M.</span>
       </div>
     </div>
   </aside>
@@ -42,8 +37,8 @@
   <!-- ═══════════════════════════════════════════════ -->
   <!-- FORMULARIO (derecha)                            -->
   <!-- ═══════════════════════════════════════════════ -->
-  <main class="flex min-h-screen items-center justify-center bg-ms-alabaster px-4 sm:px-8 lg:px-12 py-12">
-    <div class="w-full max-w-md animate-fade-up">
+  <main class="flex min-h-screen items-center justify-center bg-ms-alabaster">
+    <div class="w-full max-w-md mx-auto px-8 py-12 lg:py-16 animate-fade-up">
 
       <!-- Wordmark móvil -->
       <div class="lg:hidden text-center mb-8">
@@ -54,7 +49,7 @@
       </div>
 
       <!-- Encabezado -->
-      <div class="mb-8">
+      <div class="mb-10">
         <p class="text-[11px] uppercase tracking-[0.3em] text-ms-amber font-bold">Crea tu cuenta</p>
         <h1 class="mt-3 font-display text-4xl lg:text-[2.75rem] leading-tight tracking-[-0.02em] text-ms-ink">Unite a MenStyle</h1>
         <p class="mt-3 text-sm text-ms-slate">Crea tu cuenta para acceder a beneficios exclusivos.</p>
@@ -73,7 +68,7 @@
       }
 
       <!-- Formulario -->
-      <form (ngSubmit)="registrar()" class="space-y-5">
+      <form (ngSubmit)="registrar()" class="space-y-6">
 
         <app-input
           type="text"
@@ -93,25 +88,63 @@
           autocomplete="email"
           [required]="true"></app-input>
 
-        <app-input
-          type="password"
-          label="Contraseña"
-          [(ngModel)]="password"
-          [ngModelOptions]="{ standalone: true }"
-          placeholder="Crea una contraseña"
-          autocomplete="new-password"
-          [required]="true"
-          hint="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo."></app-input>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-neutral-600">Contraseña</span>
+            <button
+              type="button"
+              (click)="togglePassword()"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-ms-slate hover:text-ms-ink transition-colors cursor-pointer"
+              [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if (mostrarPassword) {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                } @else {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                }
+              </svg>
+              {{ mostrarPassword ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+          <app-input
+            [type]="mostrarPassword ? 'text' : 'password'"
+            [(ngModel)]="password"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Crea una contraseña"
+            autocomplete="new-password"
+            [required]="true"
+            hint="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número y 1 símbolo."></app-input>
+        </div>
 
-        <app-input
-          type="password"
-          label="Confirmar contraseña"
-          [(ngModel)]="password2"
-          [ngModelOptions]="{ standalone: true }"
-          placeholder="Repetí tu contraseña"
-          autocomplete="new-password"
-          [required]="true"
-          [error]="errorPassword2"></app-input>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-neutral-600">Confirmar contraseña</span>
+            <button
+              type="button"
+              (click)="togglePassword2()"
+              class="inline-flex items-center gap-1.5 text-xs font-semibold text-ms-slate hover:text-ms-ink transition-colors cursor-pointer"
+              [attr.aria-label]="mostrarPassword2 ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                @if (mostrarPassword2) {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                } @else {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                }
+              </svg>
+              {{ mostrarPassword2 ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+          <app-input
+            [type]="mostrarPassword2 ? 'text' : 'password'"
+            [(ngModel)]="password2"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="Repetí tu contraseña"
+            autocomplete="new-password"
+            [required]="true"
+            [error]="errorPassword2"></app-input>
+        </div>
 
         <!-- Checkbox términos (custom) -->
         <div>
@@ -142,7 +175,7 @@
         </app-button>
       </form>
 
-      <p class="mt-8 text-center text-sm text-ms-slate">
+      <p class="mt-6 text-center text-sm text-ms-slate">
         ¿Ya tenés cuenta?
         <a routerLink="/login" class="font-bold text-ms-ink hover:text-ms-amber transition-colors cursor-pointer">Ingresa</a>
       </p>

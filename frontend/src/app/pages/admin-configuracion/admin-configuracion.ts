@@ -4,6 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { RolesService, Rol } from '../../core/services/roles.service';
 import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import { ToastService } from '../../shared/ui/toast/toast.service';
+import {
+  ButtonComponent,
+  InputComponent,
+  ModalComponent,
+  AlertComponent,
+  BadgeComponent,
+  EmptyStateComponent,
+  LoaderComponent,
+} from '../../shared/ui';
 
 type Pestana = 'roles' | 'tipos-pago';
 
@@ -22,13 +32,18 @@ type Pestana = 'roles' | 'tipos-pago';
 // ============================================================
 @Component({
   selector: 'app-admin-configuracion',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [
+    CommonModule, FormsModule, AdminShellComponent,
+    ButtonComponent, InputComponent, ModalComponent,
+    AlertComponent, BadgeComponent, EmptyStateComponent, LoaderComponent,
+  ],
   templateUrl: './admin-configuracion.html',
   styleUrl: './admin-configuracion.css'
 })
 export class AdminConfiguracion implements OnInit {
   private rolesService = inject(RolesService);
   private tiposPagoService = inject(TiposPagoService);
+  private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   pestana: Pestana = 'roles';
@@ -43,6 +58,12 @@ export class AdminConfiguracion implements OnInit {
   guardando = false;
   error = '';
   mensaje = '';
+
+  modalAbierto = false;
+  modalTitulo = '';
+  modalMensaje = '';
+  rolACancelar: Rol | null = null;
+  tipoPagoACancelar: TipoPago | null = null;
 
   ngOnInit(): void {
     this.cargarTodo();
@@ -92,27 +113,60 @@ export class AdminConfiguracion implements OnInit {
         this.nuevoRol = { nombre: '', descripcion: '' };
         this.guardando = false;
         this.mensaje = 'Rol creado correctamente.';
+        this.toast.exito('Rol creado correctamente.');
         this.cdr.detectChanges();
       },
       error: (error) => {
         this.guardando = false;
         this.error = error.error?.detail || 'No se pudo crear el rol.';
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       }
     });
   }
 
-  eliminarRol(rol: Rol): void {
-    if (!confirm(`¿Desactivar el rol "${rol.nombre}"?`)) return;
+  abrirModalEliminarRol(rol: Rol): void {
+    this.rolACancelar = rol;
+    this.tipoPagoACancelar = null;
+    this.modalTitulo = 'Desactivar rol';
+    this.modalMensaje = `¿Estás seguro de desactivar el rol "${rol.nombre}"? Los usuarios con ese rol dejarán de poder usarlo.`;
+    this.modalAbierto = true;
+  }
 
+  abrirModalEliminarTipoPago(tipo: TipoPago): void {
+    this.tipoPagoACancelar = tipo;
+    this.rolACancelar = null;
+    this.modalTitulo = 'Desactivar tipo de pago';
+    this.modalMensaje = `¿Estás seguro de desactivar el tipo de pago "${tipo.nombre}"? Dejará de estar disponible en los pedidos.`;
+    this.modalAbierto = true;
+  }
+
+  cerrarModal(): void {
+    this.modalAbierto = false;
+    this.rolACancelar = null;
+    this.tipoPagoACancelar = null;
+  }
+
+  confirmarEliminacion(): void {
+    if (this.rolACancelar) {
+      this.desactivarRol(this.rolACancelar);
+    } else if (this.tipoPagoACancelar) {
+      this.desactivarTipoPago(this.tipoPagoACancelar);
+    }
+    this.cerrarModal();
+  }
+
+  private desactivarRol(rol: Rol): void {
     this.rolesService.eliminar(rol.id).subscribe({
       next: (actualizado) => {
         this.roles = this.roles.map(r => r.id === actualizado.id ? actualizado : r);
         this.mensaje = 'Rol desactivado.';
+        this.toast.exito('Rol desactivado.');
         this.cdr.detectChanges();
       },
       error: (error) => {
         this.error = error.error?.detail || 'No se pudo desactivar el rol.';
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       }
     });
@@ -133,27 +187,29 @@ export class AdminConfiguracion implements OnInit {
         this.nuevoTipoPago = '';
         this.guardando = false;
         this.mensaje = 'Tipo de pago creado correctamente.';
+        this.toast.exito('Tipo de pago creado correctamente.');
         this.cdr.detectChanges();
       },
       error: (error) => {
         this.guardando = false;
         this.error = error.error?.detail || 'No se pudo crear el tipo de pago.';
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       }
     });
   }
 
-  eliminarTipoPago(tipo: TipoPago): void {
-    if (!confirm(`¿Desactivar el tipo de pago "${tipo.nombre}"?`)) return;
-
+  private desactivarTipoPago(tipo: TipoPago): void {
     this.tiposPagoService.eliminar(tipo.id).subscribe({
       next: (actualizado) => {
         this.tiposPago = this.tiposPago.map(t => t.id === actualizado.id ? actualizado : t);
         this.mensaje = 'Tipo de pago desactivado.';
+        this.toast.exito('Tipo de pago desactivado.');
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.error = 'No se pudo desactivar el tipo de pago.';
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo desactivar el tipo de pago.';
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       }
     });

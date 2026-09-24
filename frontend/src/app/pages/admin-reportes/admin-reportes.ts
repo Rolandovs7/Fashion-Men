@@ -16,12 +16,18 @@ import {
   VentaSucursal,
 } from '../../core/services/reports.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import {
+  ButtonComponent,
+  AlertComponent,
+  BadgeComponent,
+  SkeletonComponent,
+} from '../../shared/ui';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-admin-reportes',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent, AlertComponent, BadgeComponent, SkeletonComponent],
   templateUrl: './admin-reportes.html',
   styleUrl: './admin-reportes.css',
 })
@@ -53,9 +59,12 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
   private chartProductosTop?: Chart;
   private chartVentasSucursal?: Chart;
 
+  // Paleta "Quiet Editorial Luxury" (tokens ms-*):
+  // #0a0a0a ms-black · #d97706 ms-amber · #fe932c ms-amber-soft
+  // #525252 ms-slate · #e7e5e4 ms-stone-200.
   private readonly PALETA = [
-    '#0a0a0a', '#10b981', '#3b82f6', '#f59e0b', '#ef4444',
-    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1',
+    '#0a0a0a', '#d97706', '#fe932c', '#525252', '#e7e5e4',
+    '#0a0a0a', '#d97706', '#fe932c', '#525252', '#e7e5e4',
   ];
 
   ngOnInit(): void {
@@ -143,7 +152,7 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
           borderWidth: 2.5,
           tension: 0.35,
           fill: true,
-          pointBackgroundColor: '#10b981',
+          pointBackgroundColor: '#d97706',
           pointRadius: 4,
           pointHoverRadius: 6,
         }],
@@ -154,7 +163,14 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
           legend: { display: false },
           tooltip: { callbacks: { label: (ctx) => ` Bs ${(ctx.parsed.y ?? 0).toFixed(2)}` } },
         },
-        scales: { y: { beginAtZero: true, ticks: { callback: (v) => `Bs ${v}` } } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#e7e5e4' },
+            ticks: { color: '#525252', callback: (v) => `Bs ${v}` },
+          },
+          x: { grid: { color: '#e7e5e4' }, ticks: { color: '#525252' } },
+        },
       },
     });
   }
@@ -176,7 +192,10 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } },
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, padding: 12, color: '#525252' },
+          },
           tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: Bs ${(ctx.parsed as number).toFixed(2)}` } },
         },
         cutout: '60%',
@@ -201,7 +220,10 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
       options: {
         indexAxis: 'y', responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
-        scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0, color: '#525252' }, grid: { color: '#e7e5e4' } },
+          y: { grid: { display: false }, ticks: { color: '#525252' } },
+        },
       },
     });
   }
@@ -216,7 +238,7 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
         datasets: [{
           label: 'Ventas (Bs)',
           data: this.ventasSucursal.map((s) => s.total_ventas),
-          backgroundColor: '#10b981',
+          backgroundColor: '#d97706',
           borderRadius: 6,
         }],
       },
@@ -226,7 +248,14 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
           legend: { display: false },
           tooltip: { callbacks: { label: (ctx) => ` Bs ${(ctx.parsed.y ?? 0).toFixed(2)}` } },
         },
-        scales: { y: { beginAtZero: true, ticks: { callback: (v) => `Bs ${v}` } } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: '#e7e5e4' },
+            ticks: { color: '#525252', callback: (v) => `Bs ${v}` },
+          },
+          x: { grid: { color: '#e7e5e4' }, ticks: { color: '#525252' } },
+        },
       },
     });
   }

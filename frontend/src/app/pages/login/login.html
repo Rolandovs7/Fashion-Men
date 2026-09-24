@@ -29,13 +29,8 @@
       </div>
 
       <div class="flex items-center justify-between text-xs text-white/50">
-        <a routerLink="/catalogo" class="inline-flex items-center gap-2 font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-          </svg>
-          Volver a la tienda
-        </a>
-        <span>© 2026 MenStyle</span>
+        <a routerLink="/registro" class="font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">¿No tenés cuenta? Registrate</a>
+        <span>© 2026 MenStyle · Sistemas II · U.A.G.R.M.</span>
       </div>
     </div>
   </aside>
@@ -43,8 +38,8 @@
   <!-- ═══════════════════════════════════════════════ -->
   <!-- FORMULARIO (derecha)                            -->
   <!-- ═══════════════════════════════════════════════ -->
-  <main class="flex min-h-screen items-center justify-center bg-ms-alabaster px-4 sm:px-8 lg:px-12 py-12">
-    <div class="w-full max-w-md animate-fade-up">
+  <main class="flex min-h-screen items-center justify-center bg-ms-alabaster">
+    <div class="w-full max-w-md mx-auto px-8 py-12 lg:py-16 animate-fade-up">
 
       <!-- Wordmark móvil -->
       <div class="lg:hidden text-center mb-8">
@@ -55,14 +50,14 @@
       </div>
 
       <!-- Breadcrumb -->
-      <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-6">
         <a routerLink="/catalogo" class="hover:text-ms-amber transition-colors cursor-pointer">Inicio</a>
         <span class="text-ms-outline">/</span>
         <span class="text-ms-ink">Ingresar</span>
       </nav>
 
       <!-- Encabezado -->
-      <div class="mb-8">
+      <div class="mb-10">
         <p class="text-[11px] uppercase tracking-[0.3em] text-ms-amber font-bold">Bienvenido de nuevo</p>
         <h1 class="mt-3 font-display text-4xl lg:text-[2.75rem] leading-tight tracking-[-0.02em] text-ms-ink">Ingresa a tu cuenta</h1>
         <p class="mt-3 text-sm text-ms-slate">Accede para continuar con tu compra.</p>
@@ -76,7 +71,7 @@
       }
 
       <!-- Formulario -->
-      <form (ngSubmit)="iniciarSesion()" class="space-y-5">
+      <form (ngSubmit)="iniciarSesion()" class="space-y-6">
 
         <app-input
           type="email"
@@ -114,7 +109,7 @@
             autocomplete="current-password"></app-input>
         </div>
 
-        <div class="flex justify-end -mt-1">
+        <div class="flex justify-end mt-2">
           <a routerLink="/forgot-password" class="text-xs font-semibold text-ms-slate hover:text-ms-ink transition-colors cursor-pointer">
             ¿Olvidaste tu contraseña?
           </a>
@@ -126,7 +121,7 @@
       </form>
 
       <!-- Separador -->
-      <div class="flex items-center gap-4 my-6">
+      <div class="flex items-center gap-4 my-8">
         <span class="h-px flex-1 bg-ms-stone-200"></span>
         <span class="text-xs font-semibold uppercase tracking-widest text-ms-slate">o</span>
         <span class="h-px flex-1 bg-ms-stone-200"></span>

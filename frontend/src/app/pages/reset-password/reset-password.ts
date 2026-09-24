@@ -26,10 +26,19 @@ export class ResetPassword implements OnInit {
   passwordNueva = '';
   passwordConfirm = '';
   mostrarPassword = false;
+  mostrarPassword2 = false;
 
   cargando = false;
   error = '';
   exito = false;
+
+  togglePassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
+
+  togglePassword2(): void {
+    this.mostrarPassword2 = !this.mostrarPassword2;
+  }
 
   ngOnInit(): void {
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';

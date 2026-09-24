@@ -31,11 +31,21 @@ export class Registro {
   password = '';
   password2 = '';
   aceptaTerminos = false;
+  mostrarPassword = false;
+  mostrarPassword2 = false;
 
   error = '';
   errorPassword2 = '';
   mensaje = '';
   cargando = false;
+
+  togglePassword(): void {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
+
+  togglePassword2(): void {
+    this.mostrarPassword2 = !this.mostrarPassword2;
+  }
 
   registrar(): void {
     this.error = '';

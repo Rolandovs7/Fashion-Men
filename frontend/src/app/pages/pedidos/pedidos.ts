@@ -1,17 +1,47 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { PedidosService, Pedido } from '../../core/services/pedidos.service';
 import { PagosService } from '../../core/services/pagos.service';
 import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.service';
 import { ReciboComponent } from '../../shared/recibo/recibo';
 import { HeaderComponent } from '../../shared/header/header';
 import { FechaBoliviaPipe } from '../../core/pipes/fecha-bolivia.pipe';
+import {
+  ButtonComponent,
+  InputComponent,
+  SelectComponent,
+  ModalComponent,
+  AlertComponent,
+  BadgeComponent,
+  BadgeTipo,
+  LoaderComponent,
+  EmptyStateComponent,
+  PriceComponent,
+  FooterComponent
+} from '../../shared/ui';
 
 @Component({
   selector: 'app-pedidos',
-  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent, ReciboComponent, FechaBoliviaPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    HeaderComponent,
+    ReciboComponent,
+    FechaBoliviaPipe,
+    ButtonComponent,
+    InputComponent,
+    SelectComponent,
+    ModalComponent,
+    AlertComponent,
+    BadgeComponent,
+    LoaderComponent,
+    EmptyStateComponent,
+    PriceComponent,
+    FooterComponent
+  ],
   templateUrl: './pedidos.html',
   styleUrl: './pedidos.css'
 })
@@ -20,6 +50,7 @@ export class PedidosPage implements OnInit {
   private pagosService = inject(PagosService);
   private tiposPagoService = inject(TiposPagoService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   pedidos: Pedido[] = [];
   tiposPago: TipoPago[] = [];
@@ -33,6 +64,7 @@ export class PedidosPage implements OnInit {
   procesandoPago = false;
 
   pedidoParaComprobante: Pedido | null = null;
+  pedidoACancelar: Pedido | null = null;
 
   etiquetasEstado: Record<string, string> = {
     pendiente: 'Pendiente',
@@ -42,6 +74,14 @@ export class PedidosPage implements OnInit {
     entregado: 'Entregado',
     cancelado: 'Cancelado'
   };
+
+  get opcionesMetodoPago(): { valor: string; etiqueta: string }[] {
+    return this.tiposPago.map((t) => ({ valor: t.nombre, etiqueta: t.nombre }));
+  }
+
+  irAlCatalogo(): void {
+    this.router.navigate(['/catalogo']);
+  }
 
   ngOnInit(): void {
     const navegacion = history.state;
@@ -79,7 +119,19 @@ export class PedidosPage implements OnInit {
   }
 
   cancelarPedido(pedido: Pedido): void {
-    if (!confirm(`¿Cancelar el pedido #${pedido.id}?`)) return;
+    this.error = '';
+    this.pedidoACancelar = pedido;
+  }
+
+  cerrarConfirmacionCancelacion(): void {
+    this.pedidoACancelar = null;
+  }
+
+  confirmarCancelacion(): void {
+    if (!this.pedidoACancelar) return;
+
+    const pedido = this.pedidoACancelar;
+    this.pedidoACancelar = null;
 
     this.pedidosService.cancelar(pedido.id).subscribe({
       next: () => {
@@ -97,16 +149,16 @@ export class PedidosPage implements OnInit {
     return !['cancelado', 'entregado'].includes(pedido.estado);
   }
 
-  claseEstado(estado: string): string {
-    const clases: Record<string, string> = {
-      pendiente: 'bg-amber-50 text-amber-700',
-      pagado: 'bg-blue-50 text-blue-700',
-      procesando: 'bg-blue-50 text-blue-700',
-      enviado: 'bg-indigo-50 text-indigo-700',
-      entregado: 'bg-emerald-50 text-emerald-700',
-      cancelado: 'bg-red-50 text-red-700'
+  tipoBadge(estado: string): BadgeTipo {
+    const mapa: Record<string, BadgeTipo> = {
+      pendiente: 'aviso',
+      pagado: 'info',
+      procesando: 'info',
+      enviado: 'acento',
+      entregado: 'exito',
+      cancelado: 'error'
     };
-    return clases[estado] || 'bg-neutral-100 text-neutral-700';
+    return mapa[estado] || 'neutral';
   }
 
   abrirPago(pedido: Pedido): void {

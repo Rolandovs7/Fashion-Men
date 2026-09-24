@@ -1,228 +1,294 @@
-<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+<div class="min-h-screen bg-ms-alabaster text-ms-ink font-sans antialiased flex flex-col">
 
   <app-header></app-header>
 
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 w-full flex-1">
 
-    <div class="mb-8 flex items-center justify-between">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <a routerLink="/inicio" class="hover:text-ms-amber transition-colors cursor-pointer">Inicio</a>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Carrito</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="flex items-end justify-between gap-4 mb-10">
       <div>
-        <h1 class="text-3xl sm:text-4xl font-black text-neutral-900 tracking-tight">Tu carrito</h1>
-        <p class="text-sm text-neutral-500 font-medium mt-1">Revisa tus prendas antes de continuar</p>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">MenStyle · Tu selección</p>
+        <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Tu carrito</h1>
+        <p class="mt-2 text-sm text-ms-slate">
+          {{ items.length }} {{ items.length === 1 ? 'prenda seleccionada' : 'prendas seleccionadas' }}
+        </p>
       </div>
       @if (items.length > 0) {
         <button
           (click)="vaciarCarrito()"
-          class="text-xs font-bold text-red-600 hover:text-red-800 uppercase tracking-wide transition-colors cursor-pointer">
+          class="text-xs font-bold text-ms-slate hover:text-red-600 uppercase tracking-wider transition-colors cursor-pointer">
           Vaciar carrito
         </button>
       }
     </div>
 
+    <!-- Avisos -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
-        {{ mensaje }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
       </div>
     }
-
     @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
-        {{ error }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
+        <div class="mt-3">
+          <app-button variant="secundario" size="sm" (click)="cargarCarrito()">Reintentar</app-button>
+        </div>
       </div>
     }
 
+    <!-- Cargando -->
     @if (cargando) {
-      <div class="flex flex-col items-center justify-center py-28 text-center">
-        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-semibold text-neutral-700">Cargando tu carrito...</p>
-      </div>
-    } @else if (items.length === 0) {
-      <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
-        <p class="text-sm font-semibold text-neutral-600 mb-4">Tu carrito está vacío.</p>
-        <a routerLink="/catalogo" class="inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm px-5 py-3 rounded-xl transition-all">
-          Ir al catálogo
-        </a>
-      </div>
-    } @else {
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        <!-- Lista de items -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-10" aria-busy="true">
         <div class="lg:col-span-2 space-y-4">
-          @for (item of items; track item.detalle.id) {
-            <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-4 sm:p-5 flex items-center gap-4">
-
-              <div class="w-16 h-16 rounded-xl bg-neutral-100 overflow-hidden shrink-0">
-                @if (item.producto?.imagen_url) {
-                  <img
-                    [src]="item.producto!.imagen_url"
-                    [alt]="item.producto!.nombre"
-                    class="w-full h-full object-cover"
-                    (error)="onImagenError($event, item)"
-                  />
-                } @else {
-                  <div class="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4l3 2h4l3-2 3 4-3 2v10H7V10L4 8l3-4z" />
-                    </svg>
-                  </div>
-                }
+          @for (i of [0, 1, 2]; track i) {
+            <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-5 flex items-center gap-5 animate-pulse">
+              <app-skeleton tipo="imagen" clase="!aspect-4/5 w-[100px] rounded-xl shrink-0"></app-skeleton>
+              <div class="flex-1 space-y-3">
+                <app-skeleton tipo="titulo"></app-skeleton>
+                <app-skeleton tipo="texto" clase="w-2/3"></app-skeleton>
+                <app-skeleton tipo="texto" clase="w-1/3"></app-skeleton>
               </div>
-
-              <div class="flex-1 min-w-0">
-                <h3 class="font-bold text-neutral-900 truncate">{{ item.producto?.nombre || 'Producto no disponible' }}</h3>
-                @if (item.variante) {
-                  <p class="text-xs text-neutral-500 font-semibold mt-0.5">
-                    Talla {{ item.variante.talla_nombre }} · {{ item.variante.color_nombre }}
-                  </p>
-                }
-                <p class="text-sm font-bold text-neutral-900 mt-1">
-                  Bs {{ item.producto?.precio?.toFixed(2) || '0.00' }}
-                </p>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <button
-                  (click)="cambiarCantidad(item, item.detalle.cantidad - 1)"
-                  [disabled]="actualizandoId === item.detalle.id || item.detalle.cantidad <= 1"
-                  class="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold transition-all disabled:opacity-40 cursor-pointer">
-                  −
-                </button>
-                <span class="w-8 text-center text-sm font-bold">{{ item.detalle.cantidad }}</span>
-                <button
-                  (click)="cambiarCantidad(item, item.detalle.cantidad + 1)"
-                  [disabled]="actualizandoId === item.detalle.id || (item.variante && item.detalle.cantidad >= item.variante.stock_disponible)"
-                  class="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-bold transition-all disabled:opacity-40 cursor-pointer">
-                  +
-                </button>
-              </div>
-
-              <div class="text-right w-24 shrink-0">
-                <p class="font-black text-neutral-900">Bs {{ item.subtotal.toFixed(2) }}</p>
-              </div>
-
-              <button
-                (click)="eliminarItem(item)"
-                class="text-neutral-400 hover:text-red-600 transition-colors cursor-pointer shrink-0">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-
             </div>
           }
         </div>
+        <div class="hidden lg:block">
+          <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 space-y-4">
+            <app-skeleton tipo="texto" clase="w-1/2"></app-skeleton>
+            <app-skeleton tipo="texto"></app-skeleton>
+            <app-skeleton tipo="texto" clase="w-3/4"></app-skeleton>
+            <app-skeleton tipo="bloque"></app-skeleton>
+            <app-skeleton tipo="bloque"></app-skeleton>
+          </div>
+        </div>
+      </div>
+    }
 
-        <!-- Resumen y Checkout -->
+    <!-- Vacío -->
+    @else if (items.length === 0) {
+      <app-empty-state
+        icono="🛍️"
+        titulo="Tu carrito está vacío"
+        descripcion="Explorá la colección y sumá las prendas que más te gusten.">
+        <app-button variant="primario" size="lg" (click)="irAlCatalogo()">Ir al catálogo</app-button>
+      </app-empty-state>
+    }
+
+    <!-- Carrito con items -->
+    @else {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+
+        <!-- Lista de prendas -->
+        <div class="lg:col-span-2">
+          <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card overflow-hidden divide-y divide-ms-stone-200">
+            @for (item of items; track item.detalle.id) {
+              <div class="p-4 sm:p-5 flex items-center gap-4 sm:gap-5 animate-fade-in">
+
+                <!-- Miniatura 4:5 -->
+                <div class="w-[100px] h-[125px] shrink-0 rounded-xl overflow-hidden bg-ms-stone border border-ms-stone-200">
+                  @if (imagenItem(item)) {
+                    <img
+                      [src]="imagenItem(item)"
+                      [alt]="item.producto?.nombre || 'Prenda'"
+                      class="w-full h-full object-cover"
+                      (error)="onImagenError($event, item)"
+                    />
+                  } @else {
+                    <div class="w-full h-full bg-ms-ink flex items-center justify-center">
+                      <svg class="w-8 h-8 text-ms-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                  }
+                </div>
+
+                <!-- Info -->
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-display text-lg text-ms-ink truncate">{{ item.producto?.nombre || 'Producto no disponible' }}</h3>
+                  @if (item.variante) {
+                    <p class="text-xs text-ms-slate font-semibold mt-1">
+                      Talla {{ item.variante.talla_nombre }} · {{ item.variante.color_nombre }}
+                    </p>
+                  }
+                  <div class="mt-2 text-ms-ink">
+                    <app-price [valor]="item.producto?.precio || 0"></app-price>
+                  </div>
+
+                  <!-- Stepper cantidad -->
+                  <div class="mt-3 inline-flex items-center border border-ms-stone-200 rounded-lg overflow-hidden bg-ms-white">
+                    <button
+                      (click)="cambiarCantidad(item, item.detalle.cantidad - 1)"
+                      [disabled]="actualizandoId === item.detalle.id || item.detalle.cantidad <= 1"
+                      class="w-9 h-9 flex items-center justify-center text-ms-ink transition-colors hover:bg-ms-stone disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                      </svg>
+                    </button>
+                    <span class="w-10 text-center text-sm font-black tabular-nums text-ms-ink">{{ item.detalle.cantidad }}</span>
+                    <button
+                      (click)="cambiarCantidad(item, item.detalle.cantidad + 1)"
+                      [disabled]="actualizandoId === item.detalle.id || (item.variante && item.detalle.cantidad >= item.variante.stock_disponible)"
+                      class="w-9 h-9 flex items-center justify-center text-ms-ink transition-colors hover:bg-ms-stone disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 20V4m8 8H4" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Subtotal y eliminar -->
+                <div class="text-right shrink-0 flex flex-col items-end gap-3">
+                  <p class="font-black text-ms-ink">
+                    <app-price [valor]="item.subtotal"></app-price>
+                  </p>
+                  <button
+                    (click)="eliminarItem(item)"
+                    [disabled]="actualizandoId === item.detalle.id"
+                    class="text-ms-slate hover:text-red-600 transition-colors cursor-pointer disabled:opacity-40">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+
+              </div>
+            }
+          </div>
+
+          <!-- Seguir comprando -->
+          <div class="mt-6">
+            <a
+              routerLink="/catalogo"
+              class="inline-flex items-center gap-1.5 text-xs font-bold text-ms-amber uppercase tracking-wider hover:underline underline-offset-4 transition-colors cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+              Seguir comprando
+            </a>
+          </div>
+        </div>
+
+        <!-- Resumen -->
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6 sticky top-28">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Resumen del pedido</h3>
+          <aside class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 lg:sticky lg:top-28">
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-ms-slate mb-6">Resumen del pedido</h3>
 
-            <div class="flex items-center justify-between text-sm text-neutral-600 mb-2">
-              <span>Prendas</span>
-              <span class="font-semibold">{{ items.length }}</span>
+            <div class="space-y-3 text-sm">
+              <div class="flex justify-between text-ms-slate">
+                <span>Subtotal</span>
+                <span class="font-bold text-ms-ink tabular-nums">Bs {{ total.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between text-ms-slate">
+                <span>Envío</span>
+                <span class="font-semibold text-ms-ink">Gratis</span>
+              </div>
             </div>
 
-            <div class="border-t border-neutral-100 pt-4 mt-4 flex items-center justify-between">
-              <span class="font-bold text-neutral-900">Total</span>
-              <span class="text-2xl font-black text-neutral-900">Bs {{ total.toFixed(2) }}</span>
+            <div class="border-t border-ms-stone-200 pt-4 mt-4 flex items-baseline justify-between">
+              <span class="font-bold text-ms-ink">Total</span>
+              <span class="font-display text-2xl text-ms-ink">
+                Bs {{ total.toFixed(2) }}
+              </span>
             </div>
+
+            <p class="mt-2 text-[11px] text-ms-slate">
+              Envío gratis desde <span class="font-bold text-ms-amber">Bs 300</span>.
+            </p>
 
             @if (mostrarCheckout === 'ninguno') {
-              <div class="mt-6 space-y-3">
-                <button
-                  (click)="abrirCheckout('compra')"
-                  class="w-full flex justify-center items-center rounded-xl bg-neutral-950 px-4 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-neutral-800 active:scale-[0.98] cursor-pointer">
+              <div class="mt-6 flex flex-col gap-3">
+                <app-button variant="acento" [block]="true" size="lg" (click)="abrirCheckout('compra')">
+                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5-5 5M6 12h12" />
+                  </svg>
                   Comprar ahora
-                </button>
-                <button
-                  (click)="abrirCheckout('reserva')"
-                  class="w-full flex justify-center items-center rounded-xl bg-white border-2 border-neutral-950 px-4 py-3 text-sm font-bold text-neutral-950 transition-all hover:bg-neutral-50 active:scale-[0.98] cursor-pointer">
+                </app-button>
+                <app-button variant="secundario" [block]="true" size="lg" (click)="abrirCheckout('reserva')">
+                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
                   Reservar para probar en tienda
-                </button>
+                </app-button>
               </div>
             }
 
             @if (mostrarCheckout === 'compra') {
-              <div class="mt-6 space-y-3 border-t border-neutral-100 pt-5">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">Compra digital</h4>
-                <p class="text-[11px] text-neutral-400">Elige la sucursal donde recogerás o desde la que se despachará tu pedido.</p>
-                <select
-                  [(ngModel)]="sucursalSeleccionada"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                  <option [ngValue]="null" disabled>Selecciona una sucursal</option>
-                  @for (sucursal of sucursales; track sucursal.id) {
-                    <option [ngValue]="sucursal.id">{{ sucursal.nombre }} — {{ sucursal.ciudad }}</option>
-                  }
-                </select>
-                <div class="flex gap-2">
-                  <button
-                    (click)="cerrarCheckout()"
-                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
+              <div class="mt-6 space-y-4 border-t border-ms-stone-200 pt-5 animate-fade-in">
+                <p class="text-xs text-ms-slate">
+                  Elegí la sucursal en la que retirás o desde la que se despacha tu pedido.
+                </p>
+                <app-select
+                  label="Sucursal"
+                  [required]="true"
+                  [opciones]="opcionesSucursales"
+                  placeholder="Seleccioná una sucursal"
+                  [ngModel]="sucursalSeleccionada"
+                  (ngModelChange)="onSucursalChange($event)"></app-select>
+                <div class="flex flex-col gap-2.5">
+                  <app-button variant="primario" [block]="true" [loading]="procesandoCheckout" (click)="confirmarCompra()">
+                    {{ procesandoCheckout ? 'Creando pedido…' : 'Confirmar compra' }}
+                  </app-button>
+                  <app-button variant="fantasma" [block]="true" [disabled]="procesandoCheckout" (click)="cerrarCheckout()">
                     Cancelar
-                  </button>
-                  <button
-                    (click)="confirmarCompra()"
-                    [disabled]="procesandoCheckout"
-                    class="flex-1 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 transition-all disabled:opacity-50 cursor-pointer">
-                    {{ procesandoCheckout ? 'Procesando...' : 'Confirmar compra' }}
-                  </button>
+                  </app-button>
                 </div>
               </div>
             }
 
             @if (mostrarCheckout === 'reserva') {
-              <div class="mt-6 space-y-3 border-t border-neutral-100 pt-5">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-neutral-500">Reservar para probar</h4>
-                <select
-                  [(ngModel)]="sucursalSeleccionada"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                  <option [ngValue]="null" disabled>Selecciona una sucursal</option>
-                  @for (sucursal of sucursales; track sucursal.id) {
-                    <option [ngValue]="sucursal.id">{{ sucursal.nombre }} — {{ sucursal.ciudad }}</option>
-                  }
-                </select>
-                <input
+              <div class="mt-6 space-y-4 border-t border-ms-stone-200 pt-5 animate-fade-in">
+                <p class="text-xs text-ms-slate">
+                  Reservá tus prendas para probártelas en tienda.
+                </p>
+                <app-select
+                  label="Sucursal"
+                  [required]="true"
+                  [opciones]="opcionesSucursales"
+                  placeholder="Seleccioná una sucursal"
+                  [ngModel]="sucursalSeleccionada"
+                  (ngModelChange)="onSucursalChange($event)"></app-select>
+                <app-input
+                  label="Fecha y hora"
                   type="datetime-local"
-                  [(ngModel)]="fechaReserva"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-                <textarea
-                  [(ngModel)]="observacionesReserva"
-                  placeholder="Observaciones (opcional)"
-                  rows="2"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-                <div class="flex gap-2">
-                  <button
-                    (click)="cerrarCheckout()"
-                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
+                  [required]="true"
+                  [(ngModel)]="fechaReserva"></app-input>
+                <div>
+                  <span class="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">Observaciones</span>
+                  <textarea
+                    [(ngModel)]="observacionesReserva"
+                    placeholder="Observaciones (opcional)"
+                    rows="2"
+                    class="input-base resize-none"></textarea>
+                </div>
+                <div class="flex flex-col gap-2.5">
+                  <app-button variant="primario" [block]="true" [loading]="procesandoCheckout" (click)="confirmarReserva()">
+                    {{ procesandoCheckout ? 'Reservando…' : 'Confirmar reserva' }}
+                  </app-button>
+                  <app-button variant="fantasma" [block]="true" [disabled]="procesandoCheckout" (click)="cerrarCheckout()">
                     Cancelar
-                  </button>
-                  <button
-                    (click)="confirmarReserva()"
-                    [disabled]="procesandoCheckout"
-                    class="flex-1 rounded-xl bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 transition-all disabled:opacity-50 cursor-pointer">
-                    {{ procesandoCheckout ? 'Reservando...' : 'Confirmar reserva' }}
-                  </button>
+                  </app-button>
                 </div>
               </div>
             }
 
-            <p class="text-[11px] text-neutral-400 text-center mt-4">
-              El pago digital con pasarela real se habilitará en una siguiente iteración; por ahora el pedido queda registrado como "pendiente".
+            <p class="text-[11px] text-ms-slate text-center mt-5">
+              El pago se confirma en el paso siguiente como pedido "pendiente".
             </p>
-          </div>
+          </aside>
         </div>
 
       </div>
-
     }
 
   </main>
 
-  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
-      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
-    </div>
-  </footer>
+  <app-footer></app-footer>
 
 </div>

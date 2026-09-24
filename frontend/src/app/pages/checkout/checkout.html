@@ -1,82 +1,137 @@
-<div class="min-h-screen bg-neutral-50 py-12 px-4">
-  <div class="max-w-2xl mx-auto">
+<div class="min-h-screen bg-ms-alabaster text-ms-ink font-sans antialiased flex flex-col">
 
-    <!-- Header -->
-    <div class="mb-8">
-      <a routerLink="/pedidos" class="text-sm text-neutral-500 hover:text-neutral-900">
-        ← Volver a mis pedidos
-      </a>
-      <h1 class="text-3xl font-bold text-neutral-900 mt-4">Checkout</h1>
-      <p class="text-neutral-500 mt-1">RF19 — Pago con tarjeta vía Stripe</p>
+  <app-header></app-header>
+
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14 w-full flex-1">
+
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8 flex-wrap">
+      <a routerLink="/inicio" class="hover:text-ms-amber transition-colors cursor-pointer">Inicio</a>
+      <span class="text-ms-outline">/</span>
+      <a routerLink="/carrito" class="hover:text-ms-amber transition-colors cursor-pointer">Carrito</a>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Checkout</span>
+    </nav>
+
+    <!-- Encabezado -->
+    <div class="mb-10">
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">MenStyle · Pago seguro</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Finalizar compra</h1>
+      @if (pedido) {
+        <p class="mt-2 text-sm text-ms-slate">Pedido #{{ pedido.id }} · Paso final para completar tu compra digital.</p>
+      }
     </div>
 
-    <!-- Loading -->
+    <!-- Cargando -->
     @if (cargando) {
-      <div class="bg-white rounded-2xl border border-neutral-200 p-8 text-center">
-        <p class="text-neutral-500">Cargando pedido...</p>
+      <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-14 flex flex-col items-center gap-4">
+        <app-loader size="lg" [centrado]="false"></app-loader>
+        <p class="text-sm font-semibold text-ms-slate">Cargando pedido…</p>
       </div>
     }
 
     <!-- Error -->
-    @if (errorMsg && !cargando) {
-      <div class="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6">
-        <p class="text-red-700 font-medium">{{ errorMsg }}</p>
+    @if (errorMsg && !cargando && !exitoMsg) {
+      <div class="animate-fade-in">
+        <app-alert tipo="error" titulo="No se pudo continuar" [mensaje]="errorMsg"></app-alert>
+        @if (pedido) {
+          <div class="mt-4 flex gap-3">
+            <app-button variant="secundario" (click)="reintentarStripe()">Reintentar</app-button>
+            <a routerLink="/pedidos" class="inline-flex items-center justify-center rounded-xl border border-ms-stone-200 bg-ms-white text-ms-ink px-4 py-2.5 text-sm font-bold shadow-sm transition-all hover:bg-ms-stone cursor-pointer">
+              Volver a mis pedidos
+            </a>
+          </div>
+        }
       </div>
     }
 
     <!-- Éxito -->
     @if (exitoMsg) {
-      <div class="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-        <div class="text-5xl mb-3">✅</div>
-        <p class="text-green-700 font-bold text-xl">{{ exitoMsg }}</p>
-        <p class="text-green-600 mt-2">Redirigiendo a tus pedidos...</p>
+      <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-14 text-center animate-fade-in">
+        <div class="mx-auto w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 class="mt-5 font-display text-3xl text-ms-ink">{{ exitoMsg }}</h2>
+        <p class="mt-2 text-sm text-ms-slate">Redirigiéndote a tus pedidos…</p>
       </div>
     }
 
-    <!-- Checkout -->
+    <!-- Checkout Stripe -->
     @if (!cargando && pedido && !exitoMsg) {
-      <!-- Resumen del pedido -->
-      <div class="bg-white rounded-2xl border border-neutral-200 p-6 mb-6">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-900 mb-4">
-          Resumen del pedido #{{ pedido.id }}
-        </h2>
-        <div class="flex justify-between items-center mb-2">
-          <span class="text-neutral-600">Estado</span>
-          <span class="font-medium">{{ pedido.estado }}</span>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+        <!-- Datos de pago -->
+        <div class="md:col-span-2">
+          <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 sm:p-8">
+            <div class="flex items-center gap-2 mb-1">
+              <svg class="w-4.5 h-4.5 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Datos de la tarjeta</h2>
+            </div>
+
+            <!-- Card Element de Stripe -->
+            <div #cardElement class="input-base !bg-white min-h-[52px]"></div>
+
+            <div class="mt-6">
+              <app-button
+                variant="primario"
+                [block]="true"
+                size="lg"
+                [loading]="procesando"
+                [disabled]="procesando"
+                (click)="pagar()">
+                @if (!procesando) {
+                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  Pagar {{ pedido.total.toFixed(2) }} Bs
+                }
+              </app-button>
+            </div>
+
+            <div class="mt-5 rounded-xl bg-ms-cream border border-ms-amber/30 p-4 text-xs text-ms-ink/80">
+              <p class="flex items-center gap-1.5 font-bold text-ms-amber uppercase tracking-wider mb-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Pago seguro
+              </p>
+              <p>Procesado por Stripe.</p>
+              <p class="mt-1">Modo test: usá la tarjeta <strong class="text-ms-ink">4242 4242 4242 4242</strong>, cualquier fecha futura y CVC.</p>
+            </div>
+          </div>
         </div>
-        <div class="flex justify-between items-center pt-4 border-t border-neutral-100 mt-4">
-          <span class="text-neutral-900 font-bold text-lg">Total a pagar</span>
-          <span class="text-neutral-900 font-bold text-2xl">
-            Bs {{ pedido.total | number:'1.2-2' }}
-          </span>
+
+        <!-- Resumen -->
+        <div class="md:col-span-1">
+          <aside class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 md:sticky md:top-28">
+            <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-ms-slate mb-4">Resumen del pedido</h3>
+
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-ms-slate">Estado</span>
+              <app-badge [tipo]="tipoBadgeEstados[pedido.estado] || 'neutral'" [etiqueta]="etiquetaEstados[pedido.estado] || pedido.estado"></app-badge>
+            </div>
+
+            <div class="border-t border-ms-stone-200 pt-4 mt-4 flex items-baseline justify-between">
+              <span class="font-bold text-ms-ink">Total a pagar</span>
+              <span class="text-ms-ink">
+                <app-price [valor]="pedido.total"></app-price>
+              </span>
+            </div>
+
+            <p class="text-[11px] text-ms-slate mt-4">Al confirmar el pago tu pedido quedará registrado y verás el comprobante en "Mis pedidos".</p>
+          </aside>
         </div>
-      </div>
 
-      <!-- Formulario Stripe -->
-      <div class="bg-white rounded-2xl border border-neutral-200 p-6">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-neutral-900 mb-4">
-          💳 Datos de la tarjeta
-        </h2>
-
-        <div #cardElement class="border border-neutral-300 rounded-lg p-4 mb-6 min-h-[50px]"></div>
-
-        <button
-          (click)="pagar()"
-          [disabled]="procesando"
-          class="w-full bg-neutral-900 text-white py-4 rounded-lg font-bold hover:bg-neutral-800 disabled:opacity-50 disabled:cursor-not-allowed transition">
-          @if (procesando) {
-            Procesando pago...
-          } @else {
-            Pagar Bs {{ pedido.total | number:'1.2-2' }}
-          }
-        </button>
-
-        <p class="text-xs text-neutral-400 text-center mt-4">
-          🔒 Pago seguro procesado por Stripe.
-          <br>Modo test: usá la tarjeta <strong>4242 4242 4242 4242</strong>, cualquier fecha futura y CVC.
-        </p>
       </div>
     }
 
-  </div>
+  </main>
+
+  <app-footer></app-footer>
+
 </div>

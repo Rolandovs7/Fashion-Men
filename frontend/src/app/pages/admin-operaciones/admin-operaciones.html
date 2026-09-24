@@ -74,7 +74,7 @@
         </app-empty-state>
       } @else {
         <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
-          <table class="w-full text-left text-sm min-w-[760px]">
+          <table class="w-full text-left text-sm min-w-[880px]">
             <thead>
               <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                 <th class="py-3.5 px-5">Pedido</th>
@@ -82,6 +82,7 @@
                 <th class="py-3.5 px-5">Fecha</th>
                 <th class="py-3.5 px-5">Total</th>
                 <th class="py-3.5 px-5">Estado</th>
+                <th class="py-3.5 px-5">Acción</th>
                 <th class="py-3.5 px-5 text-right">Comprobante</th>
               </tr>
             </thead>
@@ -93,19 +94,19 @@
                   <td class="py-3.5 px-5 text-ms-slate whitespace-nowrap">{{ pedido.fecha_pedido | fechaBolivia }}</td>
                   <td class="py-3.5 px-5 font-semibold text-ms-ink"><app-price [valor]="pedido.total"></app-price></td>
                   <td class="py-3.5 px-5">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <app-badge [tipo]="tipoBadgePedido(pedido.estado)" [etiqueta]="capitalizar(pedido.estado)"></app-badge>
-                      <select
-                        [ngModel]="pedido.estado"
-                        (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
-                        [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
-                        aria-label="Estado del pedido #{{ pedido.id }}"
-                        class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
-                        @for (estado of estadosPedido; track estado) {
-                          <option [value]="estado">{{ estado }}</option>
-                        }
-                      </select>
-                    </div>
+                    <app-badge [tipo]="tipoBadgePedido(pedido.estado)" [etiqueta]="capitalizar(pedido.estado)"></app-badge>
+                  </td>
+                  <td class="py-3.5 px-5">
+                    <select
+                      [ngModel]="pedido.estado"
+                      (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
+                      [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
+                      aria-label="Acción del pedido #{{ pedido.id }}"
+                      class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
+                      @for (estado of estadosPedido; track estado) {
+                        <option [value]="estado">{{ estado }}</option>
+                      }
+                    </select>
                   </td>
                   <td class="py-3.5 px-5 text-right">
                     <app-button variant="fantasma" size="sm" (click)="verComprobante(pedido)">Ver</app-button>
@@ -132,7 +133,7 @@
         </app-empty-state>
       } @else {
         <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
-          <table class="w-full text-left text-sm min-w-[640px]">
+          <table class="w-full text-left text-sm min-w-[760px]">
             <thead>
               <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                 <th class="py-3.5 px-5">Reserva</th>
@@ -140,6 +141,7 @@
                 <th class="py-3.5 px-5">Sucursal</th>
                 <th class="py-3.5 px-5">Fecha</th>
                 <th class="py-3.5 px-5">Estado</th>
+                <th class="py-3.5 px-5">Acción</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-ms-stone-200">
@@ -150,19 +152,19 @@
                   <td class="py-3.5 px-5 text-ms-slate">{{ nombreSucursal(reserva.sucursal_id) }}</td>
                   <td class="py-3.5 px-5 text-ms-slate whitespace-nowrap">{{ reserva.fecha_reserva | fechaBolivia }}</td>
                   <td class="py-3.5 px-5">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <app-badge [tipo]="tipoBadgeReserva(reserva.estado)" [etiqueta]="capitalizar(reserva.estado)"></app-badge>
-                      <select
-                        [ngModel]="reserva.estado"
-                        (ngModelChange)="cambiarEstadoReserva(reserva, $event)"
-                        [disabled]="reserva.estado === 'cancelada' || reserva.estado === 'completada'"
-                        aria-label="Estado de la reserva #{{ reserva.id }}"
-                        class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
-                        @for (estado of estadosReserva; track estado) {
-                          <option [value]="estado">{{ estado }}</option>
-                        }
-                      </select>
-                    </div>
+                    <app-badge [tipo]="tipoBadgeReserva(reserva.estado)" [etiqueta]="capitalizar(reserva.estado)"></app-badge>
+                  </td>
+                  <td class="py-3.5 px-5">
+                    <select
+                      [ngModel]="reserva.estado"
+                      (ngModelChange)="cambiarEstadoReserva(reserva, $event)"
+                      [disabled]="reserva.estado === 'cancelada' || reserva.estado === 'completada'"
+                      aria-label="Acción de la reserva #{{ reserva.id }}"
+                      class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
+                      @for (estado of estadosReserva; track estado) {
+                        <option [value]="estado">{{ estado }}</option>
+                      }
+                    </select>
                   </td>
                 </tr>
               }

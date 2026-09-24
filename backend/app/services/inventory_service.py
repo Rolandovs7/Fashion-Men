@@ -1,6 +1,7 @@
+from math import ceil
 from typing import List, Optional
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.inventory import Inventario
 from app.models.product_variant import ProductoVariante
@@ -8,12 +9,25 @@ from app.models.branch import Sucursal
 from app.schemas.inventory import InventarioCrear, InventarioActualizar
 
 
+def _query_inventario_enriquecido(db: Session):
+    """Query base con eager loading de variante → producto/talla/color.
+
+    Evita las N+1 queries: en UNA consulta se obtiene el inventario junto
+    con el nombre del producto, talla y color de cada variante.
+    """
+    return db.query(Inventario).options(
+        joinedload(Inventario.variante).joinedload(ProductoVariante.producto),
+        joinedload(Inventario.variante).joinedload(ProductoVariante.talla),
+        joinedload(Inventario.variante).joinedload(ProductoVariante.color),
+    )
+
+
 def listar_inventario(
     db: Session,
     sucursal_id: Optional[int] = None,
     variante_id: Optional[int] = None
 ) -> List[Inventario]:
-    query = db.query(Inventario)
+    query = _query_inventario_enriquecido(db)
 
     if sucursal_id is not None:
         query = query.filter(Inventario.sucursal_id == sucursal_id)
@@ -22,6 +36,68 @@ def listar_inventario(
         query = query.filter(Inventario.variante_id == variante_id)
 
     return query.all()
+
+
+def _serializar_fila(inventario: Inventario) -> dict:
+    variante = inventario.variante
+    producto = variante.producto if variante else None
+
+    return {
+        "id": inventario.id,
+        "variante_id": inventario.variante_id,
+        "sucursal_id": inventario.sucursal_id,
+        "cantidad": inventario.cantidad,
+        "cantidad_reservada": inventario.cantidad_reservada,
+        "producto_nombre": producto.nombre if producto else None,
+        "producto_imagen_url": producto.imagen_url if producto else None,
+        "variante_talla": variante.talla.nombre if (variante and variante.talla) else None,
+        "variante_color": variante.color.nombre if (variante and variante.color) else None,
+    }
+
+
+def listar_inventario_paginado(
+    db: Session,
+    sucursal_id: Optional[int] = None,
+    variante_id: Optional[int] = None,
+    page: int = 0,
+    page_size: int = 20
+) -> dict:
+    """Inventario enriquecido con paginación (una sola consulta por página).
+
+    Devuelve dict con items (enriquecidos), total, page, page_size y
+    total_pages. El consumidor (admin web) arma la tabla directamente.
+    """
+    if page < 0:
+        page = 0
+
+    if page_size <= 0:
+        page_size = 20
+
+    query = _query_inventario_enriquecido(db)
+
+    if sucursal_id is not None:
+        query = query.filter(Inventario.sucursal_id == sucursal_id)
+
+    if variante_id is not None:
+        query = query.filter(Inventario.variante_id == variante_id)
+
+    total = query.count()
+    total_pages = ceil(total / page_size)
+
+    items = (
+        query.order_by(Inventario.id)
+        .offset(page * page_size)
+        .limit(page_size)
+        .all()
+    )
+
+    return {
+        "items": [_serializar_fila(inv) for inv in items],
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages
+    }
 
 
 def obtener_inventario_por_id(

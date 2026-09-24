@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey, Integer
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -32,4 +32,10 @@ class Inventario(Base):
         Integer,
         default=0,
         nullable=False
+    )
+
+    # Eager load de la variante para evitar N+1 al listar inventario.
+    variante: Mapped["ProductoVariante"] = relationship(
+        "ProductoVariante",
+        lazy="joined"
     )

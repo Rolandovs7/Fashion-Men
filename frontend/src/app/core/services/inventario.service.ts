@@ -8,6 +8,18 @@ export interface Inventario {
   sucursal_id: number;
   cantidad: number;
   cantidad_reservada: number;
+  producto_nombre?: string;
+  producto_imagen_url?: string;
+  variante_talla?: string;
+  variante_color?: string;
+}
+
+export interface InventarioPaginado {
+  items: Inventario[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
 }
 
 export interface InventarioCrear {
@@ -42,6 +54,15 @@ export class InventarioService {
     const query = params.toString() ? `?${params.toString()}` : '';
 
     return this.http.get<Inventario[]>(`${this.apiUrl}${query}`);
+  }
+
+  listarDetalladoPaginado(sucursalId?: number, page = 0, pageSize = 20): Observable<InventarioPaginado> {
+    const params = new URLSearchParams();
+    if (sucursalId) params.set('sucursal_id', String(sucursalId));
+    params.set('page', String(page));
+    params.set('page_size', String(pageSize));
+
+    return this.http.get<InventarioPaginado>(`${this.apiUrl}/detallado?${params.toString()}`);
   }
 
   crear(datos: InventarioCrear): Observable<Inventario> {

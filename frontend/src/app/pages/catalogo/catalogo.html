@@ -66,10 +66,13 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- 3 · BARRA DE FILTROS (natural; se fija con JS al llegar  -->
-    <!--     al top y vuelve a su lugar al volver arriba)          -->
+    <!-- 3 · BARRA DE FILTROS (fija en su posición original)      -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <section class="sticky-bar mb-8">
+    <section
+      #stickyBar
+      [class.fija]="barraFija"
+      [style.top.px]="barraFija ? posicionBarra : null"
+      class="mb-8 transition-none">
       <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">
 
         <!-- Fila 1: búsqueda + acciones -->
@@ -110,6 +113,14 @@
         </div>
       </div>
     </section>
+
+    <!-- Spacer: reserva el lugar de la barra cuando queda fija -->
+    @if (barraFija) {
+      <div
+        [style.height.px]="alturaBarra"
+        class="mb-8"
+        aria-hidden="true"></div>
+    }
 
     <!-- Chips de filtros activos (arriba del grid) -->
     @if (chips.length > 0) {

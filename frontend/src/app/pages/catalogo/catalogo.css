@@ -1,47 +1,20 @@
 :host {
   display: block;
+  overflow: visible !important;
 }
 
-.barra-natural {
-  position: relative;
-}
-
-.barra-fija {
-  position: fixed;
-  top: 80px;
-  left: 0;
-  right: 0;
-  z-index: 30;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
-
-.barra-fija > div {
-  max-width: 80rem;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.barra-fija + .spacer-barra {
-  display: block;
-}
-
-@media (min-width: 640px) {
-  .barra-fija {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-  }
-}
-
-@media (min-width: 768px) {
-  .barra-fija {
-    padding-left: 2rem;
-    padding-right: 2rem;
-  }
+.sticky-bar {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 88px !important;
+  z-index: 30 !important;
+  transition: none !important;
+  transform: none !important;
+  will-change: auto !important;
 }
 
 @media (max-width: 767px) {
-  .barra-fija {
-    position: static;
+  .sticky-bar {
+    position: static !important;
   }
 }

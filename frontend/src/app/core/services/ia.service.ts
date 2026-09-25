@@ -56,10 +56,16 @@ export class IaService {
     });
   }
 
-  enviarMensaje(mensaje: string): Observable<ChatResponse> {
+  enviarMensaje(
+    mensaje: string,
+    historial: { rol: 'usuario' | 'bot'; texto: string }[] = []
+  ): Observable<ChatResponse> {
     return this.http.post<ChatResponse>(
       `${this.apiUrl}/chat`,
-      { mensaje },
+      {
+        mensaje,
+        historial: historial.length > 0 ? historial : null
+      },
       { headers: this.headers() }
     );
   }

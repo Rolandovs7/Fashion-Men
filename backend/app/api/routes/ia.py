@@ -55,7 +55,7 @@ def chat_asistente(
     No requiere autenticación (público).
     """
     service = IAService(db)
-    return service.responder_consulta(req.mensaje)
+    return service.responder_consulta(req.mensaje, historial=req.historial)
 
 
 @router.get("/tendencias", response_model=TendenciaResponse)

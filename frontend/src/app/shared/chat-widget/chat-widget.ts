@@ -48,6 +48,12 @@ export class ChatWidget {
     const texto = this.mensajeActual.trim();
     if (!texto || this.escribiendo) return;
 
+    // Historial reciente (últimos 5 turnos) sin incluir el mensaje actual
+    const historial = this.mensajes.slice(-5).map(m => ({
+      rol: m.rol === 'usuario' ? 'usuario' as const : 'bot' as const,
+      texto: m.texto
+    }));
+
     // Agregar mensaje del usuario
     this.mensajes.push({
       rol: 'usuario',
@@ -61,7 +67,7 @@ export class ChatWidget {
     this.scrollAbajo();
 
     // Llamar al backend
-    this.iaService.enviarMensaje(texto).subscribe({
+    this.iaService.enviarMensaje(texto, historial).subscribe({
       next: (resp) => {
         this.escribiendo = false;
         this.mensajes.push({

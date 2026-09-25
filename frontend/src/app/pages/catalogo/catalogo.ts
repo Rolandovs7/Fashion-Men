@@ -60,7 +60,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   alturaBarra = 0;
 
   private offsetNaturalBarra = 0;
-  private readonly topHeader = 80;
+  private readonly topFijo = 120;
   private readonly corteDesktop = 1024;
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
@@ -110,7 +110,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.calcularOffsetNatural();
     window.addEventListener('resize', this.alRecargarDispositivo);
   }
 
@@ -119,19 +118,11 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private alRecargarDispositivo = (): void => {
-    this.calcularOffsetNatural();
     if (this.barraFija) {
       this.alturaBarra = this.barraFiltros ? this.barraFiltros.nativeElement.offsetHeight : 0;
       this.cdr.detectChanges();
     }
   };
-
-  private calcularOffsetNatural(): void {
-    if (this.barraFiltros) {
-      this.offsetNaturalBarra =
-        this.barraFiltros.nativeElement.getBoundingClientRect().top + window.scrollY;
-    }
-  }
 
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
@@ -145,17 +136,14 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const scrollY = window.scrollY;
+    const rect = this.barraFiltros.nativeElement.getBoundingClientRect();
 
-    if (!this.barraFija) {
-      this.calcularOffsetNatural();
-
-      if (scrollY + this.topHeader >= this.offsetNaturalBarra) {
-        this.alturaBarra = this.barraFiltros.nativeElement.offsetHeight;
-        this.barraFija = true;
-        this.cdr.detectChanges();
-      }
-    } else if (scrollY + this.topHeader < this.offsetNaturalBarra) {
+    if (!this.barraFija && rect.top <= this.topFijo) {
+      this.alturaBarra = this.barraFiltros.nativeElement.offsetHeight;
+      this.offsetNaturalBarra = rect.top + window.scrollY;
+      this.barraFija = true;
+      this.cdr.detectChanges();
+    } else if (this.barraFija && window.scrollY + this.topFijo < this.offsetNaturalBarra) {
       this.barraFija = false;
       this.cdr.detectChanges();
     }

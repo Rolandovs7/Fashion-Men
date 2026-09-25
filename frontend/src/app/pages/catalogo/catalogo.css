@@ -1,3 +1,47 @@
 :host {
   display: block;
 }
+
+.barra-natural {
+  position: relative;
+}
+
+.barra-fija {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.barra-fija > div {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.barra-fija + .spacer-barra {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .barra-fija {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .barra-fija {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (max-width: 1023px) {
+  .barra-fija {
+    position: static;
+  }
+}

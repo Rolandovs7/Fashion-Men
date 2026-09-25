@@ -1,17 +1,3 @@
 :host {
   display: block;
 }
-
-/* Barra de filtros: sticky en desktop (lg = 64rem), pegado 7px
-   debajo del header sticky (81px). Fuera de lg se comporta normal. */
-.barra-filtros {
-  margin-bottom: 2rem;
-}
-
-@media (min-width: 64rem) {
-  .barra-filtros {
-    position: sticky;
-    top: 88px;
-    z-index: 30;
-  }
-}

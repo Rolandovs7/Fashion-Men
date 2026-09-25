@@ -777,56 +777,55 @@
     @if (pestana === 'tipos-prenda') {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo tipo de prenda</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevoTipoPrenda.nombre" placeholder="Nombre (ej. Camisa formal)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea [(ngModel)]="nuevoTipoPrenda.descripcion" placeholder="Descripción (opcional)" rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <button (click)="crearTipoPrenda()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear tipo de prenda' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nuevo tipo de prenda</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. Camisa formal)" [(ngModel)]="nuevoTipoPrenda.nombre" />
+              <app-input label="Descripción (opcional)" placeholder="Descripción (opcional)" [(ngModel)]="nuevoTipoPrenda.descripcion" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearTipoPrenda()">
+                Crear tipo de prenda
+              </app-button>
             </div>
           </div>
         </div>
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Descripción</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (tipo of tiposPrenda; track tipo.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ tipo.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ tipo.descripcion || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="tipo.activo" [class.text-emerald-700]="tipo.activo"
-                        [class.bg-red-50]="!tipo.activo" [class.text-red-700]="!tipo.activo">
-                        {{ tipo.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (tipo.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarTipoPrenda(tipo)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarTipoPrenda(tipo)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+            @if (tiposPrenda.length === 0) {
+              <app-empty-state icono="👔" titulo="Sin tipos de prenda registrados" descripcion="Creá tu primer tipo de prenda desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm min-w-[640px]">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Descripción</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin tipos de prenda registrados.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (tipo of tiposPrenda; track tipo.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ tipo.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ tipo.descripcion || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (tipo.activo) {
+                          <app-badge tipo="exito">Activo</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactivo</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (tipo.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarTipoPrenda(tipo)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarTipoPrenda(tipo)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
       </div>
@@ -836,56 +835,55 @@
     @if (pestana === 'marcas') {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nueva marca</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevaMarca.nombre" placeholder="Nombre (ej. Northline)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea [(ngModel)]="nuevaMarca.descripcion" placeholder="Descripción (opcional)" rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <button (click)="crearMarca()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear marca' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nueva marca</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. Northline)" [(ngModel)]="nuevaMarca.nombre" />
+              <app-input label="Descripción (opcional)" placeholder="Descripción (opcional)" [(ngModel)]="nuevaMarca.descripcion" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearMarca()">
+                Crear marca
+              </app-button>
             </div>
           </div>
         </div>
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Descripción</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (marca of marcas; track marca.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ marca.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ marca.descripcion || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="marca.activo" [class.text-emerald-700]="marca.activo"
-                        [class.bg-red-50]="!marca.activo" [class.text-red-700]="!marca.activo">
-                        {{ marca.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (marca.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarMarca(marca)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarMarca(marca)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+            @if (marcas.length === 0) {
+              <app-empty-state icono="🏷️" titulo="Sin marcas registradas" descripcion="Creá tu primera marca desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm min-w-[640px]">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Descripción</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin marcas registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (marca of marcas; track marca.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ marca.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ marca.descripcion || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (marca.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (marca.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarMarca(marca)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarMarca(marca)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
       </div>
@@ -895,66 +893,68 @@
     @if (pestana === 'descuentos') {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo descuento</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevoDescuento.nombre" placeholder="Nombre (ej. Black Friday)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input type="number" [(ngModel)]="nuevoDescuento.porcentaje" placeholder="Porcentaje (ej. 20)" min="1" max="100"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <div class="grid grid-cols-2 gap-2">
-                <input type="date" [(ngModel)]="nuevoDescuento.fecha_inicio"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-                <input type="date" [(ngModel)]="nuevoDescuento.fecha_fin"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nuevo descuento</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. Black Friday)" [(ngModel)]="nuevoDescuento.nombre" />
+              <app-input
+                label="Porcentaje"
+                type="number"
+                placeholder="Porcentaje (ej. 20)"
+                [ngModel]="nuevoDescuento.porcentaje"
+                (ngModelChange)="setDescuentoPorcentaje($event)" />
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <app-input label="Fecha inicio" type="date" [(ngModel)]="nuevoDescuento.fecha_inicio" />
+                <app-input label="Fecha fin" type="date" [(ngModel)]="nuevoDescuento.fecha_fin" />
               </div>
-              <button (click)="crearDescuento()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear descuento' }}
-              </button>
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearDescuento()">
+                Crear descuento
+              </app-button>
             </div>
           </div>
         </div>
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">%</th>
-                  <th class="py-3 px-5">Vigencia</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (descuento of descuentos; track descuento.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ descuento.nombre }}</td>
-                    <td class="py-3 px-5 font-semibold">{{ descuento.porcentaje }}%</td>
-                    <td class="py-3 px-5 text-neutral-500 text-xs">
-                      {{ descuento.fecha_inicio || 'Sin inicio' }} → {{ descuento.fecha_fin || 'Sin fin' }}
-                    </td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="descuento.activo" [class.text-emerald-700]="descuento.activo"
-                        [class.bg-red-50]="!descuento.activo" [class.text-red-700]="!descuento.activo">
-                        {{ descuento.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (descuento.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarDescuento(descuento)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarDescuento(descuento)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+            @if (descuentos.length === 0) {
+              <app-empty-state icono="🏷️" titulo="Sin descuentos registrados" descripcion="Creá tu primer descuento desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm min-w-[760px]">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Porcentaje</th>
+                    <th class="py-3 px-5">Fecha inicio</th>
+                    <th class="py-3 px-5">Fecha fin</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">Sin descuentos registrados.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (descuento of descuentos; track descuento.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ descuento.nombre }}</td>
+                      <td class="py-3.5 px-5 font-semibold text-ms-ink">{{ descuento.porcentaje }}%</td>
+                      <td class="py-3.5 px-5 text-xs text-ms-slate">{{ descuento.fecha_inicio || 'Sin inicio' }}</td>
+                      <td class="py-3.5 px-5 text-xs text-ms-slate">{{ descuento.fecha_fin || 'Sin fin' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (descuento.activo) {
+                          <app-badge tipo="exito">Activo</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactivo</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (descuento.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarDescuento(descuento)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarDescuento(descuento)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
       </div>

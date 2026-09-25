@@ -357,6 +357,10 @@ nuevaTalla = { nombre: '' };
     this.nuevoProducto.descuento_id = valor === '' ? 0 : Number(valor);
   }
 
+  setDescuentoPorcentaje(valor: string): void {
+    this.nuevoDescuento.porcentaje = valor === '' ? 0 : Number(valor);
+  }
+
   guardarProducto(): void {
     if (!this.nuevoProducto.nombre.trim() || !this.nuevoProducto.categoria_id || this.nuevoProducto.precio <= 0) {
       this.error = 'Completa nombre, categoría y un precio válido.';

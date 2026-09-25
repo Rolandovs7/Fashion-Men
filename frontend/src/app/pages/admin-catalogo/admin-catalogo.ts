@@ -16,6 +16,8 @@ import {
   ModalComponent,
   ButtonComponent,
   InputComponent,
+  AlertComponent,
+  LoaderComponent,
   ToastService
 } from '../../shared/ui';
 
@@ -41,7 +43,7 @@ type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'provee
 // ============================================================
 @Component({
   selector: 'app-admin-catalogo',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent, AlertComponent, LoaderComponent],
   templateUrl: './admin-catalogo.html',
   styleUrl: './admin-catalogo.css'
 })

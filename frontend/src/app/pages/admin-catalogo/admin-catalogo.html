@@ -1,112 +1,56 @@
 <app-admin-shell titulo="Gestión de Catálogo">
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
 
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Catálogo</span>
+    </nav>
+
+    <!-- Encabezado -->
     <div class="mb-8">
-      <p class="text-sm text-neutral-500 font-medium">Administra categorías, productos, variantes, clasificación y proveedores</p>
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Catálogo</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Catálogo</h1>
+      <p class="mt-2 text-sm text-ms-slate">Administra categorías, productos, variantes, clasificación y proveedores.</p>
     </div>
 
-    <!-- Pestañas -->
-    <div class="flex gap-2 mb-6 border-b border-neutral-200 overflow-x-auto">
-      <button
-        (click)="cambiarPestana('categorias')"
-        [class.border-neutral-950]="pestana === 'categorias'"
-        [class.text-neutral-950]="pestana === 'categorias'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Categorías
-      </button>
-      <button
-        (click)="cambiarPestana('productos')"
-        [class.border-neutral-950]="pestana === 'productos'"
-        [class.text-neutral-950]="pestana === 'productos'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Productos
-      </button>
-      <button
-        (click)="cambiarPestana('variantes')"
-        [class.border-neutral-950]="pestana === 'variantes'"
-        [class.text-neutral-950]="pestana === 'variantes'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Variantes por producto
-      </button>
-      <button
-        (click)="cambiarPestana('tallas')"
-        [class.border-neutral-950]="pestana === 'tallas'"
-        [class.text-neutral-950]="pestana === 'tallas'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Tallas
-      </button>
-      <button
-        (click)="cambiarPestana('colores')"
-        [class.border-neutral-950]="pestana === 'colores'"
-        [class.text-neutral-950]="pestana === 'colores'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Colores
-      </button>
-      <button
-        (click)="cambiarPestana('sucursales')"
-        [class.border-neutral-950]="pestana === 'sucursales'"
-        [class.text-neutral-950]="pestana === 'sucursales'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Sucursales
-      </button>
-      <button
-        (click)="cambiarPestana('proveedores')"
-        [class.border-neutral-950]="pestana === 'proveedores'"
-        [class.text-neutral-950]="pestana === 'proveedores'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Proveedores
-      </button>
-      <button
-        (click)="cambiarPestana('temporadas')"
-        [class.border-neutral-950]="pestana === 'temporadas'"
-        [class.text-neutral-950]="pestana === 'temporadas'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Temporadas
-      </button>
-      <button
-        (click)="cambiarPestana('colecciones')"
-        [class.border-neutral-950]="pestana === 'colecciones'"
-        [class.text-neutral-950]="pestana === 'colecciones'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Colecciones
-      </button>
-      <button
-        (click)="cambiarPestana('tipos-prenda')"
-        [class.border-neutral-950]="pestana === 'tipos-prenda'"
-        [class.text-neutral-950]="pestana === 'tipos-prenda'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Tipo de Prenda
-      </button>
-      <button
-        (click)="cambiarPestana('marcas')"
-        [class.border-neutral-950]="pestana === 'marcas'"
-        [class.text-neutral-950]="pestana === 'marcas'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Marcas
-      </button>
-      <button
-        (click)="cambiarPestana('descuentos')"
-        [class.border-neutral-950]="pestana === 'descuentos'"
-        [class.text-neutral-950]="pestana === 'descuentos'"
-        class="px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-neutral-400 hover:text-neutral-700 transition-all cursor-pointer">
-        Descuentos
-      </button>
-    </div>
-
+    <!-- Mensajes -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium flex items-center justify-between">
-        <span>{{ mensaje }}</span>
-        <button (click)="mensaje = ''" class="text-emerald-600 hover:text-emerald-900 font-bold text-xs uppercase">Cerrar</button>
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
+      </div>
+    }
+    @if (error) {
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
       </div>
     }
 
-    @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium flex items-center justify-between">
-        <span>{{ error }}</span>
-        <button (click)="error = ''" class="text-red-600 hover:text-red-900 font-bold text-xs uppercase">Cerrar</button>
+    @if (cargando) {
+      <div class="py-20">
+        <app-loader size="md" texto="Cargando catálogo..." [centrado]="true"></app-loader>
       </div>
     }
+
+    @if (!cargando) {
+
+      <!-- Pestañas -->
+      <div class="flex gap-1 overflow-x-auto bg-ms-white rounded-2xl border border-ms-stone-200 p-2 mb-8">
+        <app-button [variant]="pestana === 'categorias' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('categorias')">Categorías</app-button>
+        <app-button [variant]="pestana === 'productos' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('productos')">Productos</app-button>
+        <app-button [variant]="pestana === 'variantes' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('variantes')">Variantes por producto</app-button>
+        <app-button [variant]="pestana === 'tallas' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('tallas')">Tallas</app-button>
+        <app-button [variant]="pestana === 'colores' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('colores')">Colores</app-button>
+        <app-button [variant]="pestana === 'sucursales' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('sucursales')">Sucursales</app-button>
+        <app-button [variant]="pestana === 'proveedores' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('proveedores')">Proveedores</app-button>
+        <app-button [variant]="pestana === 'temporadas' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('temporadas')">Temporadas</app-button>
+        <app-button [variant]="pestana === 'colecciones' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('colecciones')">Colecciones</app-button>
+        <app-button [variant]="pestana === 'tipos-prenda' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('tipos-prenda')">Tipo de Prenda</app-button>
+        <app-button [variant]="pestana === 'marcas' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('marcas')">Marcas</app-button>
+        <app-button [variant]="pestana === 'descuentos' ? 'primario' : 'fantasma'" size="sm" class="shrink-0" (click)="cambiarPestana('descuentos')">Descuentos</app-button>
+      </div>
 
     <!-- ===== CATEGORÍAS ===== -->
     @if (pestana === 'categorias') {
@@ -1051,6 +995,8 @@
         </div>
       </div>
     }
+
+  }
 
   </div>
 

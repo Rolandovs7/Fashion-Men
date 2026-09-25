@@ -1,11 +1,6 @@
 import {
   Component,
   OnInit,
-  AfterViewInit,
-  OnDestroy,
-  HostListener,
-  ViewChild,
-  ElementRef,
   inject,
   ChangeDetectorRef
 } from '@angular/core';
@@ -53,15 +48,7 @@ import {
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css'
 })
-export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('barraFiltros') barraFiltros?: ElementRef<HTMLElement>;
-
-  barraFija = false;
-  alturaBarra = 0;
-
-  private offsetFijado = 0;
-  private readonly topFijo = 120;
-  private readonly corteDesktop = 768;
+export class Catalogo implements OnInit {
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
@@ -107,54 +94,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
-  }
-
-  ngAfterViewInit(): void {
-    window.addEventListener('resize', this.alRecargarDispositivo);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('resize', this.alRecargarDispositivo);
-  }
-
-  private alRecargarDispositivo = (): void => {
-    if (this.barraFija) {
-      this.alturaBarra = this.barraFiltros ? this.barraFiltros.nativeElement.offsetHeight : 0;
-      this.cdr.detectChanges();
-    }
-  };
-
-  @HostListener('window:scroll', [])
-  onWindowScroll(): void {
-    if (!this.barraFiltros) return;
-
-    if (window.innerWidth < this.corteDesktop) {
-      if (this.barraFija) {
-        this.barraFija = false;
-        this.cdr.detectChanges();
-      }
-      return;
-    }
-
-    const scrollY = window.scrollY;
-    const barra = this.barraFiltros.nativeElement;
-
-    if (this.barraFija) {
-      if (scrollY < this.offsetFijado - 100) {
-        this.barraFija = false;
-        this.cdr.detectChanges();
-      }
-      return;
-    }
-
-    const rect = barra.getBoundingClientRect();
-    if (rect.top <= this.topFijo) {
-      const altura = barra.offsetHeight || barra.getBoundingClientRect().height || 250;
-      this.alturaBarra = altura;
-      this.offsetFijado = scrollY;
-      this.barraFija = true;
-      this.cdr.detectChanges();
-    }
   }
 
   cargarDatos(): void {

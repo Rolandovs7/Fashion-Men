@@ -261,50 +261,39 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1 space-y-6">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Producto</h3>
-            <select
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Producto</h3>
+            <app-select
+              label="Producto"
+              placeholder="Selecciona un producto"
+              [opciones]="opcionesVarianteProducto"
               [ngModel]="productoSeleccionadoId"
-              (ngModelChange)="seleccionarProducto($event)"
-              class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-              <option [ngValue]="null" disabled>Selecciona un producto</option>
-              @for (producto of productos; track producto.id) {
-                <option [ngValue]="producto.id">{{ producto.nombre }}</option>
-              }
-            </select>
+              (ngModelChange)="onVarianteProductoSeleccionado($event)" />
           </div>
 
           @if (productoSeleccionadoId) {
-            <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nueva variante</h3>
-              <div class="space-y-3">
-                <select
-                  [(ngModel)]="nuevaVariante.talla_id"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                  <option [value]="0" disabled>Talla</option>
-                  @for (talla of tallas; track talla.id) {
-                    <option [value]="talla.id">{{ talla.nombre }}</option>
-                  }
-                </select>
-                <select
-                  [(ngModel)]="nuevaVariante.color_id"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                  <option [value]="0" disabled>Color</option>
-                  @for (color of colores; track color.id) {
-                    <option [value]="color.id">{{ color.nombre }}</option>
-                  }
-                </select>
-                <input
-                  type="text"
-                  [(ngModel)]="nuevaVariante.imagen_url"
-                  placeholder="Imagen URL (opcional, ej. /imagenes/camisas/camisa-formal-azul.jpg)"
-                  class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-                <button
-                  (click)="crearVariante()"
-                  [disabled]="guardando"
-                  class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                  {{ guardando ? 'Guardando...' : 'Agregar variante' }}
-                </button>
+            <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+              <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nueva variante</h3>
+              <div class="space-y-5">
+                <app-select
+                  label="Talla"
+                  placeholder="Talla"
+                  [opciones]="opcionesVarianteTalla"
+                  [ngModel]="nuevaVariante.talla_id"
+                  (ngModelChange)="setNuevaVarianteTalla($event)" />
+                <app-select
+                  label="Color"
+                  placeholder="Color"
+                  [opciones]="opcionesVarianteColor"
+                  [ngModel]="nuevaVariante.color_id"
+                  (ngModelChange)="setNuevaVarianteColor($event)" />
+                <app-input
+                  label="Imagen URL (opcional)"
+                  placeholder="ej. /imagenes/camisas/camisa-formal-azul.jpg"
+                  [(ngModel)]="nuevaVariante.imagen_url" />
+                <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearVariante()">
+                  Agregar variante
+                </app-button>
               </div>
             </div>
           }
@@ -312,70 +301,66 @@
 
         <div class="lg:col-span-2">
           @if (!productoSeleccionadoId) {
-            <div class="bg-white rounded-2xl border border-neutral-200/80 p-16 text-center shadow-sm">
-              <p class="text-sm font-semibold text-neutral-500">Selecciona un producto para ver o crear sus variantes.</p>
-            </div>
+            <app-empty-state icono="👕" titulo="Selecciona un producto" descripcion="Elegí un producto para ver o crear sus variantes." />
           } @else {
-            <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-              <table class="w-full text-left text-sm">
-                <thead>
-                  <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                    <th class="py-3 px-5">Talla</th>
-                    <th class="py-3 px-5">Color</th>
-                    <th class="py-3 px-5">Imagen URL</th>
-                    <th class="py-3 px-5">Stock disponible</th>
-                    <th class="py-3 px-5">Estado</th>
-                    <th class="py-3 px-5 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-100">
-                  @for (variante of variantesDelProducto; track variante.id) {
-                    <tr>
-                      <td class="py-3 px-5 font-bold">{{ variante.talla_nombre }}</td>
-                      <td class="py-3 px-5">
-                        <span class="inline-flex items-center gap-2">
-                          <span class="w-3 h-3 rounded-full border border-neutral-300" [style.background-color]="variante.color_codigo_hex || '#d4d4d4'"></span>
-                          {{ variante.color_nombre }}
-                        </span>
-                      </td>
-                      <td class="py-3 px-5">
-                        @if (variante.imagen_url) {
-                          <button
-                            (click)="editarImagenVariante(variante)"
-                            [title]="'Editar imagen: ' + variante.imagen_url"
-                            class="inline-flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
-                            <span class="w-8 h-9 rounded-lg overflow-hidden border border-neutral-200 shrink-0">
-                              <img [src]="variante.imagen_url" alt="" class="w-full h-full object-cover" />
-                            </span>
-                            <span class="text-xs font-medium text-neutral-500 truncate max-w-[150px]">{{ variante.imagen_url }}</span>
-                          </button>
-                        } @else {
-                          <button
-                            (click)="editarImagenVariante(variante)"
-                            class="text-xs font-medium text-neutral-400 hover:text-neutral-700 cursor-pointer">
-                            Sin imagen · Agregar
-                          </button>
-                        }
-                      </td>
-                      <td class="py-3 px-5 font-semibold">{{ variante.stock_disponible }}</td>
-                      <td class="py-3 px-5">
-                        <span class="px-2 py-1 rounded-md text-xs font-bold"
-                          [class.bg-emerald-50]="variante.activo" [class.text-emerald-700]="variante.activo"
-                          [class.bg-red-50]="!variante.activo" [class.text-red-700]="!variante.activo">
-                          {{ variante.activo ? 'Activa' : 'Inactiva' }}
-                        </span>
-                      </td>
-                      <td class="py-3 px-5 text-right space-x-3">
-                        <button (click)="editarImagenVariante(variante)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Imagen</button>
-                      </td>
+            <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+              @if (variantesDelProducto.length === 0) {
+                <app-empty-state icono="✨" titulo="Este producto aún no tiene variantes" descripcion="Agrega la primera variante desde el formulario." />
+              } @else {
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                      <th class="py-3 px-5">Talla</th>
+                      <th class="py-3 px-5">Color</th>
+                      <th class="py-3 px-5">Imagen URL</th>
+                      <th class="py-3 px-5">Stock disponible</th>
+                      <th class="py-3 px-5">Estado</th>
+                      <th class="py-3 px-5 text-right">Acciones</th>
                     </tr>
-                  } @empty {
-                    <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">Este producto aún no tiene variantes.</td></tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody class="divide-y divide-ms-stone-200">
+                    @for (variante of variantesDelProducto; track variante.id) {
+                      <tr class="transition-colors hover:bg-ms-stone/60">
+                        <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ variante.talla_nombre }}</td>
+                        <td class="py-3.5 px-5">
+                          <span class="inline-flex items-center gap-2 text-ms-slate">
+                            <span class="w-3 h-3 rounded-full border border-ms-stone-300" [style.background-color]="variante.color_codigo_hex || '#d4d4d4'"></span>
+                            {{ variante.color_nombre }}
+                          </span>
+                        </td>
+                        <td class="py-3.5 px-5">
+                          @if (variante.imagen_url) {
+                            <button
+                              (click)="editarImagenVariante(variante)"
+                              [title]="'Editar imagen: ' + variante.imagen_url"
+                              class="inline-flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+                              <span class="w-8 h-9 rounded-lg overflow-hidden border border-ms-stone-200 shrink-0">
+                                <img [src]="variante.imagen_url" alt="" class="w-full h-full object-cover" />
+                              </span>
+                              <span class="text-xs font-medium text-ms-slate truncate max-w-[150px]">{{ variante.imagen_url }}</span>
+                            </button>
+                          } @else {
+                            <app-button variant="secundario" size="sm" (click)="editarImagenVariante(variante)">Sin imagen · Agregar</app-button>
+                          }
+                        </td>
+                        <td class="py-3.5 px-5 font-semibold text-ms-ink">{{ variante.stock_disponible }}</td>
+                        <td class="py-3.5 px-5">
+                          @if (variante.activo) {
+                            <app-badge tipo="exito">Activa</app-badge>
+                          } @else {
+                            <app-badge tipo="error">Inactiva</app-badge>
+                          }
+                        </td>
+                        <td class="py-3.5 px-5 text-right">
+                          <app-button variant="secundario" size="sm" (click)="editarImagenVariante(variante)">Imagen</app-button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
             </div>
-            <p class="text-[11px] text-neutral-400 mt-3">
+            <p class="text-[11px] text-ms-slate mt-3">
               El stock se carga por sucursal desde el módulo de Inventario (pendiente de interfaz de administración).
             </p>
           }
@@ -677,53 +662,56 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nueva talla</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevaTalla.nombre" placeholder="Nombre (ej. XL)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <button (click)="crearTalla()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear talla' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nueva talla</h3>
+            <div class="space-y-5">
+              <app-input
+                label="Nombre (ej. XL)"
+                placeholder="Nombre (ej. XL)"
+                [(ngModel)]="nuevaTalla.nombre" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearTalla()">
+                Crear talla
+              </app-button>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (talla of tallas; track talla.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ talla.nombre }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="talla.activo" [class.text-emerald-700]="talla.activo"
-                        [class.bg-red-50]="!talla.activo" [class.text-red-700]="!talla.activo">
-                        {{ talla.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (talla.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarTalla(talla)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarTalla(talla)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (tallas.length === 0) {
+              <app-empty-state icono="📏" titulo="Sin tallas registradas" descripcion="Crea tu primera talla desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="3" class="py-8 text-center text-neutral-400 text-sm">Sin tallas registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (talla of tallas; track talla.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ talla.nombre }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (talla.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (talla.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarTalla(talla)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarTalla(talla)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 
@@ -735,65 +723,73 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo color</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevoColor.nombre" placeholder="Nombre (ej. Azul marino)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <div class="flex items-center gap-3">
-                <input type="color" [(ngModel)]="nuevoColor.codigo_hex"
-                  class="w-14 h-11 rounded-xl border border-neutral-300 cursor-pointer" />
-                <span class="text-sm text-neutral-500 font-mono">{{ nuevoColor.codigo_hex }}</span>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nuevo color</h3>
+            <div class="space-y-5">
+              <app-input
+                label="Nombre (ej. Azul marino)"
+                placeholder="Nombre (ej. Azul marino)"
+                [(ngModel)]="nuevoColor.nombre" />
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">Color</label>
+                <div class="flex items-center gap-3">
+                  <input type="color" [(ngModel)]="nuevoColor.codigo_hex"
+                    class="w-14 h-11 rounded-xl border border-ms-stone-200 cursor-pointer" />
+                  <span class="text-sm text-ms-slate font-mono">{{ nuevoColor.codigo_hex }}</span>
+                </div>
               </div>
-              <input type="text" [(ngModel)]="nuevoColor.imagen_url" placeholder="Imagen URL (opcional, ej. /imagenes/negro.jpg)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <button (click)="crearColor()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear color' }}
-              </button>
+              <app-input
+                label="Imagen URL (opcional)"
+                placeholder="ej. /imagenes/negro.jpg"
+                [(ngModel)]="nuevoColor.imagen_url" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearColor()">
+                Crear color
+              </app-button>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Color</th>
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (color of colores; track color.id) {
-                  <tr>
-                    <td class="py-3 px-5">
-                      <span class="inline-block w-5 h-5 rounded-full border border-neutral-300" [style.background-color]="color.codigo_hex || '#d4d4d4'"></span>
-                    </td>
-                    <td class="py-3 px-5 font-bold">{{ color.nombre }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="color.activo" [class.text-emerald-700]="color.activo"
-                        [class.bg-red-50]="!color.activo" [class.text-red-700]="!color.activo">
-                        {{ color.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right space-x-3">
-                      <button (click)="editarColor(color)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
-                      @if (color.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarColor(color)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarColor(color)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (colores.length === 0) {
+              <app-empty-state icono="🎨" titulo="Sin colores registrados" descripcion="Crea tu primer color desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Color</th>
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin colores registrados.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (color of colores; track color.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5">
+                        <span class="inline-block w-5 h-5 rounded-full border border-ms-stone-300" [style.background-color]="color.codigo_hex || '#d4d4d4'"></span>
+                      </td>
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ color.nombre }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (color.activo) {
+                          <app-badge tipo="exito">Activo</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactivo</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="secundario" size="sm" (click)="editarColor(color)">Editar</app-button>
+                        @if (color.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarColor(color)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarColor(color)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 

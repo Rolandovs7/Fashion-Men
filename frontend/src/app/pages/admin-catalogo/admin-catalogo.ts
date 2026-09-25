@@ -617,7 +617,7 @@ nuevaTalla = { nombre: '' };
   }
 
   // ----- Variantes -----
-  seleccionarProducto(productoId: number): void {
+  seleccionarProducto(productoId: number | null): void {
     this.productoSeleccionadoId = productoId;
     this.error = '';
     this.mensaje = '';
@@ -637,6 +637,32 @@ nuevaTalla = { nombre: '' };
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ── Coercion de app-select (app-select entrega strings) ──
+
+  get opcionesVarianteProducto(): OpcionSelect[] {
+    return this.productos.map(p => ({ valor: p.id, etiqueta: p.nombre }));
+  }
+
+  get opcionesVarianteTalla(): OpcionSelect[] {
+    return this.tallas.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesVarianteColor(): OpcionSelect[] {
+    return this.colores.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  onVarianteProductoSeleccionado(valor: string): void {
+    this.seleccionarProducto(valor === '' ? null : Number(valor));
+  }
+
+  setNuevaVarianteTalla(valor: string): void {
+    this.nuevaVariante.talla_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setNuevaVarianteColor(valor: string): void {
+    this.nuevaVariante.color_id = valor === '' ? 0 : Number(valor);
   }
 
   crearVariante(): void {

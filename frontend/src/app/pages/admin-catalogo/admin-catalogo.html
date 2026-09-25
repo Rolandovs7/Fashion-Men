@@ -83,11 +83,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (categorias.length === 0) {
               <app-empty-state icono="🏷️" titulo="Sin categorías registradas" descripcion="Crea tu primera categoría desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -206,11 +206,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (productos.length === 0) {
               <app-empty-state icono="👔" titulo="Sin productos registrados" descripcion="Crea tu primer producto desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[860px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -303,11 +303,11 @@
           @if (!productoSeleccionadoId) {
             <app-empty-state icono="👕" titulo="Selecciona un producto" descripcion="Elegí un producto para ver o crear sus variantes." />
           } @else {
-            <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
               @if (variantesDelProducto.length === 0) {
                 <app-empty-state icono="✨" titulo="Este producto aún no tiene variantes" descripcion="Agrega la primera variante desde el formulario." />
               } @else {
-                <table class="w-full text-left text-sm">
+                <table class="w-full text-left text-sm min-w-[860px]">
                   <thead>
                     <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                       <th class="py-3 px-5">Talla</th>
@@ -396,11 +396,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (sucursales.length === 0) {
               <app-empty-state icono="🏬" titulo="Sin sucursales registradas" descripcion="Registrá tu primera sucursal desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[860px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -465,11 +465,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (proveedores.length === 0) {
               <app-empty-state icono="🚚" titulo="Sin proveedores registrados" descripcion="Registrá tu primer proveedor desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[860px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -530,11 +530,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (temporadas.length === 0) {
               <app-empty-state icono="🍂" titulo="Sin temporadas registradas" descripcion="Creá tu primera temporada desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -591,11 +591,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (colecciones.length === 0) {
               <app-empty-state icono="🧵" titulo="Sin colecciones registradas" descripcion="Creá tu primera colección desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -654,11 +654,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (tallas.length === 0) {
               <app-empty-state icono="📏" titulo="Sin tallas registradas" descripcion="Crea tu primera talla desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Nombre</th>
@@ -727,11 +727,11 @@
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
             @if (colores.length === 0) {
               <app-empty-state icono="🎨" titulo="Sin colores registrados" descripcion="Crea tu primer color desde el formulario." />
             } @else {
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                     <th class="py-3 px-5">Color</th>

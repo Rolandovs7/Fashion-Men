@@ -18,7 +18,7 @@ Este documento mapea **Casos de Uso (CU)** con **Requisitos Funcionales (RF)** d
 | CU10 | Gestionar Marcas | ✓ | | RF04 | /api/brands | brands.py | ✅ |
 | CU11 | Gestionar Tallas | ✓ | | RF05 | /api/sizes | sizes.py | ✅ |
 | CU12 | Gestionar Colores | ✓ | | RF05 | /api/colors | colors.py | ✅ |
-| CU13 | Gestionar Imágenes | ✓ | | RF04 | (parte de productos) | products.py | 🚧 |
+| CU13 | Gestionar Imágenes | ✓ | | RF04 | (parte de productos) | products.py | ✅ |
 | CU14 | Administrar Catálogo | ✓ | ✓ | RF07 | GET /api/products | products.py | ✅ |
 | CU15 | Administrar Inventario | ✓ | | RF21 RF22 | /api/inventory | inventory.py | ✅ |
 | CU16 | Gestionar Categorías | ✓ | | RF05 | /api/categories | categories.py | ✅ |
@@ -34,11 +34,11 @@ Este documento mapea **Casos de Uso (CU)** con **Requisitos Funcionales (RF)** d
 | CU26 | Gestionar Proveedores | ✓ | | RF06 | /api/suppliers | suppliers.py | ✅ |
 | CU27 | Gestionar Temporadas | ✓ | | RF23 | /api/seasons | seasons.py | ✅ |
 | CU28 | Gestionar Colecciones | ✓ | | RF23 | /api/collections | collections.py | ✅ |
-| CU29 | Visualizar Dashboard | ✓ | | RF24 | /api/reports/dashboard | reports.py | 🚧 |
-| CU30 | Generar Reportes | ✓ | | RF24 | /api/reports | reports.py | ❌ FALTA |
-| CU31 | Recibir Recomendaciones IA | ✓ | ✓ | RF25 | POST /api/ia/recomendar | ia.py | ❌ FALTA |
-| CU32 | Interactuar Asistente Virtual | ✓ | ✓ | RF25 | POST /api/ia/chat | ia.py | ❌ FALTA |
-| CU33 | Gestionar Historial de Compras | ✓ | ✓ | RF15 RF16 | GET /api/orders/me | orders.py | 🚧 |
+| CU29 | Visualizar Dashboard | ✓ | | RF24 | /api/reports/dashboard | reports.py | ✅ |
+| CU30 | Generar Reportes | ✓ | | RF24 | /api/reports | reports.py | ✅ |
+| CU31 | Recibir Recomendaciones IA | ✓ | ✓ | RF25 | POST /api/ia/recomendar | ia.py | ✅ |
+| CU32 | Interactuar Asistente Virtual | ✓ | ✓ | RF25 | POST /api/ia/chat | ia.py | ✅ |
+| CU33 | Gestionar Historial de Compras | ✓ | ✓ | RF15 RF16 | GET /api/orders/me | orders.py | ✅ |
 
 ## 🎯 Convención de encabezados en código
 
@@ -58,14 +58,21 @@ Cada archivo del backend tendrá al inicio:
 
 | Categoría | Cantidad | % |
 |-----------|----------|---|
-| ✅ Implementados | 26 | 79% |
-| 🚧 Por completar | 4 | 12% |
-| ❌ Faltantes | 3 | 9% |
+| ✅ Implementados | 32 | 97% |
+| 🚧 Por completar | 1 | 3% |
+| ❌ Faltantes | 0 | 0% |
 
-### Prioridades críticas (obligatorios del examen)
+### Pendientes
 
-- 🔴 CU23 - Realizar Probador Virtual (RF13)
-- 🔴 CU30 - Generar Reportes (RF24)
-- 🔴 CU31 - Recibir Recomendaciones IA (RF25)
-- 🔴 CU32 - Interactuar con Asistente Virtual (RF25)
-- 🔴 CU19 - Ampliar con pasarela Stripe real (RF19)
+- 🟡 CU23 - Realizar Probador Virtual (RF13) - pendiente para fase futura.
+- 🟡 CU19 - Ampliar con pasarela Stripe real (RF19) - sandbox actual,
+  requiere configuración de producción.
+
+## 📝 Notas de Actualización
+
+**Septiembre 2026:**
+- Completadas las Fases 1-8 del rediseño visual (Quiet Editorial Luxury).
+- Implementada imagen por variante (21 productos, 186 variantes).
+- Mejorado el sistema de IA con Gemini (chat + recomendaciones).
+- Distribuido el stock en 3 sucursales.
+- Admin completo con 12 secciones en el catálogo.

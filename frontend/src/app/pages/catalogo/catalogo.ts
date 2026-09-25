@@ -139,8 +139,11 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     const rect = this.barraFiltros.nativeElement.getBoundingClientRect();
 
     if (!this.barraFija && rect.top <= this.topFijo) {
-      this.alturaBarra = this.barraFiltros.nativeElement.offsetHeight;
+      const barra = this.barraFiltros.nativeElement;
+      const altura = barra.offsetHeight || barra.getBoundingClientRect().height || 250;
+      this.alturaBarra = altura;
       this.offsetNaturalBarra = rect.top + window.scrollY;
+      console.log('[sticky] Fijando barra. Altura:', altura, 'px');
       this.barraFija = true;
       this.cdr.detectChanges();
     } else if (this.barraFija && window.scrollY + this.topFijo < this.offsetNaturalBarra) {

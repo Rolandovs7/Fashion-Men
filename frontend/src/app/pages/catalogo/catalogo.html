@@ -116,11 +116,13 @@
     </section>
 
     <!-- Spacer: compensa la altura de la barra cuando queda fija -->
-    <div
-      #spacerBarra
-      [class.spacer-barra]="barraFija"
-      [style.height.px]="barraFija ? alturaBarra + 32 : 0"
-      aria-hidden="true"></div>
+    @if (barraFija) {
+      <div
+        #spacerBarra
+        [style.height.px]="alturaBarra"
+        class="mb-8"
+        aria-hidden="true"></div>
+    }
 
     <!-- Chips de filtros activos (arriba del grid) -->
     @if (chips.length > 0) {

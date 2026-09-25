@@ -57,77 +57,70 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">
               {{ categoriaEditandoId ? 'Editar categoría' : 'Nueva categoría' }}
             </h3>
-            <div class="space-y-3">
-              <input
-                type="text"
-                [(ngModel)]="nuevaCategoria.nombre"
+            <div class="space-y-5">
+              <app-input
+                label="Nombre"
                 placeholder="Nombre (ej. Camisas)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea
-                [(ngModel)]="nuevaCategoria.descripcion"
+                [(ngModel)]="nuevaCategoria.nombre" />
+              <app-input
+                label="Descripción"
                 placeholder="Descripción (opcional)"
-                rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <div class="flex gap-2">
+                [(ngModel)]="nuevaCategoria.descripcion" />
+              <div class="flex gap-2 pt-1">
                 @if (categoriaEditandoId) {
-                  <button
-                    (click)="cancelarEdicionCategoria()"
-                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
-                    Cancelar
-                  </button>
+                  <app-button variant="secundario" (click)="cancelarEdicionCategoria()">Cancelar</app-button>
                 }
-                <button
-                  (click)="guardarCategoria()"
-                  [disabled]="guardando"
-                  class="flex-1 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                  {{ guardando ? 'Guardando...' : (categoriaEditandoId ? 'Guardar cambios' : 'Crear categoría') }}
-                </button>
+                <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarCategoria()">
+                  {{ categoriaEditandoId ? 'Guardar cambios' : 'Crear categoría' }}
+                </app-button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Descripción</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (categoria of categorias; track categoria.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ categoria.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ categoria.descripcion || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="categoria.activo" [class.text-emerald-700]="categoria.activo"
-                        [class.bg-red-50]="!categoria.activo" [class.text-red-700]="!categoria.activo">
-                        {{ categoria.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right space-x-3">
-                      <button (click)="editarCategoria(categoria)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
-                      @if (categoria.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarCategoria(categoria)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarCategoria(categoria)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (categorias.length === 0) {
+              <app-empty-state icono="🏷️" titulo="Sin categorías registradas" descripcion="Crea tu primera categoría desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Descripción</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin categorías registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (categoria of categorias; track categoria.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ categoria.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ categoria.descripcion || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (categoria.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="secundario" size="sm" (click)="editarCategoria(categoria)">Editar</app-button>
+                        @if (categoria.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarCategoria(categoria)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarCategoria(categoria)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 
@@ -139,146 +132,124 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">
               {{ productoEditandoId ? 'Editar producto' : 'Nuevo producto' }}
             </h3>
-            <div class="space-y-3">
-              <input
-                type="text"
-                [(ngModel)]="nuevoProducto.nombre"
+            <div class="space-y-5">
+              <app-input
+                label="Nombre"
                 placeholder="Nombre del producto"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea
-                [(ngModel)]="nuevoProducto.descripcion"
+                [(ngModel)]="nuevoProducto.nombre" />
+              <app-input
+                label="Descripción"
                 placeholder="Descripción (opcional)"
-                rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <input
+                [(ngModel)]="nuevoProducto.descripcion" />
+              <app-input
+                label="Precio (Bs)"
                 type="number"
-                [(ngModel)]="nuevoProducto.precio"
-                placeholder="Precio (Bs)"
-                min="0"
-                step="0.01"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <select
-                [(ngModel)]="nuevoProducto.categoria_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0" disabled>Selecciona una categoría</option>
-                @for (categoria of categorias; track categoria.id) {
-                  <option [value]="categoria.id">{{ categoria.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.proveedor_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Proveedor (opcional)</option>
-                @for (proveedor of proveedores; track proveedor.id) {
-                  <option [value]="proveedor.id">{{ proveedor.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.temporada_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Temporada (opcional)</option>
-                @for (temporada of temporadas; track temporada.id) {
-                  <option [value]="temporada.id">{{ temporada.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.coleccion_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Colección (opcional)</option>
-                @for (coleccion of colecciones; track coleccion.id) {
-                  <option [value]="coleccion.id">{{ coleccion.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.tipo_prenda_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Tipo de prenda (opcional)</option>
-                @for (tipo of tiposPrenda; track tipo.id) {
-                  <option [value]="tipo.id">{{ tipo.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.marca_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Marca (opcional)</option>
-                @for (marca of marcas; track marca.id) {
-                  <option [value]="marca.id">{{ marca.nombre }}</option>
-                }
-              </select>
-              <select
-                [(ngModel)]="nuevoProducto.descuento_id"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-                <option [value]="0">Descuento (opcional)</option>
-                @for (descuento of descuentos; track descuento.id) {
-                  <option [value]="descuento.id">{{ descuento.nombre }} (-{{ descuento.porcentaje }}%)</option>
-                }
-              </select>
-              <div class="flex gap-2">
+                placeholder="0.00"
+                [ngModel]="nuevoProducto.precio"
+                (ngModelChange)="setProductoPrecio($event)" />
+              <app-select
+                label="Categoría"
+                placeholder="Selecciona una categoría"
+                [opciones]="opcionesCategoria"
+                [ngModel]="nuevoProducto.categoria_id"
+                (ngModelChange)="setProductoCategoria($event)" />
+              <app-select
+                label="Temporada"
+                placeholder="Temporada (opcional)"
+                [opciones]="opcionesTemporada"
+                [ngModel]="nuevoProducto.temporada_id"
+                (ngModelChange)="setProductoTemporada($event)" />
+              <app-select
+                label="Colección"
+                placeholder="Colección (opcional)"
+                [opciones]="opcionesColeccion"
+                [ngModel]="nuevoProducto.coleccion_id"
+                (ngModelChange)="setProductoColeccion($event)" />
+              <app-select
+                label="Tipo de prenda"
+                placeholder="Tipo de prenda (opcional)"
+                [opciones]="opcionesTipoPrenda"
+                [ngModel]="nuevoProducto.tipo_prenda_id"
+                (ngModelChange)="setProductoTipoPrenda($event)" />
+              <app-select
+                label="Marca"
+                placeholder="Marca (opcional)"
+                [opciones]="opcionesMarca"
+                [ngModel]="nuevoProducto.marca_id"
+                (ngModelChange)="setProductoMarca($event)" />
+              <app-select
+                label="Proveedor"
+                placeholder="Proveedor (opcional)"
+                [opciones]="opcionesProveedor"
+                [ngModel]="nuevoProducto.proveedor_id"
+                (ngModelChange)="setProductoProveedor($event)" />
+              <app-select
+                label="Descuento"
+                placeholder="Descuento (opcional)"
+                [opciones]="opcionesDescuento"
+                [ngModel]="nuevoProducto.descuento_id"
+                (ngModelChange)="setProductoDescuento($event)" />
+              <div class="flex gap-2 pt-1">
                 @if (productoEditandoId) {
-                  <button
-                    (click)="cancelarEdicionProducto()"
-                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
-                    Cancelar
-                  </button>
+                  <app-button variant="secundario" (click)="cancelarEdicionProducto()">Cancelar</app-button>
                 }
-                <button
-                  (click)="guardarProducto()"
-                  [disabled]="guardando"
-                  class="flex-1 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                  {{ guardando ? 'Guardando...' : (productoEditandoId ? 'Guardar cambios' : 'Crear producto') }}
-                </button>
+                <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarProducto()">
+                  {{ productoEditandoId ? 'Guardar cambios' : 'Crear producto' }}
+                </app-button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Categoría</th>
-                  <th class="py-3 px-5">Temporada / Colección</th>
-                  <th class="py-3 px-5">Precio</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (producto of productos; track producto.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ producto.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ nombreCategoria(producto.categoria_id) }}</td>
-                    <td class="py-3 px-5 text-neutral-500 text-xs">
-                      {{ nombreTemporada(producto.temporada_id) }} / {{ nombreColeccion(producto.coleccion_id) }}
-                    </td>
-                    <td class="py-3 px-5 font-semibold">Bs {{ producto.precio.toFixed(2) }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="producto.activo" [class.text-emerald-700]="producto.activo"
-                        [class.bg-red-50]="!producto.activo" [class.text-red-700]="!producto.activo">
-                        {{ producto.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right space-x-3">
-                      <button (click)="editarProducto(producto)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
-                      @if (producto.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarProducto(producto)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarProducto(producto)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (productos.length === 0) {
+              <app-empty-state icono="👔" titulo="Sin productos registrados" descripcion="Crea tu primer producto desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Categoría</th>
+                    <th class="py-3 px-5">Temporada / Colección</th>
+                    <th class="py-3 px-5">Precio</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="6" class="py-8 text-center text-neutral-400 text-sm">Sin productos registrados.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (producto of productos; track producto.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ producto.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ nombreCategoria(producto.categoria_id) }}</td>
+                      <td class="py-3.5 px-5 text-xs text-ms-slate">
+                        {{ nombreTemporada(producto.temporada_id) }} / {{ nombreColeccion(producto.coleccion_id) }}
+                      </td>
+                      <td class="py-3.5 px-5"><app-price [valor]="producto.precio" /></td>
+                      <td class="py-3.5 px-5">
+                        @if (producto.activo) {
+                          <app-badge tipo="exito">Activo</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactivo</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="secundario" size="sm" (click)="editarProducto(producto)">Editar</app-button>
+                        @if (producto.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarProducto(producto)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarProducto(producto)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 

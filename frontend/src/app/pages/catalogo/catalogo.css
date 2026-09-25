@@ -33,14 +33,14 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .barra-fija {
     padding-left: 2rem;
     padding-right: 2rem;
   }
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .barra-fija {
     position: static;
   }

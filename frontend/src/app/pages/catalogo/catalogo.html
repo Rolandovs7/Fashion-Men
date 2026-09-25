@@ -84,7 +84,7 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <app-button variant="secundario" size="md" class="lg:hidden" (click)="abrirFiltros()">
+            <app-button variant="secundario" size="md" class="md:hidden" (click)="abrirFiltros()">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M6 12h12M10 18h4"/>
               </svg>
@@ -102,7 +102,7 @@
         </div>
 
         <!-- Fila 2: selectores (solo desktop) -->
-        <div class="hidden lg:grid grid-cols-2 xl:grid-cols-4 gap-3 mt-4 pt-4 border-t border-ms-stone-200">
+        <div class="hidden md:grid grid-cols-2 xl:grid-cols-4 gap-3 mt-4 pt-4 border-t border-ms-stone-200">
           <app-select label="Categoría" [(ngModel)]="categoriaSeleccionada" (ngModelChange)="cambioCategoria()"
             [opciones]="opcionesCategoria" placeholder="Todas"></app-select>
           <app-select label="Talla" [(ngModel)]="filtroTalla" (ngModelChange)="cambioTalla()"

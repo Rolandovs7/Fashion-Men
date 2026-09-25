@@ -61,7 +61,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
 
   private offsetNaturalBarra = 0;
   private readonly topFijo = 120;
-  private readonly corteDesktop = 1024;
+  private readonly corteDesktop = 768;
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);

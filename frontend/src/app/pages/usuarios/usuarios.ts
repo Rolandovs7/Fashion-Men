@@ -9,6 +9,17 @@ import {
 } from '../../core/services/usuarios.service';
 import { RolesService, Rol } from '../../core/services/roles.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import {
+  ButtonComponent,
+  AlertComponent,
+  SelectComponent,
+  InputComponent,
+  BadgeComponent,
+  ModalComponent,
+  LoaderComponent,
+  EmptyStateComponent,
+  type OpcionSelect
+} from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -23,7 +34,7 @@ import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 // ============================================================
 @Component({
   selector: 'app-usuarios',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent, AlertComponent, SelectComponent, InputComponent, BadgeComponent, ModalComponent, LoaderComponent, EmptyStateComponent],
   templateUrl: './usuarios.html'
 })
 export class Usuarios implements OnInit {
@@ -52,6 +63,10 @@ export class Usuarios implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  get opcionesRoles(): OpcionSelect[] {
+    return this.roles.map(r => ({ valor: r.nombre, etiqueta: r.nombre }));
   }
 
   cargarUsuarios(): void {
@@ -124,27 +139,45 @@ export class Usuarios implements OnInit {
       });
   }
 
-  eliminar(usuario: Usuario): void {
+  toggleActivo(usuario: Usuario): void {
+    const nombreCompleto = `${usuario.nombre} ${usuario.apellido}`;
+
     if (
       !confirm(
-        `¿Seguro que deseas eliminar a ${usuario.nombre} ${usuario.apellido}?`
+        usuario.activo
+          ? `¿Seguro que deseas desactivar a ${nombreCompleto}?`
+          : `¿Seguro que deseas reactivar a ${nombreCompleto}?`
       )
     ) {
       return;
     }
 
-    this.usuariosService.eliminar(usuario.id).subscribe({
-      next: () => {
-        this.usuarios = this.usuarios.filter(
-          u => u.id !== usuario.id
+    const datos: UsuarioActualizar = {
+      nombre: usuario.nombre,
+      apellido: usuario.apellido,
+      email: usuario.email,
+      activo: !usuario.activo,
+      rol: usuario.rol
+    };
+
+    this.usuariosService.actualizar(usuario.id, datos).subscribe({
+      next: (usuarioActualizado) => {
+        const indice = this.usuarios.findIndex(
+          u => u.id === usuarioActualizado.id
         );
 
-        this.mensaje = 'Usuario eliminado correctamente.';
+        if (indice !== -1) {
+          this.usuarios[indice] = usuarioActualizado;
+        }
+
+        this.mensaje = usuarioActualizado.activo
+          ? 'Usuario reactivado correctamente.'
+          : 'Usuario desactivado correctamente.';
       },
       error: (error) => {
         this.error =
           error.error?.detail ||
-          'No se pudo eliminar el usuario.';
+          'No se pudo actualizar el estado del usuario.';
       }
     });
   }

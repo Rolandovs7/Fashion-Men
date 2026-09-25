@@ -374,89 +374,70 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">
               {{ sucursalEditandoId ? 'Editar sucursal' : 'Nueva sucursal' }}
             </h3>
-            <div class="space-y-3">
-              <input
-                type="text"
-                [(ngModel)]="nuevaSucursal.nombre"
-                placeholder="Nombre (ej. MenStyle Equipetrol)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input
-                type="text"
-                [(ngModel)]="nuevaSucursal.direccion"
-                placeholder="Dirección"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input
-                type="text"
-                [(ngModel)]="nuevaSucursal.ciudad"
-                placeholder="Ciudad"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input
-                type="text"
-                [(ngModel)]="nuevaSucursal.telefono"
-                placeholder="Teléfono (opcional)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <div class="flex gap-2">
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. MenStyle Equipetrol)" [(ngModel)]="nuevaSucursal.nombre" />
+              <app-input label="Dirección" placeholder="Dirección" [(ngModel)]="nuevaSucursal.direccion" />
+              <app-input label="Ciudad" placeholder="Ciudad" [(ngModel)]="nuevaSucursal.ciudad" />
+              <app-input label="Teléfono (opcional)" placeholder="Teléfono (opcional)" [(ngModel)]="nuevaSucursal.telefono" />
+              <div class="flex gap-2 pt-1">
                 @if (sucursalEditandoId) {
-                  <button
-                    (click)="cancelarEdicionSucursal()"
-                    class="flex-1 rounded-xl border border-neutral-300 text-neutral-700 font-bold text-sm py-2.5 hover:bg-neutral-50 transition-all cursor-pointer">
-                    Cancelar
-                  </button>
+                  <app-button variant="secundario" (click)="cancelarEdicionSucursal()">Cancelar</app-button>
                 }
-                <button
-                  (click)="guardarSucursal()"
-                  [disabled]="guardando"
-                  class="flex-1 bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                  {{ guardando ? 'Guardando...' : (sucursalEditandoId ? 'Guardar cambios' : 'Crear sucursal') }}
-                </button>
+                <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardarSucursal()">
+                  {{ sucursalEditandoId ? 'Guardar cambios' : 'Crear sucursal' }}
+                </app-button>
               </div>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Ciudad</th>
-                  <th class="py-3 px-5">Dirección</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (sucursal of sucursales; track sucursal.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ sucursal.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ sucursal.ciudad }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ sucursal.direccion }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="sucursal.activo" [class.text-emerald-700]="sucursal.activo"
-                        [class.bg-red-50]="!sucursal.activo" [class.text-red-700]="!sucursal.activo">
-                        {{ sucursal.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right space-x-3">
-                      <button (click)="editarSucursal(sucursal)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
-                      @if (sucursal.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarSucursal(sucursal)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarSucursal(sucursal)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (sucursales.length === 0) {
+              <app-empty-state icono="🏬" titulo="Sin sucursales registradas" descripcion="Registrá tu primera sucursal desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Dirección</th>
+                    <th class="py-3 px-5">Ciudad</th>
+                    <th class="py-3 px-5">Teléfono</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">Sin sucursales registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (sucursal of sucursales; track sucursal.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ sucursal.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ sucursal.direccion }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ sucursal.ciudad }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ sucursal.telefono || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (sucursal.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="secundario" size="sm" (click)="editarSucursal(sucursal)">Editar</app-button>
+                        @if (sucursal.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarSucursal(sucursal)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarSucursal(sucursal)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 
@@ -468,65 +449,63 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nuevo proveedor</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevoProveedor.nombre" placeholder="Nombre / Razón social"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input type="text" [(ngModel)]="nuevoProveedor.contacto" placeholder="Persona de contacto (opcional)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input type="text" [(ngModel)]="nuevoProveedor.telefono" placeholder="Teléfono (opcional)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input type="email" [(ngModel)]="nuevoProveedor.email" placeholder="Correo (opcional)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <input type="text" [(ngModel)]="nuevoProveedor.direccion" placeholder="Dirección (opcional)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <button (click)="crearProveedor()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear proveedor' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nuevo proveedor</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre / Razón social" placeholder="Nombre / Razón social" [(ngModel)]="nuevoProveedor.nombre" />
+              <app-input label="Persona de contacto (opcional)" placeholder="Persona de contacto (opcional)" [(ngModel)]="nuevoProveedor.contacto" />
+              <app-input label="Teléfono (opcional)" placeholder="Teléfono (opcional)" [(ngModel)]="nuevoProveedor.telefono" />
+              <app-input label="Correo (opcional)" type="email" placeholder="Correo (opcional)" [(ngModel)]="nuevoProveedor.email" />
+              <app-input label="Dirección (opcional)" placeholder="Dirección (opcional)" [(ngModel)]="nuevoProveedor.direccion" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearProveedor()">
+                Crear proveedor
+              </app-button>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Contacto</th>
-                  <th class="py-3 px-5">Teléfono</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (proveedor of proveedores; track proveedor.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ proveedor.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ proveedor.contacto || '—' }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ proveedor.telefono || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="proveedor.activo" [class.text-emerald-700]="proveedor.activo"
-                        [class.bg-red-50]="!proveedor.activo" [class.text-red-700]="!proveedor.activo">
-                        {{ proveedor.activo ? 'Activo' : 'Inactivo' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (proveedor.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarProveedor(proveedor)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarProveedor(proveedor)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (proveedores.length === 0) {
+              <app-empty-state icono="🚚" titulo="Sin proveedores registrados" descripcion="Registrá tu primer proveedor desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Contacto</th>
+                    <th class="py-3 px-5">Teléfono</th>
+                    <th class="py-3 px-5">Correo</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="5" class="py-8 text-center text-neutral-400 text-sm">Sin proveedores registrados.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (proveedor of proveedores; track proveedor.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ proveedor.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ proveedor.contacto || '—' }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ proveedor.telefono || '—' }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ proveedor.email || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (proveedor.activo) {
+                          <app-badge tipo="exito">Activo</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactivo</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (proveedor.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarProveedor(proveedor)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarProveedor(proveedor)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 
@@ -538,57 +517,56 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nueva temporada</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevaTemporada.nombre" placeholder="Nombre (ej. Otoño-Invierno 2026)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea [(ngModel)]="nuevaTemporada.descripcion" placeholder="Descripción (opcional)" rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <button (click)="crearTemporada()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear temporada' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nueva temporada</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. Otoño-Invierno 2026)" [(ngModel)]="nuevaTemporada.nombre" />
+              <app-input label="Descripción (opcional)" placeholder="Descripción (opcional)" [(ngModel)]="nuevaTemporada.descripcion" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearTemporada()">
+                Crear temporada
+              </app-button>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Descripción</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (temporada of temporadas; track temporada.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ temporada.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ temporada.descripcion || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="temporada.activo" [class.text-emerald-700]="temporada.activo"
-                        [class.bg-red-50]="!temporada.activo" [class.text-red-700]="!temporada.activo">
-                        {{ temporada.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (temporada.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarTemporada(temporada)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarTemporada(temporada)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (temporadas.length === 0) {
+              <app-empty-state icono="🍂" titulo="Sin temporadas registradas" descripcion="Creá tu primera temporada desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Descripción</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin temporadas registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (temporada of temporadas; track temporada.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ temporada.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ temporada.descripcion || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (temporada.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (temporada.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarTemporada(temporada)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarTemporada(temporada)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 
@@ -600,57 +578,56 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Nueva colección</h3>
-            <div class="space-y-3">
-              <input type="text" [(ngModel)]="nuevaColeccion.nombre" placeholder="Nombre (ej. Verano Urbano)"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-              <textarea [(ngModel)]="nuevaColeccion.descripcion" placeholder="Descripción (opcional)" rows="2"
-                class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950 resize-none"></textarea>
-              <button (click)="crearColeccion()" [disabled]="guardando"
-                class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-                {{ guardando ? 'Guardando...' : 'Crear colección' }}
-              </button>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+            <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Nueva colección</h3>
+            <div class="space-y-5">
+              <app-input label="Nombre" placeholder="Nombre (ej. Verano Urbano)" [(ngModel)]="nuevaColeccion.nombre" />
+              <app-input label="Descripción (opcional)" placeholder="Descripción (opcional)" [(ngModel)]="nuevaColeccion.descripcion" />
+              <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearColeccion()">
+                Crear colección
+              </app-button>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
-                  <th class="py-3 px-5">Nombre</th>
-                  <th class="py-3 px-5">Descripción</th>
-                  <th class="py-3 px-5">Estado</th>
-                  <th class="py-3 px-5 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-neutral-100">
-                @for (coleccion of colecciones; track coleccion.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ coleccion.nombre }}</td>
-                    <td class="py-3 px-5 text-neutral-500">{{ coleccion.descripcion || '—' }}</td>
-                    <td class="py-3 px-5">
-                      <span class="px-2 py-1 rounded-md text-xs font-bold"
-                        [class.bg-emerald-50]="coleccion.activo" [class.text-emerald-700]="coleccion.activo"
-                        [class.bg-red-50]="!coleccion.activo" [class.text-red-700]="!coleccion.activo">
-                        {{ coleccion.activo ? 'Activa' : 'Inactiva' }}
-                      </span>
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                      @if (coleccion.activo) {
-                        <app-button variant="peligro" size="sm" (click)="eliminarColeccion(coleccion)">Desactivar</app-button>
-                      } @else {
-                        <app-button variant="secundario" size="sm" (click)="reactivarColeccion(coleccion)">Reactivar</app-button>
-                      }
-                    </td>
+          <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden">
+            @if (colecciones.length === 0) {
+              <app-empty-state icono="🧵" titulo="Sin colecciones registradas" descripcion="Creá tu primera colección desde el formulario." />
+            } @else {
+              <table class="w-full text-left text-sm">
+                <thead>
+                  <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+                    <th class="py-3 px-5">Nombre</th>
+                    <th class="py-3 px-5">Descripción</th>
+                    <th class="py-3 px-5">Estado</th>
+                    <th class="py-3 px-5 text-right">Acciones</th>
                   </tr>
-                } @empty {
-                  <tr><td colspan="4" class="py-8 text-center text-neutral-400 text-sm">Sin colecciones registradas.</td></tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-ms-stone-200">
+                  @for (coleccion of colecciones; track coleccion.id) {
+                    <tr class="transition-colors hover:bg-ms-stone/60">
+                      <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ coleccion.nombre }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ coleccion.descripcion || '—' }}</td>
+                      <td class="py-3.5 px-5">
+                        @if (coleccion.activo) {
+                          <app-badge tipo="exito">Activa</app-badge>
+                        } @else {
+                          <app-badge tipo="error">Inactiva</app-badge>
+                        }
+                      </td>
+                      <td class="py-3.5 px-5 text-right">
+                        @if (coleccion.activo) {
+                          <app-button variant="peligro" size="sm" (click)="eliminarColeccion(coleccion)">Desactivar</app-button>
+                        } @else {
+                          <app-button variant="secundario" size="sm" (click)="reactivarColeccion(coleccion)">Reactivar</app-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
           </div>
         </div>
 

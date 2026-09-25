@@ -16,9 +16,14 @@ import {
   ModalComponent,
   ButtonComponent,
   InputComponent,
+  SelectComponent,
   AlertComponent,
   LoaderComponent,
-  ToastService
+  BadgeComponent,
+  PriceComponent,
+  EmptyStateComponent,
+  ToastService,
+  type OpcionSelect
 } from '../../shared/ui';
 
 type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'proveedores' | 'temporadas' | 'colecciones' | 'tallas' | 'colores' | 'tipos-prenda' | 'marcas' | 'descuentos';
@@ -43,7 +48,7 @@ type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'provee
 // ============================================================
 @Component({
   selector: 'app-admin-catalogo',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent, AlertComponent, LoaderComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent, SelectComponent, AlertComponent, LoaderComponent, BadgeComponent, PriceComponent, EmptyStateComponent],
   templateUrl: './admin-catalogo.html',
   styleUrl: './admin-catalogo.css'
 })
@@ -288,6 +293,68 @@ nuevaTalla = { nombre: '' };
       proveedor_id: 0, temporada_id: 0, coleccion_id: 0,
       tipo_prenda_id: 0, marca_id: 0, descuento_id: 0
     };
+  }
+
+  // ── Opciones para app-select (app-select entrega strings) ──
+
+  get opcionesCategoria(): OpcionSelect[] {
+    return this.categorias.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  get opcionesProveedor(): OpcionSelect[] {
+    return this.proveedores.map(p => ({ valor: p.id, etiqueta: p.nombre }));
+  }
+
+  get opcionesTemporada(): OpcionSelect[] {
+    return this.temporadas.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesColeccion(): OpcionSelect[] {
+    return this.colecciones.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  get opcionesTipoPrenda(): OpcionSelect[] {
+    return this.tiposPrenda.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesMarca(): OpcionSelect[] {
+    return this.marcas.map(m => ({ valor: m.id, etiqueta: m.nombre }));
+  }
+
+  get opcionesDescuento(): OpcionSelect[] {
+    return this.descuentos.map(d => ({ valor: d.id, etiqueta: `${d.nombre} (-${d.porcentaje}%)` }));
+  }
+
+  setProductoPrecio(valor: string): void {
+    this.nuevoProducto.precio = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoCategoria(valor: string): void {
+    this.nuevoProducto.categoria_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoProveedor(valor: string): void {
+    this.nuevoProducto.proveedor_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoTemporada(valor: string): void {
+    this.nuevoProducto.temporada_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoColeccion(valor: string): void {
+    this.nuevoProducto.coleccion_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoTipoPrenda(valor: string): void {
+    this.nuevoProducto.tipo_prenda_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoMarca(valor: string): void {
+    this.nuevoProducto.marca_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoDescuento(valor: string): void {
+    this.nuevoProducto.descuento_id = valor === '' ? 0 : Number(valor);
   }
 
   guardarProducto(): void {

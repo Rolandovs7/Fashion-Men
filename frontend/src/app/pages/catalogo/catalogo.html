@@ -66,12 +66,12 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- 3 · BARRA DE FILTROS (STICKY DESKTOP, TODO VISIBLE)      -->
+    <!-- 3 · BARRA DE FILTROS (MOBILE: IN-FLOW / DESKTOP: FIJA)   -->
     <!-- ═══════════════════════════════════════════════════════ -->
-    <section class="barra-filtros">
-      <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">
 
-        <!-- Fila 1: búsqueda + acciones -->
+    <!-- Mobile: barra dentro del flujo (los selectores abren el modal) -->
+    <section class="lg:hidden mb-8">
+      <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">
         <div class="flex flex-col sm:flex-row gap-3">
           <div class="flex-1 min-w-0">
             <app-input [(ngModel)]="busqueda" (ngModelChange)="cambioBusqueda()"
@@ -79,7 +79,7 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <app-button variant="secundario" size="md" class="lg:hidden" (click)="abrirFiltros()">
+            <app-button variant="secundario" size="md" (click)="abrirFiltros()">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18M6 12h12M10 18h4"/>
               </svg>
@@ -95,20 +95,11 @@
             }
           </div>
         </div>
-
-        <!-- Fila 2: selectores (solo desktop) -->
-        <div class="hidden lg:grid grid-cols-2 xl:grid-cols-4 gap-3 mt-4 pt-4 border-t border-ms-stone-200">
-          <app-select label="Categoría" [(ngModel)]="categoriaSeleccionada" (ngModelChange)="cambioCategoria()"
-            [opciones]="opcionesCategoria" placeholder="Todas"></app-select>
-          <app-select label="Talla" [(ngModel)]="filtroTalla" (ngModelChange)="cambioTalla()"
-            [opciones]="opcionesTallas" placeholder="Todas"></app-select>
-          <app-select label="Color" [(ngModel)]="filtroColor" (ngModelChange)="cambioColor()"
-            [opciones]="opcionesColores" placeholder="Todos"></app-select>
-          <app-select label="Ordenar" [(ngModel)]="orden" (ngModelChange)="cambioOrden()"
-            [opciones]="opcionesOrden" placeholder="Relevancia"></app-select>
-        </div>
       </div>
     </section>
+
+    <!-- Desktop: spacer que reserva el espacio de la barra fija -->
+    <div class="hidden lg:block lg:h-64 xl:h-[190px]" aria-hidden="true"></div>
 
     <!-- Chips de filtros activos (arriba del grid) -->
     @if (chips.length > 0) {
@@ -283,10 +274,12 @@
       }
     }
 
+  </main>
+
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- FOOTER editorial (dentro del main para que el sticky funcione) -->
+  <!-- FOOTER editorial (fuera del main, full-bleed)             -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <footer class="bg-ms-ink text-ms-slate border-t border-ms-white/10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
+  <footer class="bg-ms-ink text-ms-slate border-t border-ms-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
         <div class="col-span-2 md:col-span-4 lg:col-span-1">
@@ -338,7 +331,41 @@
     </div>
   </footer>
 
-  </main>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- BARRA DE FILTROS FIJA (solo desktop, anclada al viewport) -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="hidden lg:block fixed top-20 left-0 right-0 z-30 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-4 sm:p-5">
+
+      <!-- Fila 1: búsqueda + acciones -->
+      <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex-1 min-w-0">
+          <app-input [(ngModel)]="busqueda" (ngModelChange)="cambioBusqueda()"
+            placeholder="Buscar prendas..." type="text"></app-input>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (filtrosActivos) {
+            <app-button variant="fantasma" size="md" (click)="limpiarFiltros()">
+              Limpiar filtros
+            </app-button>
+          }
+        </div>
+      </div>
+
+      <!-- Fila 2: selectores (solo desktop) -->
+      <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mt-4 pt-4 border-t border-ms-stone-200">
+        <app-select label="Categoría" [(ngModel)]="categoriaSeleccionada" (ngModelChange)="cambioCategoria()"
+          [opciones]="opcionesCategoria" placeholder="Todas"></app-select>
+        <app-select label="Talla" [(ngModel)]="filtroTalla" (ngModelChange)="cambioTalla()"
+          [opciones]="opcionesTallas" placeholder="Todas"></app-select>
+        <app-select label="Color" [(ngModel)]="filtroColor" (ngModelChange)="cambioColor()"
+          [opciones]="opcionesColores" placeholder="Todos"></app-select>
+        <app-select label="Ordenar" [(ngModel)]="orden" (ngModelChange)="cambioOrden()"
+          [opciones]="opcionesOrden" placeholder="Relevancia"></app-select>
+      </div>
+    </div>
+  </section>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- MODAL DE FILTROS (desktop + mobile)                       -->

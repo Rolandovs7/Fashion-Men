@@ -214,4 +214,36 @@ export class AdminConfiguracion implements OnInit {
       }
     });
   }
+
+  reactivarRol(rol: Rol): void {
+    this.rolesService.actualizar(rol.id, { activo: true }).subscribe({
+      next: (actualizado) => {
+        this.roles = this.roles.map(r => r.id === actualizado.id ? actualizado : r);
+        this.mensaje = `Rol "${rol.nombre}" reactivado.`;
+        this.toast.exito(`Rol "${rol.nombre}" reactivado.`);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo reactivar el rol.';
+        this.toast.error('No se pudo reactivar el rol.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTipoPago(tipo: TipoPago): void {
+    this.tiposPagoService.actualizar(tipo.id, { activo: true }).subscribe({
+      next: (actualizado) => {
+        this.tiposPago = this.tiposPago.map(t => t.id === actualizado.id ? actualizado : t);
+        this.mensaje = `Tipo de pago "${tipo.nombre}" reactivado.`;
+        this.toast.exito(`Tipo de pago "${tipo.nombre}" reactivado.`);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo reactivar el tipo de pago.';
+        this.toast.error('No se pudo reactivar el tipo de pago.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
 }

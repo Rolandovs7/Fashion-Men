@@ -8,6 +8,11 @@ export interface TipoPago {
   activo: boolean;
 }
 
+export interface TipoPagoActualizar {
+  nombre?: string;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,6 +32,10 @@ export class TiposPagoService {
 
   crear(nombre: string): Observable<TipoPago> {
     return this.http.post<TipoPago>(this.apiUrl, { nombre }, { headers: this.headers() });
+  }
+
+  actualizar(id: number, datos: TipoPagoActualizar): Observable<TipoPago> {
+    return this.http.put<TipoPago>(`${this.apiUrl}/${id}`, datos, { headers: this.headers() });
   }
 
   eliminar(id: number): Observable<TipoPago> {

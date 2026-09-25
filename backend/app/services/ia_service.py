@@ -8,6 +8,7 @@
 # CAPA: Backend FastAPI (Service)
 # ============================================================
 import os
+import re
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
@@ -46,17 +47,36 @@ class IAService:
     2. Google Gemini → cuando las reglas no matchean, IA real en lenguaje natural
     """
 
+    # Umbral de palabras: los mensajes más largos siempre van a Gemini
+    # (un mensaje con contexto adicional no debe resolver las reglas trivia).
+    LIMITE_PALABRAS_REGLAS = 10
+
     # Contexto base del negocio para Gemini
     CONTEXTO_NEGOCIO = """
-Eres el asistente virtual de "Fashion Men", una tienda de ropa masculina.
-Ayudas a los clientes a encontrar prendas según categoría, ocasión, talla o precio.
+Eres el asesor de estilo personal de MenStyle, una tienda premium de ropa
+masculina en Bolivia.
 
-Categorías típicas: Trajes, Camisas, Pantalones, Zapatos, Accesorios.
-Ocasiones: formal (bodas, eventos), casual (diario), deportivo.
-Tallas: S, M, L, XL, XXL.
+Tu rol:
+- Ayudar al cliente a encontrar prendas según su altura, ocasión, estilo o presupuesto.
+- Ser específico: mencionar productos por nombre y precio.
+- Recomendar productos REALES del catálogo (te los paso abajo).
+- Si el cliente menciona altura ("soy alto", "mido 1.90"), sugerir tallas XL/XXL.
+- Si menciona ocasión ("boda", "entrevista"), sugerir productos formales.
+- Si menciona presupuesto ("hasta 200 Bs"), filtrar por precio.
+- Si menciona color, filtrar por color.
 
-Sé breve (máx 3 oraciones), amable y profesional. Responde SIEMPRE en español.
-No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo.
+Formato de respuesta:
+1. Respuesta breve y amable (máx 3 oraciones).
+2. Al final, agrega: [RECOMENDADOS: ID1, ID2, ID3]
+   (los IDs de los productos del catálogo que recomiendas)
+
+Ejemplo:
+"Para una boda, te recomiendo nuestra Camisa Formal Blanca (Bs 180) en
+talla XL, combinada con el Pantalón de Vestir Negro (Bs 250).
+[RECOMENDADOS: 2, 4]"
+
+Si no estás seguro, pide más detalles.
+Responde SIEMPRE en español.
 """
 
     def __init__(self, db: Session):
@@ -148,19 +168,45 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
     # ========================================================
     # CU32 - Interactuar con Asistente Virtual
     # ========================================================
-    def responder_consulta(self, mensaje: str) -> dict:
+    def responder_consulta(
+        self,
+        mensaje: str,
+        historial: Optional[List[dict]] = None
+    ) -> dict:
         """
-        Asistente virtual híbrido:
-        1. Primero intenta reglas rápidas (palabras clave)
-        2. Si no matchea → consulta Gemini (IA real)
-        3. Si Gemini falla → fallback genérico
+        Asistente virtual híbrido (Gemini primero):
+        1. Reglas rápidas SOLO para mensajes cortos (saludos/trivia sin contexto).
+        2. Gemini primero: enriquece la respuesta con el catálogo completo y
+           devuelve productos REALES.
+        3. Reglas como fallback si Gemini no está disponible o falla.
+        4. Fallback genérico final.
         """
         msg = mensaje.lower().strip()
-        productos_sugeridos = []
+        es_corto = len(msg.split()) <= self.LIMITE_PALABRAS_REGLAS
 
-        # --- Detección por reglas (rápido, gratis) ---
+        # --- 1) Reglas rápidas (solo mensajes cortos, ahorra llamadas a Gemini) ---
+        if es_corto:
+            respuesta_por_reglas, productos_sugeridos, match = self._responder_con_reglas(msg)
+            if match:
+                return {
+                    "respuesta": respuesta_por_reglas,
+                    "productos_sugeridos": productos_sugeridos,
+                    "fuente": "reglas"
+                }
+
+        # --- 2) Gemini primero (IA real + productos reales) ---
+        if GEMINI_DISPONIBLE:
+            resultado = self._consultar_gemini(mensaje, historial)
+            if resultado is not None:
+                texto, ids_recomendados = resultado
+                return {
+                    "respuesta": texto,
+                    "productos_sugeridos": self._productos_por_ids(ids_recomendados),
+                    "fuente": "gemini"
+                }
+
+        # --- 3) Reglas como fallback (Gemini no disponible o falló) ---
         respuesta_por_reglas, productos_sugeridos, match = self._responder_con_reglas(msg)
-
         if match:
             return {
                 "respuesta": respuesta_por_reglas,
@@ -168,17 +214,7 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
                 "fuente": "reglas"
             }
 
-        # --- Fallback: Gemini (IA real) ---
-        if GEMINI_DISPONIBLE:
-            respuesta_gemini = self._consultar_gemini(mensaje)
-            if respuesta_gemini:
-                return {
-                    "respuesta": respuesta_gemini,
-                    "productos_sugeridos": [],
-                    "fuente": "gemini"
-                }
-
-        # --- Fallback final ---
+        # --- 4) Fallback final ---
         return {
             "respuesta": (
                 "No estoy seguro de haber entendido. Puedes preguntarme por: "
@@ -285,7 +321,7 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
 
         if any(w in msg for w in ["hola", "buenos", "buenas", "hey"]):
             return (
-                "¡Hola! Soy tu asistente de Fashion Men. "
+                "¡Hola! Soy tu asistente de MenStyle. "
                 "Puedo ayudarte a encontrar prendas por categoría, ocasión o talla. "
                 "¿Qué estás buscando hoy?"
             ), [], True
@@ -311,30 +347,68 @@ No inventes productos ni precios. Si no sabes algo, sugiere visitar el catálogo
         # Sin match
         return None, [], False
 
-    def _consultar_gemini(self, mensaje: str) -> Optional[str]:
+    def _consultar_gemini(
+        self,
+        mensaje: str,
+        historial: Optional[List[dict]] = None
+    ) -> Optional[tuple]:
         """
         Consulta a Google Gemini (IA real) usando el nuevo SDK google-genai.
-        Retorna la respuesta en texto, o None si falla.
+        Incluye TODO el catálogo activo y los últimos turnos de la conversación.
+        Retorna (respuesta_texto, ids_recomendados) o None si falla.
         """
         if not GEMINI_DISPONIBLE or GEMINI_CLIENT is None:
             return None
 
         try:
-            # Contexto con productos reales (para que no invente)
-            productos_db = (
-                self.db.query(Producto)
+            # --- Catálogo activo completo (ID, nombre, precio, categoría, tallas, colores) ---
+            productos = (
+                self.db.query(Producto, Categoria.nombre.label("categoria"))
+                .join(Categoria, Categoria.id == Producto.categoria_id)
                 .filter(Producto.activo == True)
-                .limit(5)
+                .order_by(Producto.id)
                 .all()
             )
-            catalogo_ctx = "Productos destacados:\n"
-            for p in productos_db:
-                catalogo_ctx += f"- {p.nombre} (${float(p.precio)})\n"
+
+            tallas_por_producto: dict = {}
+            colores_por_producto: dict = {}
+            variantes = (
+                self.db.query(ProductoVariante)
+                .filter(ProductoVariante.activo == True)
+                .all()
+            )
+            for v in variantes:
+                tallas_por_producto.setdefault(v.producto_id, set()).add(
+                    v.talla.nombre if v.talla else "—"
+                )
+                colores_por_producto.setdefault(v.producto_id, set()).add(
+                    v.color.nombre if v.color else "—"
+                )
+
+            lineas_catalogo = []
+            for p, cat in productos:
+                tallas = ", ".join(sorted(tallas_por_producto.get(p.id, set()))) or "—"
+                colores = ", ".join(sorted(colores_por_producto.get(p.id, set()))) or "—"
+                lineas_catalogo.append(
+                    f"- ID {p.id} | {p.nombre} | Bs {float(p.precio):.2f} "
+                    f"| {cat} | tallas: {tallas} | colores: {colores}"
+                )
+            catalogo_ctx = "Catálogo disponible:\n" + "\n".join(lineas_catalogo)
+
+            # --- Historial reciente (últimos 5 turnos) ---
+            historial_ctx = ""
+            if historial:
+                turnos = []
+                for m in historial[-5:]:
+                    rol = "Cliente" if m.get("rol") == "usuario" else "Asistente"
+                    turnos.append(f"{rol}: {m.get('texto', '')}")
+                historial_ctx = "Historial reciente de la conversación:\n" + "\n".join(turnos)
 
             prompt = f"""{self.CONTEXTO_NEGOCIO}
 
 {catalogo_ctx}
 
+{historial_ctx}
 Cliente: {mensaje}
 Asistente:"""
 
@@ -343,11 +417,67 @@ Asistente:"""
                 model="gemini-3.6-flash",
                 contents=prompt,
             )
-            return response.text.strip()
+            texto = response.text.strip()
+
+            # Extraer IDs recomendados y limpiar el marcador del texto visible
+            ids_recomendados = self._extraer_ids_recomendados(texto)
+            texto_limpio = re.sub(
+                r"\s*\[RECOMENDADOS:[\d,\s]+\]\s*$",
+                "",
+                texto,
+                flags=re.IGNORECASE
+            ).strip()
+
+            return texto_limpio, ids_recomendados
 
         except Exception as e:
             print(f"⚠️ Error consultando Gemini: {e}")
             return None
+
+    def _extraer_ids_recomendados(self, texto: str) -> List[int]:
+        """Extrae los IDs del marcador [RECOMENDADOS: 2, 5, 8]."""
+        match = re.search(
+            r"\[RECOMENDADOS:\s*([\d,\s]+)\]",
+            texto,
+            re.IGNORECASE
+        )
+        if not match:
+            return []
+
+        ids = []
+        for parte in match.group(1).split(","):
+            parte = parte.strip()
+            if parte.isdigit():
+                ids.append(int(parte))
+        return ids
+
+    def _productos_por_ids(self, ids: List[int]) -> List[dict]:
+        """Busca los productos reales de la DB a partir de los IDs de Gemini."""
+        if not ids:
+            return []
+
+        unicos = list(dict.fromkeys(ids))
+        productos = (
+            self.db.query(Producto)
+            .filter(Producto.id.in_(unicos))
+            .filter(Producto.activo == True)
+            .all()
+        )
+        por_id = {p.id: p for p in productos}
+
+        resultado = []
+        for pid in unicos:
+            p = por_id.get(pid)
+            if p:
+                resultado.append({
+                    "id": p.id,
+                    "nombre": p.nombre,
+                    "descripcion": p.descripcion,
+                    "precio": float(p.precio),
+                    "categoria_id": p.categoria_id,
+                    "motivo": "Recomendado según tu estilo"
+                })
+        return resultado
 
     # ========================================================
     # CU30 - Generar Reportes (tendencias)

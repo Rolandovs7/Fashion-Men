@@ -1,4 +1,14 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  AfterViewInit,
+  OnDestroy,
+  HostListener,
+  ViewChild,
+  ElementRef,
+  inject,
+  ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -43,7 +53,15 @@ import {
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css'
 })
-export class Catalogo implements OnInit {
+export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('barraFiltros') barraFiltros?: ElementRef<HTMLElement>;
+
+  barraFija = false;
+  alturaBarra = 0;
+
+  private offsetNaturalBarra = 0;
+  private readonly topHeader = 80;
+  private readonly corteDesktop = 1024;
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
@@ -89,6 +107,58 @@ export class Catalogo implements OnInit {
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
+  }
+
+  ngAfterViewInit(): void {
+    this.calcularOffsetNatural();
+    window.addEventListener('resize', this.alRecargarDispositivo);
+  }
+
+  ngOnDestroy(): void {
+    window.removeEventListener('resize', this.alRecargarDispositivo);
+  }
+
+  private alRecargarDispositivo = (): void => {
+    this.calcularOffsetNatural();
+    if (this.barraFija) {
+      this.alturaBarra = this.barraFiltros ? this.barraFiltros.nativeElement.offsetHeight : 0;
+      this.cdr.detectChanges();
+    }
+  };
+
+  private calcularOffsetNatural(): void {
+    if (this.barraFiltros) {
+      this.offsetNaturalBarra =
+        this.barraFiltros.nativeElement.getBoundingClientRect().top + window.scrollY;
+    }
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll(): void {
+    if (!this.barraFiltros) return;
+
+    if (window.innerWidth < this.corteDesktop) {
+      if (this.barraFija) {
+        this.barraFija = false;
+        this.cdr.detectChanges();
+      }
+      return;
+    }
+
+    const scrollY = window.scrollY;
+
+    if (!this.barraFija) {
+      this.calcularOffsetNatural();
+
+      if (scrollY + this.topHeader >= this.offsetNaturalBarra) {
+        this.alturaBarra = this.barraFiltros.nativeElement.offsetHeight;
+        this.barraFija = true;
+        this.cdr.detectChanges();
+      }
+    } else if (scrollY + this.topHeader < this.offsetNaturalBarra) {
+      this.barraFija = false;
+      this.cdr.detectChanges();
+    }
   }
 
   cargarDatos(): void {

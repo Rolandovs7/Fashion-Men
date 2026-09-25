@@ -59,7 +59,7 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
   barraFija = false;
   alturaBarra = 0;
 
-  private offsetNaturalBarra = 0;
+  private offsetFijado = 0;
   private readonly topFijo = 120;
   private readonly corteDesktop = 768;
   private productosService = inject(ProductosService);
@@ -136,18 +136,23 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    const rect = this.barraFiltros.nativeElement.getBoundingClientRect();
+    const scrollY = window.scrollY;
+    const barra = this.barraFiltros.nativeElement;
 
-    if (!this.barraFija && rect.top <= this.topFijo) {
-      const barra = this.barraFiltros.nativeElement;
+    if (this.barraFija) {
+      if (scrollY < this.offsetFijado - 100) {
+        this.barraFija = false;
+        this.cdr.detectChanges();
+      }
+      return;
+    }
+
+    const rect = barra.getBoundingClientRect();
+    if (rect.top <= this.topFijo) {
       const altura = barra.offsetHeight || barra.getBoundingClientRect().height || 250;
       this.alturaBarra = altura;
-      this.offsetNaturalBarra = rect.top + window.scrollY;
-      console.log('[sticky] Fijando barra. Altura:', altura, 'px');
+      this.offsetFijado = scrollY;
       this.barraFija = true;
-      this.cdr.detectChanges();
-    } else if (this.barraFija && window.scrollY + this.topFijo < this.offsetNaturalBarra) {
-      this.barraFija = false;
       this.cdr.detectChanges();
     }
   }

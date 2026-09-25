@@ -102,6 +102,14 @@ export class VariantesService {
     );
   }
 
+  actualizarTalla(id: number, datos: { activo?: boolean }): Observable<Talla> {
+    return this.http.put<Talla>(
+      `${this.apiUrl}/tallas/${id}`,
+      datos,
+      { headers: this.headers() }
+    );
+  }
+
   listarColores(): Observable<Color[]> {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`);
   }

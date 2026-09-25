@@ -117,7 +117,9 @@
                     <td class="py-3 px-5 text-right space-x-3">
                       <button (click)="editarCategoria(categoria)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (categoria.activo) {
-                        <button (click)="eliminarCategoria(categoria)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarCategoria(categoria)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarCategoria(categoria)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -266,9 +268,9 @@
                     <td class="py-3 px-5 text-right space-x-3">
                       <button (click)="editarProducto(producto)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (producto.activo) {
-                        <button (click)="eliminarProducto(producto)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarProducto(producto)">Desactivar</app-button>
                       } @else {
-                        <button (click)="reactivarProducto(producto)" class="text-xs font-bold text-emerald-600 hover:text-emerald-800 cursor-pointer">Reactivar</button>
+                        <app-button variant="secundario" size="sm" (click)="reactivarProducto(producto)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -488,7 +490,9 @@
                     <td class="py-3 px-5 text-right space-x-3">
                       <button (click)="editarSucursal(sucursal)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (sucursal.activo) {
-                        <button (click)="eliminarSucursal(sucursal)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarSucursal(sucursal)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarSucursal(sucursal)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -556,7 +560,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (proveedor.activo) {
-                        <button (click)="eliminarProveedor(proveedor)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarProveedor(proveedor)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarProveedor(proveedor)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -616,7 +622,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (temporada.activo) {
-                        <button (click)="eliminarTemporada(temporada)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarTemporada(temporada)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarTemporada(temporada)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -676,7 +684,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (coleccion.activo) {
-                        <button (click)="eliminarColeccion(coleccion)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarColeccion(coleccion)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarColeccion(coleccion)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -732,7 +742,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (talla.activo) {
-                        <button (click)="eliminarTalla(talla)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarTalla(talla)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarTalla(talla)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -800,7 +812,9 @@
                     <td class="py-3 px-5 text-right space-x-3">
                       <button (click)="editarColor(color)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
                       @if (color.activo) {
-                        <button (click)="eliminarColor(color)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarColor(color)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarColor(color)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -858,7 +872,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (tipo.activo) {
-                        <button (click)="eliminarTipoPrenda(tipo)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarTipoPrenda(tipo)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarTipoPrenda(tipo)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -915,7 +931,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (marca.activo) {
-                        <button (click)="eliminarMarca(marca)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarMarca(marca)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarMarca(marca)">Reactivar</app-button>
                       }
                     </td>
                   </tr>
@@ -982,7 +1000,9 @@
                     </td>
                     <td class="py-3 px-5 text-right">
                       @if (descuento.activo) {
-                        <button (click)="eliminarDescuento(descuento)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Desactivar</button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarDescuento(descuento)">Desactivar</app-button>
+                      } @else {
+                        <app-button variant="secundario" size="sm" (click)="reactivarDescuento(descuento)">Reactivar</app-button>
                       }
                     </td>
                   </tr>

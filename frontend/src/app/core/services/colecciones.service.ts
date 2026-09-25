@@ -14,6 +14,12 @@ export interface ColeccionCrear {
   descripcion?: string | null;
 }
 
+export interface ColeccionActualizar {
+  nombre?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,6 +50,14 @@ export class ColeccionesService {
   eliminar(id: number): Observable<Coleccion> {
     return this.http.delete<Coleccion>(
       `${this.apiUrl}/${id}`,
+      { headers: this.headers() }
+    );
+  }
+
+  actualizar(id: number, datos: ColeccionActualizar): Observable<Coleccion> {
+    return this.http.put<Coleccion>(
+      `${this.apiUrl}/${id}`,
+      datos,
       { headers: this.headers() }
     );
   }

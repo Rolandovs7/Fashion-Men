@@ -16,6 +16,7 @@ export interface SucursalCrear {
   direccion: string;
   ciudad: string;
   telefono?: string | null;
+  activo?: boolean;
 }
 
 @Injectable({

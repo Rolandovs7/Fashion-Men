@@ -370,6 +370,166 @@ nuevaTalla = { nombre: '' };
     });
   }
 
+  reactivarCategoria(categoria: Categoria): void {
+    this.categoriasService.actualizar(categoria.id, { ...categoria, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.categorias = this.categorias.map(c => c.id === actualizada.id ? actualizada : c);
+        this.mensaje = 'Categoría reactivada.';
+        this.toastService.exito('Categoría reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la categoría.';
+        this.toastService.error('No se pudo reactivar la categoría.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarSucursal(sucursal: Sucursal): void {
+    this.sucursalesService.actualizar(sucursal.id, { ...sucursal, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.sucursales = this.sucursales.map(s => s.id === actualizada.id ? actualizada : s);
+        this.mensaje = 'Sucursal reactivada.';
+        this.toastService.exito('Sucursal reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la sucursal.';
+        this.toastService.error('No se pudo reactivar la sucursal.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarProveedor(proveedor: Proveedor): void {
+    this.proveedoresService.actualizar(proveedor.id, { ...proveedor, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.proveedores = this.proveedores.map(p => p.id === actualizado.id ? actualizado : p);
+        this.mensaje = 'Proveedor reactivado.';
+        this.toastService.exito('Proveedor reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el proveedor.';
+        this.toastService.error('No se pudo reactivar el proveedor.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTemporada(temporada: Temporada): void {
+    this.temporadasService.actualizar(temporada.id, { ...temporada, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.temporadas = this.temporadas.map(t => t.id === actualizada.id ? actualizada : t);
+        this.mensaje = 'Temporada reactivada.';
+        this.toastService.exito('Temporada reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la temporada.';
+        this.toastService.error('No se pudo reactivar la temporada.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarColeccion(coleccion: Coleccion): void {
+    this.coleccionesService.actualizar(coleccion.id, { ...coleccion, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.colecciones = this.colecciones.map(c => c.id === actualizada.id ? actualizada : c);
+        this.mensaje = 'Colección reactivada.';
+        this.toastService.exito('Colección reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la colección.';
+        this.toastService.error('No se pudo reactivar la colección.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTalla(talla: Talla): void {
+    this.variantesService.actualizarTalla(talla.id, { activo: true }).subscribe({
+      next: (actualizada) => {
+        this.tallas = this.tallas.map(t => t.id === actualizada.id ? actualizada : t);
+        this.mensaje = 'Talla reactivada.';
+        this.toastService.exito('Talla reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la talla.';
+        this.toastService.error('No se pudo reactivar la talla.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarColor(color: Color): void {
+    this.variantesService.actualizarColor(color.id, { activo: true }).subscribe({
+      next: (actualizado) => {
+        this.colores = this.colores.map(c => c.id === actualizado.id ? actualizado : c);
+        this.mensaje = 'Color reactivado.';
+        this.toastService.exito('Color reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el color.';
+        this.toastService.error('No se pudo reactivar el color.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTipoPrenda(tipo: TipoPrenda): void {
+    this.tiposPrendaService.actualizar(tipo.id, { ...tipo, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.tiposPrenda = this.tiposPrenda.map(t => t.id === actualizado.id ? actualizado : t);
+        this.mensaje = 'Tipo de prenda reactivado.';
+        this.toastService.exito('Tipo de prenda reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el tipo de prenda.';
+        this.toastService.error('No se pudo reactivar el tipo de prenda.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarMarca(marca: Marca): void {
+    this.marcasService.actualizar(marca.id, { ...marca, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.marcas = this.marcas.map(m => m.id === actualizada.id ? actualizada : m);
+        this.mensaje = 'Marca reactivada.';
+        this.toastService.exito('Marca reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la marca.';
+        this.toastService.error('No se pudo reactivar la marca.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarDescuento(descuento: Descuento): void {
+    this.descuentosService.actualizar(descuento.id, { ...descuento, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.descuentos = this.descuentos.map(d => d.id === actualizado.id ? actualizado : d);
+        this.mensaje = 'Descuento reactivado.';
+        this.toastService.exito('Descuento reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el descuento.';
+        this.toastService.error('No se pudo reactivar el descuento.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   nombreCategoria(categoriaId: number): string {
     return this.categorias.find(c => c.id === categoriaId)?.nombre ?? '—';
   }

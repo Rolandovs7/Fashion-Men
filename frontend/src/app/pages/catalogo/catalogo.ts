@@ -1,10 +1,6 @@
 import {
   Component,
   OnInit,
-  AfterViewInit,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
   inject,
   ChangeDetectorRef
 } from '@angular/core';
@@ -52,15 +48,7 @@ import {
   templateUrl: './catalogo.html',
   styleUrl: './catalogo.css'
 })
-export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
-  @ViewChild('stickyBar') stickyBar?: ElementRef<HTMLElement>;
-
-  barraFija = false;
-  posicionBarra = 0;
-  alturaBarra = 0;
-
-  private readonly corteFija = 768;
-  private readonly alRedimensionar = (): void => this.calcularPosicionBarra();
+export class Catalogo implements OnInit {
   private productosService = inject(ProductosService);
   private categoriasService = inject(CategoriasService);
   private authService = inject(AuthService);
@@ -106,41 +94,6 @@ export class Catalogo implements OnInit, AfterViewInit, OnDestroy {
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
-  }
-
-  ngAfterViewInit(): void {
-    setTimeout(() => this.calcularPosicionBarra(), 500);
-    window.addEventListener('resize', this.alRedimensionar);
-  }
-
-  ngOnDestroy(): void {
-    window.removeEventListener('resize', this.alRedimensionar);
-  }
-
-  private calcularPosicionBarra(): void {
-    if (!this.stickyBar) return;
-
-    if (window.innerWidth < this.corteFija) {
-      if (this.barraFija) {
-        this.barraFija = false;
-        this.cdr.detectChanges();
-      }
-      return;
-    }
-
-    const barra = this.stickyBar.nativeElement;
-
-    if (this.barraFija) {
-      this.alturaBarra = barra.offsetHeight || barra.getBoundingClientRect().height || 250;
-      this.cdr.detectChanges();
-      return;
-    }
-
-    const rect = barra.getBoundingClientRect();
-    this.posicionBarra = rect.top + window.scrollY;
-    this.alturaBarra = barra.offsetHeight || rect.height || 250;
-    this.barraFija = true;
-    this.cdr.detectChanges();
   }
 
   cargarDatos(): void {

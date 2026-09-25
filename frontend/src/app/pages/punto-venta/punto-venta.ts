@@ -10,6 +10,16 @@ import { PedidosService, ItemVentaPresencial, Pedido } from '../../core/services
 import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { ReciboComponent } from '../../shared/recibo/recibo';
+import { ToastService } from '../../shared/ui/toast/toast.service';
+import {
+  ButtonComponent,
+  InputComponent,
+  SelectComponent,
+  AlertComponent,
+  LoaderComponent,
+  PriceComponent,
+  OpcionSelect,
+} from '../../shared/ui';
 
 interface ItemCarritoPOS {
   producto: Producto;
@@ -19,7 +29,11 @@ interface ItemCarritoPOS {
 
 @Component({
   selector: 'app-punto-venta',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ReciboComponent],
+  imports: [
+    CommonModule, FormsModule, AdminShellComponent, ReciboComponent,
+    ButtonComponent, InputComponent, SelectComponent, AlertComponent,
+    LoaderComponent, PriceComponent,
+  ],
   templateUrl: './punto-venta.html',
   styleUrl: './punto-venta.css'
 })
@@ -31,6 +45,7 @@ export class PuntoVenta implements OnInit {
   private pedidosService = inject(PedidosService);
   private tiposPagoService = inject(TiposPagoService);
   private router = inject(Router);
+  private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   clientes: Usuario[] = [];
@@ -159,6 +174,7 @@ export class PuntoVenta implements OnInit {
       next: (pedido) => {
         this.procesando = false;
         this.mensaje = `Venta #${pedido.id} registrada y pagada correctamente por Bs ${pedido.total.toFixed(2)}.`;
+        this.toast.exito(`Venta #${pedido.id} registrada y pagada correctamente.`);
         this.itemsVenta = [];
         this.clienteId = null;
         this.pedidoParaComprobante = pedido;
@@ -167,6 +183,7 @@ export class PuntoVenta implements OnInit {
       error: (error) => {
         this.procesando = false;
         this.error = error.error?.detail || 'No se pudo registrar la venta.';
+        this.toast.error(this.error);
         this.cdr.detectChanges();
       }
     });
@@ -179,5 +196,48 @@ export class PuntoVenta implements OnInit {
 
   cerrarComprobante(): void {
     this.pedidoParaComprobante = null;
+  }
+
+  // ── Opciones para app-select (app-select entrega strings) ──
+
+  get opcionesClientes(): OpcionSelect[] {
+    return this.clientes.map(c => ({ valor: c.id, etiqueta: `${c.nombre} ${c.apellido} — ${c.email}` }));
+  }
+
+  get opcionesSucursales(): OpcionSelect[] {
+    return this.sucursales.map(s => ({ valor: s.id, etiqueta: `${s.nombre} — ${s.ciudad}` }));
+  }
+
+  get opcionesProductos(): OpcionSelect[] {
+    return this.productos.map(p => ({ valor: p.id, etiqueta: `${p.nombre} — Bs ${p.precio.toFixed(2)}` }));
+  }
+
+  get opcionesVariantes(): OpcionSelect[] {
+    return this.variantesDisponibles.map(v => ({ valor: v.id, etiqueta: `${v.talla_nombre} · ${v.color_nombre} (${v.stock_disponible})` }));
+  }
+
+  get opcionesMetodosPago(): OpcionSelect[] {
+    return this.tiposPago.map(t => ({ valor: t.nombre, etiqueta: t.nombre }));
+  }
+
+  onClienteSeleccionado(valor: string): void {
+    this.clienteId = valor === '' ? null : Number(valor);
+  }
+
+  onSucursalSeleccionada(valor: string): void {
+    this.sucursalId = valor === '' ? null : Number(valor);
+  }
+
+  onProductoSeleccionado(valor: string): void {
+    this.productoSeleccionadoId = valor === '' ? null : Number(valor);
+    this.cargarVariantes();
+  }
+
+  onVarianteSeleccionada(valor: string): void {
+    this.varianteSeleccionadaId = valor === '' ? null : Number(valor);
+  }
+
+  onCantidadCambiada(valor: string): void {
+    this.cantidadSeleccionada = Math.max(1, Number(valor) || 1);
   }
 }

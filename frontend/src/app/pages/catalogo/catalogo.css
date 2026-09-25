@@ -1,20 +1,34 @@
 :host {
   display: block;
-  overflow: visible !important;
 }
 
-.sticky-bar {
-  position: -webkit-sticky !important;
-  position: sticky !important;
-  top: 88px !important;
+.fija {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 80rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
   z-index: 30 !important;
-  transition: none !important;
-  transform: none !important;
-  will-change: auto !important;
+}
+
+@media (min-width: 640px) {
+  .fija {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fija {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
 }
 
 @media (max-width: 767px) {
-  .sticky-bar {
+  .fija {
     position: static !important;
   }
 }

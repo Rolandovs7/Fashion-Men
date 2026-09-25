@@ -1,77 +1,82 @@
 <app-admin-shell titulo="Inventario">
 
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full bg-ms-alabaster">
 
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Inventario</span>
+    </nav>
+
+    <!-- Encabezado -->
     <div class="mb-8">
-      <p class="text-sm text-neutral-500 font-medium">Controla el stock por variante (talla/color) en cada sucursal — RF20, RF21, RF22</p>
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Inventario</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Inventario</h1>
+      <p class="mt-2 text-sm text-ms-slate">Controla el stock por variante (talla/color) en cada sucursal.</p>
     </div>
 
+    <!-- Mensajes -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">{{ mensaje }}</div>
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
+      </div>
     }
     @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">{{ error }}</div>
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
+      </div>
     }
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       <div class="lg:col-span-1 space-y-6">
 
-        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Sucursal</h3>
-          <select
-            [(ngModel)]="sucursalSeleccionadaId"
-            (ngModelChange)="cambiarSucursal()"
-            class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-            @for (sucursal of sucursales; track sucursal.id) {
-              <option [ngValue]="sucursal.id">{{ sucursal.nombre }} — {{ sucursal.ciudad }}</option>
-            }
-          </select>
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+          <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Sucursal</h3>
+          <app-select
+            label="Sucursal"
+            placeholder="Selecciona una sucursal"
+            [opciones]="opcionesSucursales"
+            [ngModel]="sucursalSeleccionadaId"
+            (ngModelChange)="onSucursalCambiada($event)" />
         </div>
 
-        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Registrar stock</h3>
-          <div class="space-y-3">
-            <select
-              [(ngModel)]="productoSeleccionadoId"
-              (ngModelChange)="cargarVariantesDelProducto()"
-              class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-              <option [ngValue]="null" disabled>Producto</option>
-              @for (producto of productos; track producto.id) {
-                <option [ngValue]="producto.id">{{ producto.nombre }}</option>
-              }
-            </select>
-            <select
-              [(ngModel)]="varianteSeleccionadaId"
-              class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950">
-              <option [ngValue]="null" disabled>Talla / Color</option>
-              @for (variante of variantesDelProducto; track variante.id) {
-                <option [ngValue]="variante.id">{{ variante.talla_nombre }} · {{ variante.color_nombre }}</option>
-              }
-            </select>
-            <input
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6">
+          <h3 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-5">Registrar stock</h3>
+          <div class="space-y-5">
+            <app-select
+              label="Producto"
+              placeholder="Producto"
+              [opciones]="opcionesProductos"
+              [ngModel]="productoSeleccionadoId"
+              (ngModelChange)="onProductoSeleccionado($event)" />
+            <app-select
+              label="Talla / Color"
+              placeholder="Talla / Color"
+              [opciones]="opcionesVariantes"
+              [ngModel]="varianteSeleccionadaId"
+              (ngModelChange)="onVarianteSeleccionada($event)" />
+            <app-input
+              label="Cantidad"
               type="number"
-              [(ngModel)]="cantidadNueva"
-              min="0"
-              placeholder="Cantidad inicial"
-              class="w-full rounded-xl border border-neutral-300 px-3.5 py-2.5 text-sm outline-none focus:border-neutral-950" />
-            <button
-              (click)="agregarStock()"
-              [disabled]="guardando"
-              class="w-full bg-neutral-950 hover:bg-neutral-800 text-white font-bold text-sm py-2.5 rounded-xl transition-all disabled:opacity-50 cursor-pointer">
-              {{ guardando ? 'Guardando...' : 'Registrar stock' }}
-            </button>
-            <p class="text-[11px] text-neutral-400">Si la variante ya tiene stock en esta sucursal, edítalo directamente en la tabla.</p>
+              placeholder="0"
+              [ngModel]="cantidadNueva"
+              (ngModelChange)="onCantidadNueva($event)" />
+            <app-button variant="primario" [block]="true" [loading]="guardando" (click)="agregarStock()">
+              Registrar stock
+            </app-button>
+            <p class="text-[11px] text-ms-slate">Si la variante ya tiene stock en esta sucursal, edítalo directamente en la tabla.</p>
           </div>
         </div>
 
       </div>
 
       <div class="lg:col-span-2">
-        <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm overflow-hidden">
-          <table class="w-full text-left text-sm">
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+          <table class="w-full text-left text-sm min-w-[860px]">
             <thead>
-              <tr class="bg-neutral-950 text-white text-xs font-bold uppercase tracking-wider">
+              <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
                 <th class="py-3 px-5">Producto</th>
                 <th class="py-3 px-5">Variante</th>
                 <th class="py-3 px-5">Cantidad</th>
@@ -80,14 +85,29 @@
                 <th class="py-3 px-5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-neutral-100">
+            <tbody class="divide-y divide-ms-stone-200">
               @if (cargando) {
-                <tr><td colspan="6" class="py-10 text-center text-neutral-400 text-sm">Cargando inventario...</td></tr>
+                @for (n of [1, 2, 3, 4, 5]; track n) {
+                  <tr>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="titulo" /></td>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="texto" /></td>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="texto" clase="w-12" /></td>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="texto" clase="w-12" /></td>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="texto" clase="w-12" /></td>
+                    <td class="py-3.5 px-5"><app-skeleton tipo="texto" clase="w-24 ml-auto" /></td>
+                  </tr>
+                }
+              } @else if (filas.length === 0) {
+                <tr>
+                  <td colspan="6" class="py-8 px-5">
+                    <app-empty-state icono="📦" titulo="Sin registros" descripcion="Registra stock desde el formulario para esta sucursal." />
+                  </td>
+                </tr>
               } @else {
                 @for (fila of filas; track fila.id) {
-                  <tr>
-                    <td class="py-3 px-5 font-bold">{{ fila.producto_nombre || 'Producto #' + fila.variante_id }}</td>
-                    <td class="py-3 px-5 text-neutral-500">
+                  <tr class="transition-colors hover:bg-ms-stone/60">
+                    <td class="py-3.5 px-5 font-display font-semibold text-ms-ink">{{ fila.producto_nombre || 'Producto #' + fila.variante_id }}</td>
+                    <td class="py-3.5 px-5 text-ms-slate">
                       @if (fila.variante_talla) {
                         {{ fila.variante_talla }} · {{ fila.variante_color || '—' }}
                       } @else {
@@ -98,31 +118,29 @@
                     @if (fila.editando) {
                       <td class="py-2 px-5">
                         <input type="number" [(ngModel)]="fila.cantidadEdit" min="0"
-                          class="w-20 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm outline-none focus:border-neutral-950" />
+                          class="w-20 rounded-lg border border-ms-stone-200 px-2 py-1.5 text-sm outline-none focus:border-ms-black" />
                       </td>
                       <td class="py-2 px-5">
                         <input type="number" [(ngModel)]="fila.reservadaEdit" min="0"
-                          class="w-20 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm outline-none focus:border-neutral-950" />
+                          class="w-20 rounded-lg border border-ms-stone-200 px-2 py-1.5 text-sm outline-none focus:border-ms-black" />
                       </td>
-                      <td class="py-3 px-5 text-neutral-400">—</td>
-                      <td class="py-3 px-5 text-right space-x-3">
-                        <button (click)="guardarFila(fila)" class="text-xs font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer">Guardar</button>
-                        <button (click)="cancelarEdicion(fila)" class="text-xs font-bold text-neutral-500 hover:text-neutral-800 cursor-pointer">Cancelar</button>
+                      <td class="py-3.5 px-5 text-ms-slate">—</td>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="primario" size="sm" (click)="guardarFila(fila)">Guardar</app-button>
+                        <app-button variant="secundario" size="sm" (click)="cancelarEdicion(fila)">Cancelar</app-button>
                       </td>
                     } @else {
-                      <td class="py-3 px-5 font-semibold">{{ fila.cantidad }}</td>
-                      <td class="py-3 px-5 text-neutral-500">{{ fila.cantidad_reservada }}</td>
-                      <td class="py-3 px-5 font-bold" [class.text-red-600]="(fila.cantidad - fila.cantidad_reservada) === 0">
+                      <td class="py-3.5 px-5 font-semibold text-ms-ink">{{ fila.cantidad }}</td>
+                      <td class="py-3.5 px-5 text-ms-slate">{{ fila.cantidad_reservada }}</td>
+                      <td class="py-3.5 px-5 font-semibold" [class.text-ms-amber]="(fila.cantidad - fila.cantidad_reservada) === 0">
                         {{ fila.cantidad - fila.cantidad_reservada }}
                       </td>
-                      <td class="py-3 px-5 text-right space-x-3">
-                        <button (click)="editarFila(fila)" class="text-xs font-bold text-neutral-700 hover:text-neutral-950 cursor-pointer">Editar</button>
-                        <button (click)="eliminarFila(fila)" class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">Eliminar</button>
+                      <td class="py-3.5 px-5 text-right space-x-2">
+                        <app-button variant="secundario" size="sm" (click)="editarFila(fila)">Editar</app-button>
+                        <app-button variant="peligro" size="sm" (click)="eliminarFila(fila)">Eliminar</app-button>
                       </td>
                     }
                   </tr>
-                } @empty {
-                  <tr><td colspan="6" class="py-10 text-center text-neutral-400 text-sm">Sin registros de inventario para esta sucursal.</td></tr>
                 }
               }
             </tbody>
@@ -131,7 +149,7 @@
 
         @if (totalRegistros > 0) {
           <nav class="flex items-center justify-between gap-3 mt-5">
-            <p class="text-xs text-neutral-500">{{ totalRegistros }} registros en total</p>
+            <p class="text-xs text-ms-slate">{{ totalRegistros }} registros en total</p>
             <div class="flex items-center gap-3">
               <app-button
                 variant="secundario"
@@ -140,7 +158,7 @@
                 (click)="cambiarPagina(paginaActual - 1)">
                 Anterior
               </app-button>
-              <span class="text-sm font-semibold text-neutral-700">Página {{ paginaActual + 1 }} de {{ totalPaginas }}</span>
+              <span class="text-sm font-semibold text-ms-ink">Página {{ paginaActual + 1 }} de {{ totalPaginas }}</span>
               <app-button
                 variant="secundario"
                 size="sm"

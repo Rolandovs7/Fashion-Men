@@ -6,7 +6,15 @@ import { SucursalesService, Sucursal } from '../../core/services/sucursales.serv
 import { ProductosService, Producto } from '../../core/services/productos.service';
 import { VariantesService, Variante } from '../../core/services/variantes.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
-import { ButtonComponent } from '../../shared/ui/button/button';
+import {
+  ButtonComponent,
+  AlertComponent,
+  SelectComponent,
+  InputComponent,
+  EmptyStateComponent,
+  SkeletonComponent,
+  type OpcionSelect
+} from '../../shared/ui';
 
 interface FilaInventario extends Inventario {
   editando?: boolean;
@@ -16,7 +24,7 @@ interface FilaInventario extends Inventario {
 
 @Component({
   selector: 'app-admin-inventario',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent, AlertComponent, SelectComponent, InputComponent, EmptyStateComponent, SkeletonComponent],
   templateUrl: './admin-inventario.html',
   styleUrl: './admin-inventario.css'
 })
@@ -117,6 +125,38 @@ export class AdminInventario implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ── Opciones para app-select (app-select entrega strings) ──
+
+  get opcionesSucursales(): OpcionSelect[] {
+    return this.sucursales.map(s => ({ valor: s.id, etiqueta: `${s.nombre} — ${s.ciudad}` }));
+  }
+
+  get opcionesProductos(): OpcionSelect[] {
+    return this.productos.map(p => ({ valor: p.id, etiqueta: p.nombre }));
+  }
+
+  get opcionesVariantes(): OpcionSelect[] {
+    return this.variantesDelProducto.map(v => ({ valor: v.id, etiqueta: `${v.talla_nombre} · ${v.color_nombre}` }));
+  }
+
+  onSucursalCambiada(valor: string): void {
+    this.sucursalSeleccionadaId = valor === '' ? null : Number(valor);
+    this.cambiarSucursal();
+  }
+
+  onProductoSeleccionado(valor: string): void {
+    this.productoSeleccionadoId = valor === '' ? null : Number(valor);
+    this.cargarVariantesDelProducto();
+  }
+
+  onVarianteSeleccionada(valor: string): void {
+    this.varianteSeleccionadaId = valor === '' ? null : Number(valor);
+  }
+
+  onCantidadNueva(valor: string): void {
+    this.cantidadNueva = valor === '' ? 0 : Math.max(0, Number(valor) || 0);
   }
 
   agregarStock(): void {

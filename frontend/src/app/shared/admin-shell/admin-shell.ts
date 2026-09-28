@@ -2,6 +2,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService, Usuario } from '../../core/services/auth.service';
+import { ButtonComponent } from '../ui';
 
 interface EnlaceAdmin {
   ruta: string;
@@ -17,7 +18,7 @@ interface GrupoAdmin {
 @Component({
   selector: 'app-admin-shell',
   standalone: true,
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, RouterLinkActive, ButtonComponent],
   templateUrl: './admin-shell.html'
 })
 export class AdminShellComponent implements OnInit {
@@ -34,29 +35,29 @@ export class AdminShellComponent implements OnInit {
     {
       titulo: 'Catálogo',
       enlaces: [
-        { ruta: '/admin/catalogo', etiqueta: 'Categorías, productos y variantes', icono: '🗂️' },
-        { ruta: '/admin/inventario', etiqueta: 'Inventario', icono: '📊' },
+        { ruta: '/admin/catalogo', etiqueta: 'Catálogo', icono: 'catalogo' },
+        { ruta: '/admin/inventario', etiqueta: 'Inventario', icono: 'inventario' },
       ]
     },
     {
       titulo: 'Ventas',
       enlaces: [
-        { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: '🧾' },
-        { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: '📦' },
+        { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta' },
+        { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas' },
       ]
     },
     {
       titulo: 'Reportes',
       enlaces: [
-        { ruta: '/admin/reportes', etiqueta: 'Estadísticas y reportes', icono: '📈' },
+        { ruta: '/admin/reportes', etiqueta: 'Estadísticas', icono: 'reportes' },
       ]
     },
     {
       titulo: 'Configuración',
       enlaces: [
-        { ruta: '/usuarios', etiqueta: 'Usuarios', icono: '👤' },
-        { ruta: '/permisos', etiqueta: 'Permisos', icono: '🔒' },
-        { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: '⚙️' },
+        { ruta: '/usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
+        { ruta: '/permisos', etiqueta: 'Permisos', icono: 'permisos' },
+        { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config' },
       ]
     }
   ];
@@ -83,5 +84,11 @@ export class AdminShellComponent implements OnInit {
 
   cerrarMenuMovil(): void {
     this.menuMovilAbierto = false;
+  }
+
+  inicialesUsuario(): string {
+    const nombre = this.usuario?.nombre ?? '';
+    const apellido = this.usuario?.apellido ?? '';
+    return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase() || 'U';
   }
 }

@@ -7,12 +7,33 @@ import { SucursalesService, Sucursal } from '../../core/services/sucursales.serv
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { ReciboComponent } from '../../shared/recibo/recibo';
 import { FechaBoliviaPipe } from '../../core/pipes/fecha-bolivia.pipe';
+import {
+  ButtonComponent,
+  AlertComponent,
+  BadgeComponent,
+  BadgeTipo,
+  EmptyStateComponent,
+  PriceComponent,
+  SkeletonComponent
+} from '../../shared/ui';
 
 type Pestana = 'pedidos' | 'reservas';
 
 @Component({
   selector: 'app-admin-operaciones',
-  imports: [CommonModule, FormsModule, AdminShellComponent, ReciboComponent, FechaBoliviaPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    AdminShellComponent,
+    ReciboComponent,
+    FechaBoliviaPipe,
+    ButtonComponent,
+    AlertComponent,
+    BadgeComponent,
+    EmptyStateComponent,
+    PriceComponent,
+    SkeletonComponent
+  ],
   templateUrl: './admin-operaciones.html',
   styleUrl: './admin-operaciones.css'
 })
@@ -111,5 +132,31 @@ export class AdminOperaciones implements OnInit {
 
   cerrarComprobante(): void {
     this.pedidoParaComprobante = null;
+  }
+
+  capitalizar(texto: string): string {
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
+  }
+
+  tipoBadgePedido(estado: string): BadgeTipo {
+    const mapa: Record<string, BadgeTipo> = {
+      pendiente: 'aviso',
+      pagado: 'info',
+      procesando: 'info',
+      enviado: 'acento',
+      entregado: 'exito',
+      cancelado: 'error'
+    };
+    return mapa[estado] || 'neutral';
+  }
+
+  tipoBadgeReserva(estado: string): BadgeTipo {
+    const mapa: Record<string, BadgeTipo> = {
+      pendiente: 'aviso',
+      confirmada: 'info',
+      completada: 'exito',
+      cancelada: 'error'
+    };
+    return mapa[estado] || 'neutral';
   }
 }

@@ -1,0 +1,33 @@
+<div class="w-full">
+  @if (label) {
+    <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+      {{ label }}@if (required) { <span class="text-red-500">*</span> }
+    </label>
+  }
+
+  <select
+    [value]="valor ?? ''"
+    [disabled]="deshabilitado"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-describedby]="(hint || error) ? 'ayuda-' + uid : null"
+    [class.is-error]="!!error"
+    class="input-base cursor-pointer"
+    (change)="onChange($event)"
+    (blur)="onBlur()">
+
+    @if (placeholder) {
+      <option value="">{{ placeholder }}</option>
+    }
+
+    @for (opcion of opciones; track $index) {
+      <option [value]="opcion.valor">{{ opcion.etiqueta }}</option>
+    }
+  </select>
+
+  @if (hint && !error) {
+    <p id="ayuda-{{ uid }}" class="mt-1 text-xs text-neutral-400">{{ hint }}</p>
+  }
+  @if (error) {
+    <p id="ayuda-{{ uid }}" class="mt-1 text-xs font-semibold text-red-600">{{ error }}</p>
+  }
+</div>

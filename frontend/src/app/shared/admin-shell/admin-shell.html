@@ -1,28 +1,68 @@
-<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex">
+<style>
+  /* Estado activo del menú: gana sobre las utilidades Tailwind (usa capas), así el
+     link activo siempre se ve ámbar aunque esté en hover. */
+  .admin-link-activo {
+    background-color: rgb(217 119 6 / 0.10);
+    color: var(--color-ms-amber);
+  }
+</style>
 
-  <!-- Sidebar (escritorio) -->
-  <aside class="hidden lg:flex lg:flex-col w-72 shrink-0 bg-neutral-950 text-white min-h-screen sticky top-0">
-    <div class="p-6 border-b border-neutral-800">
-      <a routerLink="/catalogo" class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-white text-neutral-950 rounded-lg flex items-center justify-center font-black text-lg shrink-0">M</div>
-        <div>
-          <p class="text-sm font-black tracking-[0.15em] uppercase leading-none">MENSTYLE</p>
-          <p class="text-[10px] text-neutral-400 font-semibold uppercase tracking-wider mt-1">Panel de Administración</p>
-        </div>
+<div class="min-h-screen bg-ms-alabaster text-ms-ink font-sans antialiased flex">
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- SIDEBAR (escritorio)                            -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <aside class="hidden lg:flex lg:flex-col w-64 shrink-0 bg-ms-ink text-ms-white min-h-screen h-screen sticky top-0">
+
+    <div class="p-5 border-b border-ms-white/10">
+      <a routerLink="/catalogo" class="flex items-center gap-3 cursor-pointer">
+        <span class="w-9 h-9 rounded-xl bg-ms-amber text-ms-black flex items-center justify-center font-black text-lg shrink-0">M</span>
+        <span>
+          <span class="block font-display text-xl leading-none tracking-[0.15em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+          <span class="block text-[10px] text-ms-white/50 font-semibold uppercase tracking-widest mt-1.5">Panel de Administración</span>
+        </span>
       </a>
     </div>
 
     <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
       @for (grupo of grupos; track grupo.titulo) {
         <div>
-          <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-neutral-500">{{ grupo.titulo }}</p>
+          <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-ms-white/40">{{ grupo.titulo }}</p>
           <div class="space-y-1">
             @for (enlace of grupo.enlaces; track enlace.ruta) {
               <a
                 [routerLink]="enlace.ruta"
-                routerLinkActive="bg-white text-neutral-950"
-                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-300 hover:bg-neutral-900 hover:text-white transition-all">
-                <span class="text-base">{{ enlace.icono }}</span>
+                routerLinkActive="admin-link-activo"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-ms-white/60 hover:bg-ms-white/5 hover:text-ms-white transition-all">
+                <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  @switch (enlace.icono) {
+                    @case ('catalogo') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm9 0a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1V5zM4 14a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5zm9 0a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5z"/>
+                    }
+                    @case ('inventario') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    }
+                    @case ('venta') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2V4z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h6M9 12h6"/>
+                    }
+                    @case ('reservas') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    }
+                    @case ('reportes') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 16v-5M12 16V8M17 16v-3"/>
+                    }
+                    @case ('usuarios') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-1a4 4 0 00-3-3.87M9 20H4v-1a4 4 0 013-3.87m6-5.13a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    }
+                    @case ('permisos') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    }
+                    @case ('config') {
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    }
+                  }
+                </svg>
                 <span>{{ enlace.etiqueta }}</span>
               </a>
             }
@@ -31,44 +71,77 @@
       }
     </nav>
 
-    <div class="p-4 border-t border-neutral-800 space-y-2">
+    <div class="p-4 border-t border-ms-white/10">
       <button
         (click)="irATienda()"
-        class="w-full flex items-center gap-2 justify-center text-xs font-bold text-neutral-300 hover:text-white border border-neutral-700 hover:border-neutral-500 rounded-xl py-2.5 transition-all cursor-pointer">
-        ← Volver a la tienda
-      </button>
-      @if (usuario) {
-        <p class="text-[11px] text-neutral-500 text-center truncate px-2">{{ usuario.nombre }} {{ usuario.apellido }}</p>
-      }
-      <button
-        (click)="cerrarSesion()"
-        class="w-full flex items-center gap-2 justify-center text-xs font-bold text-red-400 hover:text-red-300 rounded-xl py-2 transition-all cursor-pointer">
-        Cerrar sesión
+        class="w-full flex items-center gap-2 justify-center text-xs font-bold text-ms-white/60 hover:text-ms-white border border-ms-white/15 hover:border-ms-white/40 rounded-xl py-2.5 transition-all cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        Volver a la tienda
       </button>
     </div>
   </aside>
 
-  <!-- Menú móvil (drawer) -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- MENÚ MÓVIL (drawer)                             -->
+  <!-- ═══════════════════════════════════════════════ -->
   @if (menuMovilAbierto) {
     <div class="fixed inset-0 z-50 lg:hidden">
-      <div class="absolute inset-0 bg-black/50" (click)="cerrarMenuMovil()"></div>
-      <aside class="absolute left-0 top-0 h-full w-72 bg-neutral-950 text-white flex flex-col">
-        <div class="p-6 border-b border-neutral-800 flex items-center justify-between">
-          <span class="text-sm font-black tracking-[0.15em] uppercase">MENSTYLE</span>
-          <button (click)="cerrarMenuMovil()" class="text-neutral-400 hover:text-white text-xl leading-none cursor-pointer">✕</button>
+      <div class="absolute inset-0 bg-ms-black/60 backdrop-blur-sm animate-fade-in" (click)="cerrarMenuMovil()"></div>
+      <aside class="absolute left-0 top-0 h-full w-72 bg-ms-ink text-ms-white flex flex-col animate-slide-in-left">
+        <div class="p-5 border-b border-ms-white/10 flex items-center justify-between gap-3">
+          <span class="font-display text-xl tracking-[0.15em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+          <button
+            (click)="cerrarMenuMovil()"
+            class="w-9 h-9 rounded-lg flex items-center justify-center text-ms-white/60 hover:text-ms-white hover:bg-ms-white/5 transition-all cursor-pointer"
+            aria-label="Cerrar menú">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
+
         <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
           @for (grupo of grupos; track grupo.titulo) {
             <div>
-              <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-neutral-500">{{ grupo.titulo }}</p>
+              <p class="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.25em] text-ms-white/40">{{ grupo.titulo }}</p>
               <div class="space-y-1">
                 @for (enlace of grupo.enlaces; track enlace.ruta) {
                   <a
                     [routerLink]="enlace.ruta"
                     (click)="cerrarMenuMovil()"
-                    routerLinkActive="bg-white text-neutral-950"
-                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-300 hover:bg-neutral-900 hover:text-white transition-all">
-                    <span class="text-base">{{ enlace.icono }}</span>
+                    routerLinkActive="admin-link-activo"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-ms-white/60 hover:bg-ms-white/5 hover:text-ms-white transition-all">
+                    <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      @switch (enlace.icono) {
+                        @case ('catalogo') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm9 0a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1V5zM4 14a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1v-5zm9 0a1 1 0 011-1h5a1 1 0 011 1v5a1 1 0 01-1 1h-5a1 1 0 01-1-1v-5z"/>
+                        }
+                        @case ('inventario') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        }
+                        @case ('venta') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 4h14v16l-3-2-2 2-2-2-2 2-2-2-3 2V4z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9h6M9 12h6"/>
+                        }
+                        @case ('reservas') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                        }
+                        @case ('reportes') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 16v-5M12 16V8M17 16v-3"/>
+                        }
+                        @case ('usuarios') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-1a4 4 0 00-3-3.87M9 20H4v-1a4 4 0 013-3.87m6-5.13a3 3 0 11-6 0 3 3 0 016 0zm6 0a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        }
+                        @case ('permisos') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        }
+                        @case ('config') {
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        }
+                      }
+                    </svg>
                     <span>{{ enlace.etiqueta }}</span>
                   </a>
                 }
@@ -76,24 +149,71 @@
             </div>
           }
         </nav>
-        <div class="p-4 border-t border-neutral-800 space-y-2">
-          <button (click)="irATienda()" class="w-full text-xs font-bold text-neutral-300 border border-neutral-700 rounded-xl py-2.5 cursor-pointer">← Volver a la tienda</button>
-          <button (click)="cerrarSesion()" class="w-full text-xs font-bold text-red-400 rounded-xl py-2 cursor-pointer">Cerrar sesión</button>
+
+        <div class="p-4 border-t border-ms-white/10">
+          <button
+            (click)="irATienda(); cerrarMenuMovil()"
+            class="w-full flex items-center gap-2 justify-center text-xs font-bold text-ms-white/60 hover:text-ms-white border border-ms-white/15 hover:border-ms-white/40 rounded-xl py-2.5 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Volver a la tienda
+          </button>
         </div>
       </aside>
     </div>
   }
 
-  <!-- Contenido -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- CONTENIDO                                        -->
+  <!-- ═══════════════════════════════════════════════ -->
   <div class="flex-1 min-w-0 flex flex-col">
 
-    <!-- Barra superior (móvil + título) -->
-    <header class="bg-white border-b border-neutral-200 sticky top-0 z-40 flex items-center gap-3 px-4 sm:px-6 h-16 shrink-0">
-      <button (click)="alternarMenuMovil()" class="lg:hidden text-neutral-700 text-xl leading-none cursor-pointer">☰</button>
-      <h1 class="text-base sm:text-lg font-black text-neutral-900 tracking-tight truncate">{{ titulo }}</h1>
+    <!-- Barra superior -->
+    <header class="bg-ms-white border-b border-ms-stone-200 sticky top-0 z-40 h-16 shrink-0 flex items-center gap-3 px-4 sm:px-6">
+      <button
+        (click)="alternarMenuMovil()"
+        class="lg:hidden w-9 h-9 -ml-1 rounded-lg flex items-center justify-center text-ms-ink hover:bg-ms-stone transition-all cursor-pointer"
+        aria-label="Abrir menú">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+
+      <!-- Breadcrumb (escritorio) -->
+      <nav class="hidden md:flex items-center gap-2 text-xs font-medium text-ms-slate min-w-0">
+        <span>Administración</span>
+        <span class="text-ms-outline">/</span>
+        <span class="font-semibold text-ms-ink truncate">{{ titulo }}</span>
+      </nav>
+
+      <!-- Título (móvil) -->
+      <h1 class="md:hidden text-base font-display text-ms-ink truncate">{{ titulo }}</h1>
+
+      <!-- Usuario + cerrar sesión -->
+      <div class="ml-auto flex items-center gap-2 sm:gap-3 shrink-0">
+        @if (usuario) {
+          <div class="hidden sm:flex items-center gap-2.5">
+            <div class="text-right leading-tight">
+              <p class="text-xs font-bold text-ms-ink">{{ usuario.nombre }} {{ usuario.apellido }}</p>
+              <p class="text-[10px] text-ms-slate font-medium">Administrador</p>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-ms-amber/15 text-ms-amber flex items-center justify-center text-sm font-black">
+              {{ inicialesUsuario() }}
+            </div>
+          </div>
+        }
+        <app-button variant="fantasma" size="sm" (click)="cerrarSesion()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Cerrar sesión
+        </app-button>
+      </div>
     </header>
 
-    <main class="flex-1 min-w-0">
+    <!-- Contenido -->
+    <main class="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-8">
       <ng-content></ng-content>
     </main>
 

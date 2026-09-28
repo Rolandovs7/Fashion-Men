@@ -9,6 +9,12 @@ export interface Marca {
   activo: boolean;
 }
 
+export interface MarcaActualizar {
+  nombre?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -32,5 +38,9 @@ export class MarcasService {
 
   eliminar(id: number): Observable<Marca> {
     return this.http.delete<Marca>(`${this.apiUrl}/${id}`, { headers: this.headers() });
+  }
+
+  actualizar(id: number, datos: MarcaActualizar): Observable<Marca> {
+    return this.http.put<Marca>(`${this.apiUrl}/${id}`, datos, { headers: this.headers() });
   }
 }

@@ -11,6 +11,16 @@ import { SucursalesService, Sucursal } from '../../core/services/sucursales.serv
 import { PedidosService } from '../../core/services/pedidos.service';
 import { ReservasService } from '../../core/services/reservas.service';
 import { HeaderComponent } from '../../shared/header/header';
+import {
+  ButtonComponent,
+  InputComponent,
+  SelectComponent,
+  AlertComponent,
+  SkeletonComponent,
+  EmptyStateComponent,
+  PriceComponent,
+  FooterComponent
+} from '../../shared/ui';
 
 interface ItemCarritoVista {
   detalle: DetalleCarrito;
@@ -21,7 +31,20 @@ interface ItemCarritoVista {
 
 @Component({
   selector: 'app-carrito',
-  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    HeaderComponent,
+    ButtonComponent,
+    InputComponent,
+    SelectComponent,
+    AlertComponent,
+    SkeletonComponent,
+    EmptyStateComponent,
+    PriceComponent,
+    FooterComponent
+  ],
   templateUrl: './carrito.html',
   styleUrl: './carrito.css'
 })
@@ -131,6 +154,24 @@ export class CarritoPage implements OnInit {
 
   get total(): number {
     return this.items.reduce((acc, item) => acc + item.subtotal, 0);
+  }
+
+  get opcionesSucursales(): { valor: number; etiqueta: string }[] {
+    return this.sucursales.map((s) => ({ valor: s.id, etiqueta: `${s.nombre} — ${s.ciudad}` }));
+  }
+
+  onSucursalChange(valor: string | number | null): void {
+    this.sucursalSeleccionada =
+      valor === null || valor === '' ? null : Number(valor);
+  }
+
+  imagenItem(item: ItemCarritoVista): string | null {
+    if (item.variante?.imagen_url) return item.variante.imagen_url;
+    return item.producto?.imagen_url ?? null;
+  }
+
+  irAlCatalogo(): void {
+    this.router.navigate(['/catalogo']);
   }
 
   cambiarCantidad(item: ItemCarritoVista, nuevaCantidad: number): void {

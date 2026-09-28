@@ -14,10 +14,10 @@
 
 | Servicio | URL |
 |----------|-----|
-| **Backend API** | https://menstyle-hms1.onrender.com |
-| **Documentación Swagger** | https://menstyle-hms1.onrender.com/docs |
-| **ReDoc** | https://menstyle-hms1.onrender.com/redoc |
-| **Frontend Web** | https://menstyle-web.onrender.com |
+| **Backend API** | https://menstyle-api-n77g.onrender.com |
+| **Documentación Swagger** | https://menstyle-api-n77g.onrender.com/docs |
+| **ReDoc** | https://menstyle-api-n77g.onrender.com/redoc |
+| **Frontend Web** | https://menstyle-web-0de9.onrender.com |
 
 ### 1.3 Aplicación Móvil
 
@@ -41,13 +41,13 @@ text
 
 ### 2.2 Backend API (Swagger)
 
-[QR para https://menstyle-hms1.onrender.com/docs]
+[QR para https://menstyle-api-n77g.onrender.com/docs]
 text
 
 
 ### 2.3 Frontend Web
 
-[QR para https://menstyle-web.onrender.com]
+[QR para https://menstyle-web-0de9.onrender.com]
 text
 
 
@@ -119,6 +119,22 @@ text
 - **MVP funcional:** Septiembre 2026
 - **Despliegue en nube:** Septiembre 2026
 - **Presentación final:** (según cronograma del docente)
+
+---
+
+## 7. Endpoints Públicos Principales
+
+| Endpoint | Descripción |
+|----------|-------------|
+| GET /api/productos | Listar productos (público) |
+| GET /api/productos/{id} | Detalle de producto |
+| GET /api/variantes/producto/{id} | Variantes de un producto |
+| GET /api/categorias | Listar categorías |
+| POST /api/ia/chat | Asistente virtual (público) |
+| POST /api/auth/login | Iniciar sesión |
+| POST /api/auth/register | Registrar cliente |
+
+**Documentación completa:** https://menstyle-api-n77g.onrender.com/docs
 
 ---
 

@@ -1,8 +1,8 @@
 import { Component, inject, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 // ============================================================
 @Component({
   selector: 'app-forgot-password',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ButtonComponent, InputComponent, AlertComponent],
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.css'
 })

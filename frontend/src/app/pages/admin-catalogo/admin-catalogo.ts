@@ -12,6 +12,19 @@ import { TiposPrendaService, TipoPrenda } from '../../core/services/tipos-prenda
 import { MarcasService, Marca } from '../../core/services/marcas.service';
 import { DescuentosService, Descuento } from '../../core/services/descuentos.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import {
+  ModalComponent,
+  ButtonComponent,
+  InputComponent,
+  SelectComponent,
+  AlertComponent,
+  LoaderComponent,
+  BadgeComponent,
+  PriceComponent,
+  EmptyStateComponent,
+  ToastService,
+  type OpcionSelect
+} from '../../shared/ui';
 
 type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'proveedores' | 'temporadas' | 'colecciones' | 'tallas' | 'colores' | 'tipos-prenda' | 'marcas' | 'descuentos';
 
@@ -35,7 +48,7 @@ type Pestana = 'categorias' | 'productos' | 'variantes' | 'sucursales' | 'provee
 // ============================================================
 @Component({
   selector: 'app-admin-catalogo',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ModalComponent, ButtonComponent, InputComponent, SelectComponent, AlertComponent, LoaderComponent, BadgeComponent, PriceComponent, EmptyStateComponent],
   templateUrl: './admin-catalogo.html',
   styleUrl: './admin-catalogo.css'
 })
@@ -50,6 +63,7 @@ export class AdminCatalogo implements OnInit {
   private tiposPrendaService = inject(TiposPrendaService);
   private marcasService = inject(MarcasService);
   private descuentosService = inject(DescuentosService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   pestana: Pestana = 'categorias';
@@ -81,13 +95,18 @@ export class AdminCatalogo implements OnInit {
     proveedor_id: 0, temporada_id: 0, coleccion_id: 0,
     tipo_prenda_id: 0, marca_id: 0, descuento_id: 0
   };
-  nuevaVariante = { talla_id: 0, color_id: 0 };
+  nuevaVariante = { talla_id: 0, color_id: 0, imagen_url: '' };
   nuevaSucursal = { nombre: '', direccion: '', ciudad: '', telefono: '' };
   nuevoProveedor = { nombre: '', contacto: '', telefono: '', email: '', direccion: '' };
   nuevaTemporada = { nombre: '', descripcion: '' };
   nuevaColeccion = { nombre: '', descripcion: '' };
-  nuevaTalla = { nombre: '' };
-  nuevoColor = { nombre: '', codigo_hex: '#000000' };
+nuevaTalla = { nombre: '' };
+  nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
+
+  // Edición de colores (modal)
+  colorEditandoId: number | null = null;
+  colorModalAbierto = false;
+  colorEditando = { nombre: '', codigo_hex: '#000000', imagen_url: '', activo: true };
   nuevoTipoPrenda = { nombre: '', descripcion: '' };
   nuevaMarca = { nombre: '', descripcion: '' };
   nuevoDescuento = { nombre: '', porcentaje: 0, fecha_inicio: '', fecha_fin: '' };
@@ -119,7 +138,7 @@ export class AdminCatalogo implements OnInit {
 
     this.productosService.listar().subscribe({
       next: (productos) => {
-        this.productos = productos;
+        this.productos = [...productos].sort((a, b) => a.id - b.id);
         this.cargando = false;
         this.cdr.detectChanges();
       },
@@ -276,6 +295,72 @@ export class AdminCatalogo implements OnInit {
     };
   }
 
+  // ── Opciones para app-select (app-select entrega strings) ──
+
+  get opcionesCategoria(): OpcionSelect[] {
+    return this.categorias.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  get opcionesProveedor(): OpcionSelect[] {
+    return this.proveedores.map(p => ({ valor: p.id, etiqueta: p.nombre }));
+  }
+
+  get opcionesTemporada(): OpcionSelect[] {
+    return this.temporadas.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesColeccion(): OpcionSelect[] {
+    return this.colecciones.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  get opcionesTipoPrenda(): OpcionSelect[] {
+    return this.tiposPrenda.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesMarca(): OpcionSelect[] {
+    return this.marcas.map(m => ({ valor: m.id, etiqueta: m.nombre }));
+  }
+
+  get opcionesDescuento(): OpcionSelect[] {
+    return this.descuentos.map(d => ({ valor: d.id, etiqueta: `${d.nombre} (-${d.porcentaje}%)` }));
+  }
+
+  setProductoPrecio(valor: string): void {
+    this.nuevoProducto.precio = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoCategoria(valor: string): void {
+    this.nuevoProducto.categoria_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoProveedor(valor: string): void {
+    this.nuevoProducto.proveedor_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoTemporada(valor: string): void {
+    this.nuevoProducto.temporada_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoColeccion(valor: string): void {
+    this.nuevoProducto.coleccion_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoTipoPrenda(valor: string): void {
+    this.nuevoProducto.tipo_prenda_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoMarca(valor: string): void {
+    this.nuevoProducto.marca_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setProductoDescuento(valor: string): void {
+    this.nuevoProducto.descuento_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setDescuentoPorcentaje(valor: string): void {
+    this.nuevoDescuento.porcentaje = valor === '' ? 0 : Number(valor);
+  }
+
   guardarProducto(): void {
     if (!this.nuevoProducto.nombre.trim() || !this.nuevoProducto.categoria_id || this.nuevoProducto.precio <= 0) {
       this.error = 'Completa nombre, categoría y un precio válido.';
@@ -340,6 +425,182 @@ export class AdminCatalogo implements OnInit {
     });
   }
 
+  reactivarProducto(producto: Producto): void {
+    this.productosService.cambiarActivo(producto.id, true).subscribe({
+      next: (reactivado) => {
+        this.productos = this.productos.map(p => p.id === reactivado.id ? reactivado : p);
+        this.mensaje = `Producto "${reactivado.nombre}" reactivado.`;
+        this.toastService.exito(`Producto "${reactivado.nombre}" reactivado.`);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.error = error.error?.detail || 'No se pudo reactivar el producto.';
+        this.toastService.error('No se pudo reactivar el producto.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarCategoria(categoria: Categoria): void {
+    this.categoriasService.actualizar(categoria.id, { ...categoria, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.categorias = this.categorias.map(c => c.id === actualizada.id ? actualizada : c);
+        this.mensaje = 'Categoría reactivada.';
+        this.toastService.exito('Categoría reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la categoría.';
+        this.toastService.error('No se pudo reactivar la categoría.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarSucursal(sucursal: Sucursal): void {
+    this.sucursalesService.actualizar(sucursal.id, { ...sucursal, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.sucursales = this.sucursales.map(s => s.id === actualizada.id ? actualizada : s);
+        this.mensaje = 'Sucursal reactivada.';
+        this.toastService.exito('Sucursal reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la sucursal.';
+        this.toastService.error('No se pudo reactivar la sucursal.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarProveedor(proveedor: Proveedor): void {
+    this.proveedoresService.actualizar(proveedor.id, { ...proveedor, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.proveedores = this.proveedores.map(p => p.id === actualizado.id ? actualizado : p);
+        this.mensaje = 'Proveedor reactivado.';
+        this.toastService.exito('Proveedor reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el proveedor.';
+        this.toastService.error('No se pudo reactivar el proveedor.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTemporada(temporada: Temporada): void {
+    this.temporadasService.actualizar(temporada.id, { ...temporada, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.temporadas = this.temporadas.map(t => t.id === actualizada.id ? actualizada : t);
+        this.mensaje = 'Temporada reactivada.';
+        this.toastService.exito('Temporada reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la temporada.';
+        this.toastService.error('No se pudo reactivar la temporada.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarColeccion(coleccion: Coleccion): void {
+    this.coleccionesService.actualizar(coleccion.id, { ...coleccion, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.colecciones = this.colecciones.map(c => c.id === actualizada.id ? actualizada : c);
+        this.mensaje = 'Colección reactivada.';
+        this.toastService.exito('Colección reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la colección.';
+        this.toastService.error('No se pudo reactivar la colección.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTalla(talla: Talla): void {
+    this.variantesService.actualizarTalla(talla.id, { activo: true }).subscribe({
+      next: (actualizada) => {
+        this.tallas = this.tallas.map(t => t.id === actualizada.id ? actualizada : t);
+        this.mensaje = 'Talla reactivada.';
+        this.toastService.exito('Talla reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la talla.';
+        this.toastService.error('No se pudo reactivar la talla.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarColor(color: Color): void {
+    this.variantesService.actualizarColor(color.id, { activo: true }).subscribe({
+      next: (actualizado) => {
+        this.colores = this.colores.map(c => c.id === actualizado.id ? actualizado : c);
+        this.mensaje = 'Color reactivado.';
+        this.toastService.exito('Color reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el color.';
+        this.toastService.error('No se pudo reactivar el color.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarTipoPrenda(tipo: TipoPrenda): void {
+    this.tiposPrendaService.actualizar(tipo.id, { ...tipo, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.tiposPrenda = this.tiposPrenda.map(t => t.id === actualizado.id ? actualizado : t);
+        this.mensaje = 'Tipo de prenda reactivado.';
+        this.toastService.exito('Tipo de prenda reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el tipo de prenda.';
+        this.toastService.error('No se pudo reactivar el tipo de prenda.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarMarca(marca: Marca): void {
+    this.marcasService.actualizar(marca.id, { ...marca, activo: true }).subscribe({
+      next: (actualizada) => {
+        this.marcas = this.marcas.map(m => m.id === actualizada.id ? actualizada : m);
+        this.mensaje = 'Marca reactivada.';
+        this.toastService.exito('Marca reactivada.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar la marca.';
+        this.toastService.error('No se pudo reactivar la marca.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reactivarDescuento(descuento: Descuento): void {
+    this.descuentosService.actualizar(descuento.id, { ...descuento, activo: true }).subscribe({
+      next: (actualizado) => {
+        this.descuentos = this.descuentos.map(d => d.id === actualizado.id ? actualizado : d);
+        this.mensaje = 'Descuento reactivado.';
+        this.toastService.exito('Descuento reactivado.');
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.error = 'No se pudo reactivar el descuento.';
+        this.toastService.error('No se pudo reactivar el descuento.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   nombreCategoria(categoriaId: number): string {
     return this.categorias.find(c => c.id === categoriaId)?.nombre ?? '—';
   }
@@ -360,7 +621,7 @@ export class AdminCatalogo implements OnInit {
   }
 
   // ----- Variantes -----
-  seleccionarProducto(productoId: number): void {
+  seleccionarProducto(productoId: number | null): void {
     this.productoSeleccionadoId = productoId;
     this.error = '';
     this.mensaje = '';
@@ -382,6 +643,32 @@ export class AdminCatalogo implements OnInit {
     });
   }
 
+  // ── Coercion de app-select (app-select entrega strings) ──
+
+  get opcionesVarianteProducto(): OpcionSelect[] {
+    return this.productos.map(p => ({ valor: p.id, etiqueta: p.nombre }));
+  }
+
+  get opcionesVarianteTalla(): OpcionSelect[] {
+    return this.tallas.map(t => ({ valor: t.id, etiqueta: t.nombre }));
+  }
+
+  get opcionesVarianteColor(): OpcionSelect[] {
+    return this.colores.map(c => ({ valor: c.id, etiqueta: c.nombre }));
+  }
+
+  onVarianteProductoSeleccionado(valor: string): void {
+    this.seleccionarProducto(valor === '' ? null : Number(valor));
+  }
+
+  setNuevaVarianteTalla(valor: string): void {
+    this.nuevaVariante.talla_id = valor === '' ? 0 : Number(valor);
+  }
+
+  setNuevaVarianteColor(valor: string): void {
+    this.nuevaVariante.color_id = valor === '' ? 0 : Number(valor);
+  }
+
   crearVariante(): void {
     if (!this.productoSeleccionadoId || !this.nuevaVariante.talla_id || !this.nuevaVariante.color_id) {
       this.error = 'Selecciona producto, talla y color.';
@@ -394,17 +681,62 @@ export class AdminCatalogo implements OnInit {
     this.variantesService.crear({
       producto_id: this.productoSeleccionadoId,
       talla_id: Number(this.nuevaVariante.talla_id),
-      color_id: Number(this.nuevaVariante.color_id)
+      color_id: Number(this.nuevaVariante.color_id),
+      imagen_url: this.nuevaVariante.imagen_url.trim() || null
     }).subscribe({
       next: () => {
         this.guardando = false;
         this.mensaje = 'Variante creada correctamente.';
-        this.nuevaVariante = { talla_id: 0, color_id: 0 };
+        this.nuevaVariante = { talla_id: 0, color_id: 0, imagen_url: '' };
         this.cargarVariantesDelProducto();
       },
       error: (error) => {
         this.guardando = false;
         this.error = error.error?.detail || 'No se pudo crear la variante.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ----- Imagen de variante (modal) -----
+  varianteImagenEditandoId: number | null = null;
+  varianteImagenModalAbierto = false;
+  varianteImagenEditandoUrl = '';
+
+  editarImagenVariante(variante: Variante): void {
+    this.varianteImagenEditandoId = variante.id;
+    this.varianteImagenEditandoUrl = variante.imagen_url || '';
+    this.varianteImagenModalAbierto = true;
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cancelarEdicionImagenVariante(): void {
+    this.varianteImagenModalAbierto = false;
+    this.varianteImagenEditandoId = null;
+    this.varianteImagenEditandoUrl = '';
+  }
+
+  guardarImagenVariante(): void {
+    if (!this.varianteImagenEditandoId) return;
+
+    this.guardando = true;
+    this.error = '';
+
+    this.variantesService.actualizarVariante(this.varianteImagenEditandoId, {
+      imagen_url: this.varianteImagenEditandoUrl.trim() || null
+    }).subscribe({
+      next: () => {
+        this.guardando = false;
+        this.mensaje = 'Imagen de variante actualizada.';
+        this.toastService.exito('Imagen de variante actualizada.');
+        this.cargarVariantesDelProducto();
+        this.cancelarEdicionImagenVariante();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo actualizar la imagen de la variante.';
+        this.toastService.error('No se pudo actualizar la imagen de la variante.');
         this.cdr.detectChanges();
       }
     });
@@ -674,10 +1006,14 @@ export class AdminCatalogo implements OnInit {
     this.guardando = true;
     this.error = '';
 
-    this.variantesService.crearColor(this.nuevoColor.nombre.trim(), this.nuevoColor.codigo_hex).subscribe({
+    this.variantesService.crearColor(
+      this.nuevoColor.nombre.trim(),
+      this.nuevoColor.codigo_hex,
+      this.nuevoColor.imagen_url.trim() || null
+    ).subscribe({
       next: (color) => {
         this.colores = [...this.colores, color];
-        this.nuevoColor = { nombre: '', codigo_hex: '#000000' };
+        this.nuevoColor = { nombre: '', codigo_hex: '#000000', imagen_url: '' };
         this.guardando = false;
         this.mensaje = 'Color creado correctamente.';
         this.cdr.detectChanges();
@@ -701,6 +1037,59 @@ export class AdminCatalogo implements OnInit {
       },
       error: () => {
         this.error = 'No se pudo desactivar el color.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  editarColor(color: Color): void {
+    this.colorEditandoId = color.id;
+    this.colorEditando = {
+      nombre: color.nombre,
+      codigo_hex: color.codigo_hex || '#000000',
+      imagen_url: color.imagen_url || '',
+      activo: color.activo
+    };
+    this.colorModalAbierto = true;
+    this.error = '';
+    this.mensaje = '';
+  }
+
+  cancelarEdicionColor(): void {
+    this.colorModalAbierto = false;
+    this.colorEditandoId = null;
+    this.colorEditando = { nombre: '', codigo_hex: '#000000', imagen_url: '', activo: true };
+  }
+
+  guardarColor(): void {
+    if (!this.colorEditandoId) return;
+
+    if (!this.colorEditando.nombre.trim()) {
+      this.error = 'El nombre del color es obligatorio.';
+      return;
+    }
+
+    this.guardando = true;
+    this.error = '';
+
+    this.variantesService.actualizarColor(this.colorEditandoId, {
+      nombre: this.colorEditando.nombre.trim(),
+      codigo_hex: this.colorEditando.codigo_hex || null,
+      imagen_url: this.colorEditando.imagen_url.trim() || null,
+      activo: this.colorEditando.activo
+    }).subscribe({
+      next: (color) => {
+        this.colores = this.colores.map(c => c.id === color.id ? color : c);
+        this.cancelarEdicionColor();
+        this.guardando = false;
+        this.mensaje = 'Color actualizado correctamente.';
+        this.toastService.exito('Color actualizado correctamente.');
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.guardando = false;
+        this.error = error.error?.detail || 'No se pudo actualizar el color.';
+        this.toastService.error('No se pudo actualizar el color.');
         this.cdr.detectChanges();
       }
     });

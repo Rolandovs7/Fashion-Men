@@ -13,11 +13,13 @@ Plataforma omnicanal de comercio electrónico especializada en **moda masculina*
 ## 📋 Tabla de Contenidos
 
 - [Características](#-características)
+- [Estado del Proyecto](#-estado-del-proyecto)
 - [Stack Tecnológico](#-stack-tecnológico)
 - [Estructura del Proyecto](#-estructura-del-proyecto)
 - [Requisitos Previos](#-requisitos-previos)
 - [Instalación Paso a Paso](#-instalación-paso-a-paso)
 - [Ejecución del Proyecto](#-ejecución-del-proyecto)
+- [Despliegue en Producción](#-despliegue-en-producción)
 - [Variables de Entorno](#-variables-de-entorno)
 - [Endpoints Principales](#-endpoints-principales)
 - [Documentación](#-documentación)
@@ -61,18 +63,65 @@ Plataforma omnicanal de comercio electrónico especializada en **moda masculina*
 
 ---
 
+## 📊 Estado del Proyecto
+
+### ✅ Implementado (Fases 1-8)
+
+**Rediseño visual completo** con el sistema "Quiet Editorial Luxury":
+- Home con hero editorial, categorías, productos destacados, IA, sucursales.
+- Catálogo con filtros (categoría, talla, color), ordenamiento, paginación.
+- Detalle de producto con galería, selectores de talla/color, imagen dinámica
+  por color, cantidad, agregar al carrito, reservar.
+- Carrito de compras + checkout + confirmación.
+- Mis pedidos con comprobante y cancelación.
+- Login / Registro / Recuperar contraseña con validaciones.
+- Reservas + Notificaciones.
+- Panel de Administración completo:
+  * AdminShell con sidebar + navegación.
+  * Catálogo (12 secciones): categorías, productos, variantes, tallas,
+    colores, sucursales, proveedores, temporadas, colecciones, tipos de
+    prenda, marcas, descuentos.
+  * Operaciones (pedidos y reservas).
+  * Reportes y estadísticas con Chart.js.
+  * Configuración (roles + tipos de pago).
+  * Punto de Venta (POS).
+  * Inventario con paginación optimizada.
+  * Usuarios y Permisos.
+
+**Sistema de diseño:** 12 componentes + barrel (index.ts): alert, badge,
+button, empty-state, footer, input, loader, modal, price, select, skeleton,
+toast.
+
+**Catálogo de productos:** 21 productos activos, 186 variantes, imágenes
+por variante en 3 sucursales.
+
+**IA:** Google Gemini integrado para recomendaciones personalizadas y
+asistente virtual con historial multi-turno.
+
+### 🚧 Pendiente
+
+- Realidad Aumentada (probador virtual).
+- Pasarela de pago Stripe en producción (sandbox actual).
+- Aplicación móvil Flutter (backend listo, frontend mobile parcial).
+- Environments dev/prod en Angular (actualmente hardcoded a producción).
+- Optimización del bundle (lazy loading).
+
+---
+
 ## 🛠️ Stack Tecnológico
 
 | Capa | Tecnología | Versión |
 |------|------------|---------|
 | **Backend** | Python + FastAPI | 3.12+ / 0.141+ |
-| **Frontend Web** | Angular | 17+ |
+| **Frontend Web** | Angular | 21.2 |
 | **App Móvil** | Flutter + Dart | 3.16+ |
 | **Base de Datos** | PostgreSQL | 16 |
 | **ORM** | SQLAlchemy + Alembic | 2.0+ |
+| **Estilos** | Tailwind CSS | 4.x |
+| **Gráficos** | Chart.js | 4.x |
 | **Autenticación** | JWT (python-jose) | - |
-| **IA** | Google Gemini | API |
-| **Realidad Aumentada** | ARCore / ARKit | - |
+| **IA** | Google Gemini (google-genai) | 1.16.1 |
+| **Realidad Aumentada** | ARCore / ARKit | (pendiente) |
 | **Pagos** | Stripe | Sandbox |
 | **Control de Versiones** | Git + GitHub | - |
 
@@ -300,6 +349,27 @@ flutter run
 
 ---
 
+## 🌐 Despliegue en Producción
+
+| Servicio | URL | Plataforma |
+|----------|-----|------------|
+| **Frontend Web** | https://menstyle-web-0de9.onrender.com | Render Static |
+| **Backend API** | https://menstyle-api-n77g.onrender.com | Render Web |
+| **Swagger UI** | https://menstyle-api-n77g.onrender.com/docs | - |
+| **PostgreSQL** | (Render PostgreSQL) | Render |
+
+### Credenciales de Prueba
+
+**Administrador:**
+- Email: rolando@gmail.com
+- Password: 123456
+
+**Cliente:**
+- Email: cliente@ejemplo.com
+- Password: cliente123
+
+---
+
 ## 🔑 Variables de Entorno
 
 ### Backend (`backend/.env`)
@@ -330,6 +400,12 @@ flutter run
 | GET | `/api/productos/{id}` | Detalle de producto |
 | GET | `/api/categorias/` | Listar categorías |
 
+### Variantes
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/variantes/producto/{id}` | Variantes de un producto con stock |
+| GET | `/api/inventario/detallado` | Inventario paginado enriquecido |
+
 ### Reservas
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
@@ -340,6 +416,9 @@ flutter run
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
 | POST | `/api/pedidos/` | Crear pedido |
+| GET | `/api/pedidos/me` | Mis pedidos |
+| PUT | `/api/pedidos/{id}` | Actualizar estado del pedido |
+| DELETE | `/api/pedidos/{id}` | Cancelar pedido |
 | POST | `/api/pagos/` | Procesar pago |
 
 ### IA

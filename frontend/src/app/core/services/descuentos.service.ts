@@ -18,6 +18,14 @@ export interface DescuentoCrear {
   fecha_fin?: string | null;
 }
 
+export interface DescuentoActualizar {
+  nombre?: string;
+  porcentaje?: number;
+  fecha_inicio?: string | null;
+  fecha_fin?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -41,5 +49,9 @@ export class DescuentosService {
 
   eliminar(id: number): Observable<Descuento> {
     return this.http.delete<Descuento>(`${this.apiUrl}/${id}`, { headers: this.headers() });
+  }
+
+  actualizar(id: number, datos: DescuentoActualizar): Observable<Descuento> {
+    return this.http.put<Descuento>(`${this.apiUrl}/${id}`, datos, { headers: this.headers() });
   }
 }

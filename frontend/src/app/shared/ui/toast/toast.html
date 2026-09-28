@@ -1,0 +1,33 @@
+<div class="fixed top-4 right-4 z-[80] flex flex-col gap-2 w-full max-w-sm pointer-events-none">
+  @for (toast of toasts(); track toast.id) {
+    <div
+      [class]="claseTipo(toast.tipo)"
+      class="pointer-events-auto bg-white border rounded-xl shadow-xl animate-slide-in-right flex items-start gap-3 p-4">
+
+      <div class="shrink-0 mt-0.5">
+        <svg [class]="claseIcono(toast.tipo)" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="trayectoIcono(toast.tipo)"/>
+        </svg>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        @if (toast.titulo) {
+          <p class="text-sm font-bold text-neutral-900">{{ toast.titulo }}</p>
+        }
+        <p [class.font-bold]="!toast.titulo" [class.text-sm]="!!toast.titulo" class="text-neutral-700">
+          {{ toast.mensaje }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="cerrar(toast.id)"
+        class="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors cursor-pointer"
+        title="Cerrar notificación">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+</div>

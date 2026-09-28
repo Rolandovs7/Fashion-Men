@@ -1,0 +1,27 @@
+<div class="w-full">
+  @if (label) {
+    <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 mb-1">
+      {{ label }}@if (required) { <span class="text-red-500">*</span> }
+    </label>
+  }
+
+  <input
+    [type]="type"
+    [value]="valor ?? ''"
+    [placeholder]="placeholder"
+    [autocomplete]="autocomplete"
+    [disabled]="deshabilitado"
+    [attr.aria-invalid]="!!error"
+    [attr.aria-describedby]="(hint || error) ? 'ayuda-' + uid : null"
+    [class.is-error]="!!error"
+    class="input-base"
+    (input)="onInput($event)"
+    (blur)="onBlur()" />
+
+  @if (hint && !error) {
+    <p id="ayuda-{{ uid }}" class="mt-1 text-xs text-neutral-400">{{ hint }}</p>
+  }
+  @if (error) {
+    <p id="ayuda-{{ uid }}" class="mt-1 text-xs font-semibold text-red-600">{{ error }}</p>
+  }
+</div>

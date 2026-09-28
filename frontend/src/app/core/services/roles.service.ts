@@ -14,6 +14,12 @@ export interface RolCrear {
   descripcion?: string | null;
 }
 
+export interface RolActualizar {
+  nombre?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,6 +39,10 @@ export class RolesService {
 
   crear(datos: RolCrear): Observable<Rol> {
     return this.http.post<Rol>(this.apiUrl, datos, { headers: this.headers() });
+  }
+
+  actualizar(id: number, datos: RolActualizar): Observable<Rol> {
+    return this.http.put<Rol>(`${this.apiUrl}/${id}`, datos, { headers: this.headers() });
   }
 
   eliminar(id: number): Observable<Rol> {

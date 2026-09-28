@@ -10,6 +10,9 @@ export interface Variante {
   color_id: number;
   color_nombre: string;
   color_codigo_hex?: string | null;
+  color_imagen_url?: string | null;
+  nombre_variante?: string | null;
+  imagen_url?: string | null;
   activo: boolean;
   stock_disponible: number;
 }
@@ -18,6 +21,8 @@ export interface VarianteCrear {
   producto_id: number;
   talla_id: number;
   color_id: number;
+  nombre_variante?: string | null;
+  imagen_url?: string | null;
 }
 
 export interface Talla {
@@ -30,6 +35,7 @@ export interface Color {
   id: number;
   nombre: string;
   codigo_hex?: string | null;
+  imagen_url?: string | null;
   activo: boolean;
 }
 
@@ -66,6 +72,17 @@ export class VariantesService {
     );
   }
 
+  actualizarVariante(
+    id: number,
+    datos: { activo?: boolean; nombre_variante?: string | null; imagen_url?: string | null }
+  ): Observable<Variante> {
+    return this.http.put<Variante>(
+      `${this.apiUrl}/variantes/${id}`,
+      datos,
+      { headers: this.headers() }
+    );
+  }
+
   listarTallas(): Observable<Talla[]> {
     return this.http.get<Talla[]>(`${this.apiUrl}/tallas`);
   }
@@ -85,14 +102,33 @@ export class VariantesService {
     );
   }
 
+  actualizarTalla(id: number, datos: { activo?: boolean }): Observable<Talla> {
+    return this.http.put<Talla>(
+      `${this.apiUrl}/tallas/${id}`,
+      datos,
+      { headers: this.headers() }
+    );
+  }
+
   listarColores(): Observable<Color[]> {
     return this.http.get<Color[]>(`${this.apiUrl}/colores`);
   }
 
-  crearColor(nombre: string, codigoHex: string | null): Observable<Color> {
+  actualizarColor(
+    id: number,
+    datos: { nombre?: string; codigo_hex?: string | null; imagen_url?: string | null; activo?: boolean }
+  ): Observable<Color> {
+    return this.http.put<Color>(
+      `${this.apiUrl}/colores/${id}`,
+      datos,
+      { headers: this.headers() }
+    );
+  }
+
+  crearColor(nombre: string, codigoHex: string | null, imagenUrl: string | null = null): Observable<Color> {
     return this.http.post<Color>(
       `${this.apiUrl}/colores`,
-      { nombre, codigo_hex: codigoHex },
+      { nombre, codigo_hex: codigoHex, imagen_url: imagenUrl },
       { headers: this.headers() }
     );
   }

@@ -14,6 +14,12 @@ export interface TemporadaCrear {
   descripcion?: string | null;
 }
 
+export interface TemporadaActualizar {
+  nombre?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,6 +50,14 @@ export class TemporadasService {
   eliminar(id: number): Observable<Temporada> {
     return this.http.delete<Temporada>(
       `${this.apiUrl}/${id}`,
+      { headers: this.headers() }
+    );
+  }
+
+  actualizar(id: number, datos: TemporadaActualizar): Observable<Temporada> {
+    return this.http.put<Temporada>(
+      `${this.apiUrl}/${id}`,
+      datos,
       { headers: this.headers() }
     );
   }

@@ -4,6 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { PermisosService, Permiso } from '../../core/services/permisos.service';
 import { RolesService, Rol } from '../../core/services/roles.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import {
+  ButtonComponent,
+  AlertComponent,
+  SelectComponent,
+  LoaderComponent,
+  EmptyStateComponent,
+  type OpcionSelect
+} from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -18,7 +26,7 @@ import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 // ============================================================
 @Component({
   selector: 'app-permisos',
-  imports: [CommonModule, FormsModule, AdminShellComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, ButtonComponent, AlertComponent, SelectComponent, LoaderComponent, EmptyStateComponent],
   templateUrl: './permisos.html',
   styleUrl: './permisos.css'
 })
@@ -81,6 +89,24 @@ export class Permisos implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  get opcionesRoles(): OpcionSelect[] {
+    const fijos: OpcionSelect[] = [
+      { valor: 'administrador', etiqueta: 'Administrador' },
+      { valor: 'cliente', etiqueta: 'Cliente' }
+    ];
+
+    const dinamicos: OpcionSelect[] = this.roles
+      .filter(r => r.nombre !== 'administrador' && r.nombre !== 'cliente')
+      .map(r => ({ valor: r.nombre, etiqueta: r.nombre }));
+
+    return [...fijos, ...dinamicos];
+  }
+
+  onRolCambiado(valor: string): void {
+    this.rolSeleccionado = valor;
+    this.cambiarRol();
   }
 
   cambiarRol(): void {

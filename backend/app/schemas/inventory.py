@@ -21,5 +21,9 @@ class InventarioRespuesta(BaseModel):
     sucursal_id: int
     cantidad: int
     cantidad_reservada: int
+    producto_nombre: Optional[str] = None
+    producto_imagen_url: Optional[str] = None
+    variante_talla: Optional[str] = None
+    variante_color: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)

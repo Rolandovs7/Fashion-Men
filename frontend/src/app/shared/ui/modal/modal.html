@@ -1,0 +1,38 @@
+@if (abierto) {
+  <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+
+    <!-- Backdrop -->
+    <div
+      class="absolute inset-0 bg-neutral-950/60 backdrop-blur-sm animate-fade-in"
+      (click)="solicitarCerrar()"></div>
+
+    <!-- Panel -->
+    <div
+      [class]="claseAncho"
+      class="relative w-full bg-white rounded-2xl shadow-2xl border border-neutral-200 flex flex-col overflow-hidden animate-scale-in">
+
+      @if (titulo || cerrable) {
+        <header class="flex items-center justify-between gap-3 px-6 py-4 border-b border-neutral-100 shrink-0">
+          @if (titulo) {
+            <h2 class="text-lg font-black text-neutral-900 tracking-tight">{{ titulo }}</h2>
+          }
+          @if (cerrable) {
+            <button
+              type="button"
+              (click)="solicitarCerrar()"
+              class="ml-auto w-9 h-9 rounded-lg flex items-center justify-center text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-all cursor-pointer shrink-0"
+              title="Cerrar">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          }
+        </header>
+      }
+
+      <div class="p-6 overflow-y-auto">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </div>
+}

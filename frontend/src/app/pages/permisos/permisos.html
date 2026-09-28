@@ -1,81 +1,85 @@
 <app-admin-shell titulo="Gestión de Permisos">
 
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full bg-ms-alabaster">
 
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Permisos</span>
+    </nav>
+
+    <!-- Encabezado -->
     <div class="mb-8">
-      <p class="text-sm text-neutral-500 font-medium">Asigna los permisos según el rol del usuario</p>
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Permisos</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Gestión de Permisos</h1>
+      <p class="mt-2 text-sm text-ms-slate">Asigna los permisos según el rol del usuario.</p>
     </div>
 
+    <!-- Mensajes -->
     @if (mensaje) {
-      <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 font-medium">
-        {{ mensaje }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="exito" [mensaje]="mensaje" [dismissible]="true" (cerrar)="mensaje = ''"></app-alert>
       </div>
     }
-
     @if (error) {
-      <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 font-medium">
-        {{ error }}
+      <div class="mb-6 animate-fade-in">
+        <app-alert tipo="error" [mensaje]="error" [dismissible]="true" (cerrar)="error = ''"></app-alert>
       </div>
     }
 
-    <div class="bg-white rounded-2xl border border-neutral-200/80 shadow-sm p-6 sm:p-8">
+    <!-- Card principal -->
+    <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-6 sm:p-8">
 
       <div class="mb-8">
-        <label for="rol" class="mb-2 block text-xs font-bold uppercase tracking-wider text-neutral-400">Rol</label>
-        <select
-          id="rol"
-          [(ngModel)]="rolSeleccionado"
-          (change)="cambiarRol()"
-          class="w-full sm:w-64 rounded-xl border border-neutral-300 bg-neutral-50/50 px-4 py-2.5 text-sm text-neutral-900 outline-none transition-all focus:bg-white focus:border-neutral-900 focus:ring-4 focus:ring-neutral-900/10">
-          <option value="administrador">Administrador</option>
-          <option value="cliente">Cliente</option>
-          @for (rol of roles; track rol.id) {
-            @if (rol.nombre !== 'administrador' && rol.nombre !== 'cliente') {
-              <option [value]="rol.nombre">{{ rol.nombre }}</option>
-            }
-          }
-        </select>
+        <app-select
+          label="Rol"
+          placeholder="Selecciona un rol"
+          [opciones]="opcionesRoles"
+          [ngModel]="rolSeleccionado"
+          (ngModelChange)="onRolCambiado($event)" />
       </div>
 
       @if (cargando) {
-        <div class="flex flex-col items-center justify-center py-16 text-center">
-          <div class="w-10 h-10 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
-          <p class="text-sm font-semibold text-neutral-700">Cargando permisos...</p>
+        <div class="py-16">
+          <app-loader size="md" texto="Cargando permisos..." [centrado]="true"></app-loader>
         </div>
       } @else {
 
-        <h2 class="text-xs font-bold uppercase tracking-wider text-neutral-400 mb-4">Permisos disponibles</h2>
+        <h2 class="font-display uppercase tracking-[0.15em] text-ms-ink text-sm mb-4">Permisos disponibles</h2>
 
         <div class="space-y-2 mb-8">
           @for (permiso of permisos; track permiso.id) {
             <label
-              class="flex items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 cursor-pointer transition-all hover:border-neutral-300 hover:bg-neutral-50"
-              [class.border-neutral-950]="tienePermiso(permiso.id)"
-              [class.bg-white]="tienePermiso(permiso.id)"
+              class="flex items-start gap-3 rounded-xl border border-ms-stone-200 bg-ms-stone/30 p-4 cursor-pointer transition-all hover:border-ms-stone-200 hover:bg-ms-stone/60"
+              [class.border-ms-amber/40]="tienePermiso(permiso.id)"
+              [class.bg-ms-cream/30]="tienePermiso(permiso.id)"
               [class.ring-1]="tienePermiso(permiso.id)"
-              [class.ring-neutral-950]="tienePermiso(permiso.id)">
+              [class.ring-ms-amber/30]="tienePermiso(permiso.id)">
               <input
                 type="checkbox"
                 [checked]="tienePermiso(permiso.id)"
                 (change)="cambiarPermiso(permiso.id)"
-                class="mt-0.5 w-4 h-4 rounded border-neutral-300 text-neutral-950 focus:ring-neutral-950 cursor-pointer"
+                class="mt-0.5 w-4 h-4 rounded border-ms-stone-200 text-ms-amber focus:ring-ms-amber cursor-pointer"
               />
               <div>
-                <p class="font-bold text-neutral-900 text-sm">{{ permiso.descripcion }}</p>
-                <p class="text-xs text-neutral-500 font-medium mt-0.5">{{ permiso.nombre }}</p>
+                <p class="font-semibold text-ms-ink text-sm">{{ permiso.descripcion }}</p>
+                <p class="text-xs text-ms-slate font-medium mt-0.5">{{ permiso.nombre }}</p>
               </div>
             </label>
           } @empty {
-            <p class="text-sm text-neutral-400 text-center py-8">No hay permisos registrados.</p>
+            <app-empty-state
+              icono="🔒"
+              titulo="No hay permisos registrados"
+              descripcion="No se encontraron permisos para mostrar." />
           }
         </div>
 
-        <button
-          [disabled]="guardando"
-          (click)="guardar()"
-          class="w-full sm:w-auto inline-flex justify-center items-center rounded-xl bg-neutral-950 px-6 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-neutral-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-          {{ guardando ? 'Guardando...' : 'Guardar permisos' }}
-        </button>
+        <div class="w-full sm:w-auto">
+          <app-button variant="primario" [block]="true" [loading]="guardando" (click)="guardar()">
+            Guardar permisos
+          </app-button>
+        </div>
 
       }
 

@@ -1,7 +1,16 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { NotificacionesService, Notificacion } from '../../core/services/notificaciones.service';
 import { HeaderComponent } from '../../shared/header/header';
+import {
+  ButtonComponent,
+  AlertComponent,
+  SkeletonComponent,
+  EmptyStateComponent,
+  FooterComponent,
+  ToastService
+} from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -12,12 +21,22 @@ import { HeaderComponent } from '../../shared/header/header';
 // ============================================================
 @Component({
   selector: 'app-notificaciones',
-  imports: [CommonModule, HeaderComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    HeaderComponent,
+    ButtonComponent,
+    AlertComponent,
+    SkeletonComponent,
+    EmptyStateComponent,
+    FooterComponent
+  ],
   templateUrl: './notificaciones.html',
   styleUrl: './notificaciones.css'
 })
 export class NotificacionesPage implements OnInit {
   private notifService = inject(NotificacionesService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   notificaciones: Notificacion[] = [];
@@ -72,6 +91,7 @@ export class NotificacionesPage implements OnInit {
         if (this.filtro === 'no-leidas') {
           this.notificaciones = this.notificaciones.filter(n => n.id !== notif.id);
         }
+        this.toastService.exito('Notificación marcada como leída.');
         this.cdr.detectChanges();
       },
       error: () => {}
@@ -101,16 +121,5 @@ export class NotificacionesPage implements OnInit {
     }).formatToParts(fecha);
     const get = (t: string) => partes.find(p => p.type === t)?.value ?? '';
     return `${get('day')}/${get('month')}/${get('year')}`;
-  }
-
-  iconoPara(titulo: string): string {
-    const t = titulo.toLowerCase();
-    if (t.includes('pedido')) return '📦';
-    if (t.includes('reserva')) return '📅';
-    if (t.includes('pago')) return '💳';
-    if (t.includes('cancel')) return '❌';
-    if (t.includes('envío') || t.includes('enviado')) return '🚚';
-    if (t.includes('devol')) return '↩️';
-    return '🔔';
   }
 }

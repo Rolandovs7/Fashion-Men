@@ -12,6 +12,7 @@ export interface Categoria {
 export interface CategoriaCrear {
   nombre: string;
   descripcion?: string | null;
+  activo?: boolean;
 }
 
 @Injectable({

@@ -1,192 +1,397 @@
-<div class="min-h-screen bg-neutral-100 text-neutral-900 font-sans antialiased flex flex-col">
+<div class="min-h-screen bg-ms-white text-ms-ink antialiased flex flex-col font-sans">
 
   <app-header></app-header>
 
-  <!-- Contenido Principal -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 1 · HERO · Quiet Editorial Luxury                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="relative bg-ms-black text-ms-white overflow-hidden">
+    <!-- Gradiente + glow editorial -->
+    <div class="absolute inset-0 bg-gradient-to-br from-ms-black via-ms-black to-ms-black/30"></div>
+    <div class="absolute -right-24 lg:right-8 top-1/3 w-[480px] h-[480px] rounded-full bg-ms-amber/15 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-24 bottom-0 w-[360px] h-[360px] rounded-full bg-ms-cream/10 blur-3xl pointer-events-none"></div>
 
-    @if (usuario) {
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-24 lg:pt-40 lg:pb-32 min-h-[75vh] flex flex-col justify-center">
+      <!-- Eyebrow -->
+      <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em] mb-6 animate-fade-up">
+        <span class="w-1.5 h-1.5 rounded-full bg-ms-amber"></span>
+        Nueva Colección 2026
+      </span>
 
-      <!-- Encabezado de Bienvenida y Resumen -->
-      <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-neutral-200/80 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 bg-neutral-950 text-white rounded-2xl flex items-center justify-center text-2xl font-bold shrink-0 shadow-md">
-            {{ usuario.nombre.charAt(0) }}
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h2 class="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
-                ¡Hola, {{ usuario.nombre }}!
-              </h2>
-              <span class="text-2xl animate-bounce">👋</span>
-            </div>
-            <p class="text-sm text-neutral-500 font-medium mt-0.5">
-              Panel de control y gestión de operaciones FashionStore
-            </p>
-          </div>
+      <h1 class="font-display text-5xl sm:text-6xl lg:text-[4.5rem] leading-[1.12] lg:leading-[1.06] tracking-[-0.02em] max-w-3xl animate-fade-up">
+        Estilo que define
+        <span class="italic text-ms-amber-soft">quién sos.</span>
+      </h1>
+
+      <p class="mt-6 max-w-xl text-ms-white/70 text-base lg:text-lg leading-relaxed font-light">
+        Prendas atemporales curadas por expertos, recomendadas con inteligencia
+        artificial y listas para probar en el vestidor de tu tienda más cercana.
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-4">
+        <app-button variant="acento" size="lg" (click)="irA('/catalogo')">
+          Explorar catálogo
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </app-button>
+        <app-button variant="fantasma" size="lg" (click)="irA('/reservas')">
+          Ver reservas
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div class="hidden lg:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-3 pointer-events-none">
+      <span class="w-px h-12 bg-gradient-to-b from-ms-white/60 to-transparent animate-scroll-hint"></span>
+      <span class="text-[10px] uppercase tracking-[0.3em] text-ms-white/40">Scroll</span>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 2 · CATEGORÍAS · Curaduría editorial                     -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="py-20 lg:py-28 bg-ms-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12 lg:mb-16">
+        <div>
+          <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em]">
+            <span class="w-1.5 h-1.5 rounded-full bg-ms-amber"></span>
+            Curaduría
+          </span>
+          <h2 class="mt-3 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">
+            Explorá por categoría
+          </h2>
         </div>
-
-        <div class="flex items-center gap-3 border-t md:border-t-0 pt-4 md:pt-0 border-neutral-100">
-          <div class="bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-2 text-right">
-            <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-wider block">Rol Activo</span>
-            <span class="text-sm font-extrabold text-neutral-900 capitalize">{{ usuario.rol }}</span>
-          </div>
-        </div>
+        <p class="text-ms-slate md:max-w-xs text-sm lg:text-base leading-relaxed">
+          Una selección corta, probada y pensada para durar años, no temporadas.
+        </p>
       </div>
 
-      <!-- Grid Principal: Información de Perfil + Módulos de Operación -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (cat of categorias; track cat.nombre) {
+          <a (click)="irA('/catalogo')"
+            class="group relative block aspect-4/5 rounded-2xl overflow-hidden shadow-card hover:shadow-modal-soft transition-shadow duration-300 cursor-pointer">
+            <img [src]="cat.imagen" [alt]="cat.nombre" loading="lazy"
+              class="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-ms-black/85 via-ms-black/20 to-transparent"></div>
+            <div class="absolute bottom-0 inset-x-0 p-6">
+              <p class="text-[11px] uppercase tracking-[0.2em] text-ms-white/70 font-medium">{{ cat.etiqueta }}</p>
+              <h3 class="mt-1.5 font-display text-2xl text-ms-white">{{ cat.nombre }}</h3>
+              <span class="mt-3 block h-px w-8 bg-ms-amber transition-all duration-300 group-hover:w-14"></span>
+            </div>
+          </a>
+        }
+      </div>
+    </div>
+  </section>
 
-        <!-- Columna Izquierda: Tarjeta de Perfil -->
-        <div class="lg:col-span-1">
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-neutral-200/80 sticky top-28">
-            <div class="flex items-center justify-between border-b border-neutral-100 pb-4 mb-5">
-              <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 3 · PRODUCTOS DESTACADOS                                -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="py-20 lg:py-28 bg-ms-alabaster border-y border-ms-stone-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12 lg:mb-16">
+        <div>
+          <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em]">
+            <span class="w-1.5 h-1.5 rounded-full bg-ms-amber"></span>
+            Vitrina
+          </span>
+          <h2 class="mt-3 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">
+            Lo más elegido
+          </h2>
+        </div>
+        <a (click)="irA('/catalogo')"
+          class="inline-flex items-center gap-2 text-sm font-semibold text-ms-ink hover:text-ms-amber transition-colors cursor-pointer">
+          Ver todo el catálogo
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        @for (p of productos; track p.id) {
+          <article class="group relative overflow-hidden rounded-2xl bg-ms-white border border-ms-stone-200 shadow-[var(--shadow-card)] hover:shadow-modal-soft hover:-translate-y-1 transition-all duration-300">
+            <!-- Imagen 4:5 -->
+            <div class="relative aspect-4/5 overflow-hidden bg-ms-stone">
+              <img [src]="p.imagen" [alt]="p.nombre" loading="lazy"
+                class="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-700">
+              <!-- Badge -->
+              <div class="absolute top-3 left-3">
+                <app-badge [tipo]="p.badgeTipo" [etiqueta]="p.badge"></app-badge>
+              </div>
+              <!-- Favorito -->
+              <button (click)="toggleDeseo(p.id)"
+                [attr.aria-label]="'Marcar ' + p.nombre + ' como favorito'"
+                class="absolute top-3 right-3 w-10 h-10 rounded-full bg-ms-white/85 backdrop-blur flex items-center justify-center text-ms-slate hover:text-ms-amber transition-colors cursor-pointer">
+                <svg class="w-5 h-5" [class.fill-ms-amber]="esDeseado(p.id)" [class.text-ms-amber]="esDeseado(p.id)"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
                 </svg>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-400">Perfil de Usuario</h3>
+              </button>
+              <!-- Agregar (hover en desktop, siempre en mobile) -->
+              <div class="absolute inset-x-3 bottom-3 translate-y-0 opacity-100 lg:translate-y-12 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100 transition-all duration-300">
+                <app-button variant="primario" [block]="true" size="md" (click)="agregarVitrina(p)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                  </svg>
+                  Agregar
+                </app-button>
               </div>
             </div>
 
-            <div class="space-y-4">
-              <div>
-                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Nombre Completo</span>
-                <p class="text-base font-bold text-neutral-900">
-                  {{ usuario.nombre }} {{ usuario.apellido }}
-                </p>
+            <!-- Contenido -->
+            <div class="p-5">
+              <p class="text-[11px] uppercase tracking-[0.2em] text-ms-slate font-medium">{{ p.categoria }}</p>
+              <h3 class="mt-1 font-display text-lg leading-snug text-ms-ink group-hover:text-ms-amber transition-colors">
+                {{ p.nombre }}
+              </h3>
+              <p class="mt-1 text-sm text-ms-slate leading-relaxed">{{ p.descripcion }}</p>
+              <div class="mt-4 flex items-baseline gap-2">
+                @if (p.precioAntes) {
+                  <span class="text-sm text-ms-slate line-through">
+                    <app-price [valor]="p.precioAntes" [formato]="'0.2-2'"></app-price>
+                  </span>
+                }
+                <app-price [valor]="p.precio" class="text-ms-ink"></app-price>
               </div>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
 
-              <div>
-                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Correo Electrónico</span>
-                <p class="text-sm font-semibold text-neutral-800 break-all bg-neutral-50 p-2.5 rounded-lg border border-neutral-100">
-                  {{ usuario.email }}
-                </p>
-              </div>
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 4 · RECOMENDACIONES IA · Banda negra                     -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="relative bg-ms-black text-ms-white py-20 lg:py-28 overflow-hidden">
+    <div class="absolute top-0 right-0 w-[420px] h-[420px] rounded-full bg-ms-amber/10 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[320px] h-[320px] rounded-full bg-ms-amber/[0.06] blur-3xl pointer-events-none"></div>
 
-              <div>
-                <span class="text-[11px] font-bold text-neutral-400 uppercase tracking-wider block mb-1">Estado de Cuenta</span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Sesión Activa
-                </span>
-              </div>
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <!-- Texto -->
+      <div>
+        <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em]">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 15l.9 2.6L22.5 18.5l-2.6.9L19 22l-.9-2.6-2.6-.9 2.6-.9L19 15z"/>
+          </svg>
+          Asistente MenStyle
+        </span>
+        <h2 class="mt-4 font-display text-4xl lg:text-5xl tracking-[-0.02em] leading-[1.12]">
+          Recomendaciones hechas <span class="italic text-ms-amber-soft">para vos.</span>
+        </h2>
+        <p class="mt-5 max-w-lg text-ms-white/70 leading-relaxed font-light">
+          La IA estudia tu talla, tus preferencias y tus compras previas para armar
+          looks completos con un 98% de compatibilidad asegurada.
+        </p>
+        <div class="mt-8">
+          <app-button variant="acento" size="lg" (click)="irA('/catalogo')">
+            Probar el asistente
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </app-button>
+        </div>
+      </div>
+
+      <!-- Card de armado -->
+      <div class="relative rounded-2xl bg-ms-white/[0.04] backdrop-blur-xl border border-ms-white/10 p-6 lg:p-10 shadow-modal-soft">
+        <!-- Rejilla tenue -->
+        <div class="absolute inset-0 rounded-2xl opacity-40 pointer-events-none"
+          style="background-image:linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 26px 26px;"></div>
+
+        <div class="relative">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="w-2 h-2 rounded-full bg-ms-amber-soft animate-pulse"></span>
+              <span class="font-display text-lg text-ms-white">Armado Inteligente</span>
+            </div>
+            <app-badge tipo="exito" etiqueta="98% Compatibilidad"></app-badge>
+          </div>
+
+          <!-- Silueta de traje -->
+          <div class="mt-6 flex justify-center py-6">
+            <svg viewBox="0 0 120 190" fill="none" stroke="currentColor" stroke-width="1.2" class="w-28 lg:w-32 text-ms-white/80">
+              <circle cx="60" cy="16" r="10" class="text-ms-amber-soft"/>
+              <path d="M42 46 C30 64 30 108 34 132 L24 170 M78 46 C90 64 90 108 86 132 L96 170"
+                stroke-linecap="round"/>
+              <path d="M42 46 C44 58 52 64 60 64 C68 64 76 58 78 46"
+                stroke-linecap="round"/>
+              <path d="M60 64 L60 130 M44 70 L60 92 M76 70 L60 92"
+                stroke-linecap="round"/>
+              <path d="M34 132 C44 158 76 158 86 132 L96 170 L24 170 Z"
+                stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M40 178 L40 190 M80 178 L80 190"
+                stroke-linecap="round" class="text-ms-amber-soft"/>
+            </svg>
+          </div>
+
+          <!-- Tags -->
+          <div class="flex flex-wrap justify-center gap-2">
+            <span class="px-3 py-1.5 rounded-lg bg-ms-white/10 border border-ms-white/10 text-xs text-ms-white/85">Corte Slim</span>
+            <span class="px-3 py-1.5 rounded-lg bg-ms-white/10 border border-ms-white/10 text-xs text-ms-white/85">100% Algodón Pima</span>
+            <span class="px-3 py-1.5 rounded-lg bg-ms-white/10 border border-ms-white/10 text-xs text-ms-white/85">Paleta Tierra &amp; Humo</span>
+          </div>
+
+          <!-- Specs -->
+          <div class="mt-6 grid grid-cols-2 gap-4 border-t border-ms-white/10 pt-5">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-ms-white/50">Ocasión</p>
+              <p class="mt-1 text-sm text-ms-white">Smart Casual · Negocios</p>
+            </div>
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.2em] text-ms-white/50">Temporada</p>
+              <p class="mt-1 text-sm text-ms-white">Invierno 2026</p>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
 
-        <!-- Columna Derecha: Módulos de Trabajo y Administración -->
-        <div class="lg:col-span-2 space-y-8">
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 5 · SUCURSALES · Reservá y retirá                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="py-20 lg:py-28 bg-ms-alabaster">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+      <div class="lg:col-span-4">
+        <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em]">
+          <span class="w-1.5 h-1.5 rounded-full bg-ms-amber"></span>
+          Atelier
+        </span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl tracking-[-0.02em] leading-[1.12] text-ms-ink">
+          Reservá y retirá en tienda.
+        </h2>
+        <p class="mt-5 text-ms-slate leading-relaxed lg:max-w-sm">
+          Elegí tu prenda online, reservala y probátela en el vestidor de la
+          sucursal más cercana antes de decidir.
+        </p>
+        <div class="mt-8">
+          <app-button variant="secundario" (click)="irA('/sucursales')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Ver todas las sucursales
+          </app-button>
+        </div>
+      </div>
 
-          <!-- Acceso rápido a la tienda (visible para todos) -->
-          <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-neutral-200/80">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="p-2.5 bg-neutral-950 rounded-xl shadow-inner">
-                <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
+      <div class="lg:col-span-8 space-y-4">
+        @for (suc of sucursales; track suc.ciudad) {
+          <article class="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl bg-ms-white border border-ms-stone-200 p-6 shadow-[var(--shadow-card)] hover:shadow-modal-soft hover:-translate-y-0.5 transition-all duration-300">
+            <div class="flex items-start gap-4">
+              <span class="mt-1 w-2.5 h-2.5 rounded-full bg-ms-amber shrink-0"></span>
               <div>
-                <h3 class="text-xl font-bold tracking-wide text-neutral-900">Tienda MenStyle</h3>
-                <p class="text-xs text-neutral-500">Explora el catálogo, reserva o compra tus prendas favoritas</p>
+                <h3 class="font-display text-xl text-ms-ink">{{ suc.ciudad }}</h3>
+                <p class="mt-1 text-sm text-ms-slate">
+                  {{ suc.zona }} · {{ suc.direccion }}
+                </p>
+                <p class="mt-0.5 text-xs text-ms-slate/80">{{ suc.horario }}</p>
               </div>
             </div>
-            <p class="text-sm text-neutral-600 mb-6 leading-relaxed">
-              Consulta las prendas disponibles por categoría, elige talla y color, y agrégalas al carrito para comprarlas en línea.
-            </p>
-            <button
-              (click)="irCatalogo()"
-              class="inline-flex items-center gap-2 bg-neutral-950 hover:bg-neutral-800 active:scale-[0.98] text-white font-bold text-sm px-5 py-3 rounded-xl transition-all duration-200 cursor-pointer shadow-md">
-              Ver catálogo
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
+            <app-button variant="primario" size="sm" (click)="irA('/reservas')">
+              Agendar cita
+            </app-button>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
 
-          <!-- Módulo de Administración (Visible solo para administradores) -->
-          @if (usuario.rol === 'administrador') {
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 6 · NEWSLETTER · Círculo privado                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="relative bg-ms-black text-ms-white py-20 lg:py-24 overflow-hidden">
+    <div class="absolute -right-32 -top-32 w-[400px] h-[400px] rounded-full bg-ms-amber/10 blur-3xl pointer-events-none"></div>
+    <div class="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <span class="inline-flex items-center gap-2 text-ms-amber text-xs font-semibold uppercase tracking-[0.25em]">
+        <span class="w-1.5 h-1.5 rounded-full bg-ms-amber"></span>
+        Círculo MenStyle
+      </span>
+      <h2 class="mt-4 font-display text-4xl lg:text-5xl tracking-[-0.02em]">
+        Sumate al <span class="italic text-ms-amber-soft">círculo.</span>
+      </h2>
+      <p class="mt-4 text-ms-white/70 font-light leading-relaxed">
+        Acceso anticipado a ediciones limitadas, guías de estilo y un 10%
+        exclusivo para miembros.
+      </p>
 
-            <div class="bg-gradient-to-br from-neutral-900 via-neutral-900 to-black text-white rounded-2xl p-6 sm:p-8 shadow-xl border border-neutral-800">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="p-2.5 bg-neutral-800/90 rounded-xl border border-neutral-700/60 shadow-inner">
-                  <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-xl font-bold tracking-wide">Módulo de Administración</h3>
-                  <p class="text-xs text-neutral-400">Control global de seguridad, accesos y parametrización</p>
-                </div>
-              </div>
+      <div class="mt-8 flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+        <app-input class="flex-1" type="email" placeholder="Ingresá tu correo electrónico"
+          [(ngModel)]="emailNewsletter"></app-input>
+        <app-button variant="acento" (click)="suscribirse()">
+          Suscribirme
+        </app-button>
+      </div>
 
-              <p class="text-sm text-neutral-300 mb-6 leading-relaxed">
-                Administra los usuarios registrados, asigna roles para las sucursales y controla los niveles de acceso al sistema.
-              </p>
+      <p class="mt-4 text-xs text-ms-white/40 tracking-wide">
+        Sin spam. Solo estilo. Podés darte de baja cuando quieras.
+      </p>
+    </div>
+  </section>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  class="flex items-center justify-between bg-white text-neutral-950 hover:bg-neutral-200 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
-                  (click)="irAdminCatalogo()">
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl">🛍️</span>
-                    <span class="text-left">Gestión de Catálogo</span>
-                  </div>
-                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-
-                <button
-                  class="flex items-center justify-between bg-white text-neutral-950 hover:bg-neutral-200 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
-                  (click)="irUsuarios()">
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl">👥</span>
-                    <span class="text-left">Gestión de Usuarios</span>
-                  </div>
-                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-
-                <button
-                  class="flex items-center justify-between bg-neutral-800 text-white border border-neutral-700 hover:bg-neutral-700 active:scale-[0.98] font-bold text-sm p-4 rounded-xl transition-all duration-200 cursor-pointer shadow-md group"
-                  (click)="irPermisos()">
-                  <div class="flex items-center gap-3">
-                    <span class="text-xl">🔐</span>
-                    <span class="text-left">Gestión de Permisos</span>
-                  </div>
-                  <svg class="w-5 h-5 text-neutral-400 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-          }
-
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 7 · FOOTER · 4 columnas (custom inline)                  -->
+  <!-- El componente app-footer de la Fase 1 solo admite 2      -->
+  <!-- líneas; como no está permitido tocarlo, se maqueta aquí. -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <footer class="bg-ms-ink text-ms-slate border-t border-ms-white/10 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
+        <!-- Marca -->
+        <div class="col-span-2 md:col-span-4 lg:col-span-1">
+          <a (click)="irA('/inicio')" class="inline-flex items-center gap-2 cursor-pointer">
+            <span class="w-9 h-9 rounded-xl bg-ms-amber-soft flex items-center justify-center font-display text-lg text-ms-black">M</span>
+            <span class="font-display text-xl text-ms-white">MenStyle</span>
+          </a>
+          <p class="mt-3 text-sm leading-relaxed max-w-xs">
+            Moda masculina premium con inteligencia artificial y un vestidor
+            que te acompaña en cada decisión.
+          </p>
         </div>
 
+        <!-- Tienda -->
+        <div>
+          <h4 class="text-xs uppercase tracking-[0.25em] text-ms-white font-semibold">Tienda</h4>
+          <ul class="mt-4 space-y-2.5 text-sm">
+            <li><a routerLink="/catalogo" class="hover:text-ms-amber transition-colors">Catálogo</a></li>
+            <li><a routerLink="/catalogo" class="hover:text-ms-amber transition-colors">Nuevos ingresos</a></li>
+            <li><a routerLink="/reservas" class="hover:text-ms-amber transition-colors">Reservas</a></li>
+            <li><a routerLink="/sucursales" class="hover:text-ms-amber transition-colors">Sucursales</a></li>
+          </ul>
+        </div>
+
+        <!-- Ayuda -->
+        <div>
+          <h4 class="text-xs uppercase tracking-[0.25em] text-ms-white font-semibold">Ayuda</h4>
+          <ul class="mt-4 space-y-2.5 text-sm">
+            <li><a routerLink="/login" class="hover:text-ms-amber transition-colors">Mi cuenta</a></li>
+            <li><a routerLink="/carrito" class="hover:text-ms-amber transition-colors">Carrito</a></li>
+            <li><a routerLink="/sucursales" class="hover:text-ms-amber transition-colors">Contacto</a></li>
+            <li><a routerLink="/sucursales" class="hover:text-ms-amber transition-colors">Pago y envío</a></li>
+          </ul>
+        </div>
+
+        <!-- Nosotros -->
+        <div>
+          <h4 class="text-xs uppercase tracking-[0.25em] text-ms-white font-semibold">Nosotros</h4>
+          <ul class="mt-4 space-y-2.5 text-sm">
+            <li><a routerLink="/inicio" class="hover:text-ms-amber transition-colors">La marca</a></li>
+            <li><a routerLink="/catalogo" class="hover:text-ms-amber transition-colors">Sostenibilidad</a></li>
+            <li><a routerLink="/sucursales" class="hover:text-ms-amber transition-colors">Empleo</a></li>
+            <li><a routerLink="/inicio" class="hover:text-ms-amber transition-colors">Prensa</a></li>
+          </ul>
+        </div>
       </div>
 
-    } @else {
-
-      <!-- Indicador de Carga -->
-      <div class="flex flex-col items-center justify-center py-28 text-center">
-        <div class="w-12 h-12 border-4 border-neutral-300 border-t-neutral-950 rounded-full animate-spin mb-4"></div>
-        <p class="text-sm font-semibold text-neutral-700">Cargando información del usuario...</p>
-        <span class="text-xs text-neutral-400 mt-1">Sincronizando con el servidor FastAPI</span>
+      <div class="mt-14 pt-6 border-t border-ms-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ms-slate/70">
+        <p>© 2026 MenStyle · Plataforma E-Commerce FashionStore.</p>
+        <p class="font-medium">Sistemas II · U.A.G.R.M.</p>
       </div>
-
-    }
-
-  </main>
-
-  <!-- Footer Institucional -->
-  <footer class="bg-white border-t border-neutral-200 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-neutral-500">
-      <p>© 2026 MenStyle - Plataforma E-Commerce FashionStore.</p>
-      <p class="font-medium">Sistemas II - U.A.G.R.M.</p>
     </div>
   </footer>
 

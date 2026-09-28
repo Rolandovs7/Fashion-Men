@@ -9,6 +9,12 @@ export interface TipoPrenda {
   activo: boolean;
 }
 
+export interface TipoPrendaActualizar {
+  nombre?: string;
+  descripcion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -32,5 +38,9 @@ export class TiposPrendaService {
 
   eliminar(id: number): Observable<TipoPrenda> {
     return this.http.delete<TipoPrenda>(`${this.apiUrl}/${id}`, { headers: this.headers() });
+  }
+
+  actualizar(id: number, datos: TipoPrendaActualizar): Observable<TipoPrenda> {
+    return this.http.put<TipoPrenda>(`${this.apiUrl}/${id}`, datos, { headers: this.headers() });
   }
 }

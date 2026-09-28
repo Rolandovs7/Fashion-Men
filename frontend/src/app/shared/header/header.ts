@@ -21,6 +21,8 @@ export class HeaderComponent implements OnInit {
   totalCarrito$ = this.carritoService.contador$;
   noLeidas$ = this.notifService.noLeidas;
 
+  menuAbierto = false;
+
   ngOnInit(): void {
     if (this.authService.estaAutenticado()) {
       this.authService.obtenerUsuarioActual().subscribe({
@@ -40,7 +42,16 @@ export class HeaderComponent implements OnInit {
     return this.usuario?.rol === 'administrador';
   }
 
+  toggleMenu(): void {
+    this.menuAbierto = !this.menuAbierto;
+  }
+
+  cerrarMenu(): void {
+    this.menuAbierto = false;
+  }
+
   cerrarSesion(): void {
+    this.cerrarMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
   }

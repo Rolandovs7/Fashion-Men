@@ -6,7 +6,20 @@ import { ProductosService, Producto } from '../../core/services/productos.servic
 import { CategoriasService, Categoria } from '../../core/services/categorias.service';
 import { VariantesService, Variante } from '../../core/services/variantes.service';
 import { CarritoService } from '../../core/services/carrito.service';
+import { DescuentosService, Descuento } from '../../core/services/descuentos.service';
+import { IaService, ProductoSugerido } from '../../core/services/ia.service';
+import { AuthService } from '../../core/services/auth.service';
 import { HeaderComponent } from '../../shared/header/header';
+import {
+  ButtonComponent,
+  AlertComponent,
+  BadgeComponent,
+  PriceComponent,
+  SkeletonComponent,
+  EmptyStateComponent,
+  FooterComponent,
+  ToastService
+} from '../../shared/ui';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -16,7 +29,19 @@ import { HeaderComponent } from '../../shared/header/header';
 // ============================================================
 @Component({
   selector: 'app-producto-detalle',
-  imports: [CommonModule, FormsModule, RouterLink, HeaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    HeaderComponent,
+    ButtonComponent,
+    AlertComponent,
+    BadgeComponent,
+    PriceComponent,
+    SkeletonComponent,
+    EmptyStateComponent,
+    FooterComponent
+  ],
   templateUrl: './producto-detalle.html',
   styleUrl: './producto-detalle.css'
 })
@@ -27,19 +52,41 @@ export class ProductoDetalle implements OnInit {
   private categoriasService = inject(CategoriasService);
   private variantesService = inject(VariantesService);
   private carritoService = inject(CarritoService);
+  private descuentosService = inject(DescuentosService);
+  private iaService = inject(IaService);
+  private authService = inject(AuthService);
+  private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
 
   producto: Producto | null = null;
   categoria: Categoria | null = null;
   variantes: Variante[] = [];
 
-  varianteSeleccionada: Variante | null = null;
+  tallaSeleccionada: string | null = null;
+  colorSeleccionado: { id: number; nombre: string; codigoHex: string | null } | null = null;
   cantidad = 1;
+
+  relacionados: Producto[] = [];
+  recomendaciones: ProductoSugerido[] = [];
+  descuento: Descuento | null = null;
+
+  tabActivo: 'descripcion' | 'especificaciones' | 'cuidados' = 'descripcion';
+  descripcionExpandida = false;
+  deseado = false;
 
   cargando = true;
   agregando = false;
   error = '';
   mensaje = '';
+
+  private idsNuevos = new Set<number>();
+  private imagenesFallidas = new Set<string>();
+  private acentos = [
+    'from-neutral-800 to-neutral-950',
+    'from-amber-900/60 to-neutral-950',
+    'from-stone-800 to-neutral-950',
+    'from-zinc-800 to-neutral-950'
+  ];
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -68,7 +115,15 @@ export class ProductoDetalle implements OnInit {
         this.variantesService.listarPorProducto(id).subscribe({
           next: (variantes) => {
             this.variantes = variantes;
-            this.varianteSeleccionada = variantes.find(v => v.stock_disponible > 0) ?? variantes[0] ?? null;
+            const inicial = variantes.find(v => v.stock_disponible > 0) ?? variantes[0] ?? null;
+            if (inicial) {
+              this.tallaSeleccionada = inicial.talla_nombre;
+              this.colorSeleccionado = {
+                id: inicial.color_id,
+                nombre: inicial.color_nombre,
+                codigoHex: inicial.color_codigo_hex ?? null
+              };
+            }
             this.cargando = false;
             this.cdr.detectChanges();
           },
@@ -77,10 +132,64 @@ export class ProductoDetalle implements OnInit {
             this.cdr.detectChanges();
           }
         });
+
+        this.cargarDescuento(producto);
+        this.cargarRelacionados(id, producto);
+        this.cargarRecomendaciones(producto);
       },
       error: () => {
         this.error = 'No se encontró el producto solicitado.';
         this.cargando = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  reintentar(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    if (id) {
+      this.cargarProducto(id);
+    }
+  }
+
+  cargarDescuento(producto: Producto): void {
+    if (!producto.descuento_id) return;
+    this.descuentosService.listar(true).subscribe({
+      next: (lista) => {
+        this.descuento = lista.find(d => d.id === producto.descuento_id) ?? null;
+        this.cdr.detectChanges();
+      },
+      error: () => {}
+    });
+  }
+
+  cargarRelacionados(id: number, producto: Producto): void {
+    this.productosService.listar().subscribe({
+      next: (productos) => {
+        const activos = productos.filter(p => p.activo && p.id !== id);
+        this.idsNuevos = new Set(
+          [...activos].sort((a, b) => b.id - a.id).slice(0, 6).map(p => p.id)
+        );
+        const mismaCategoria = activos.filter(p => p.categoria_id === producto.categoria_id);
+        const otras = activos.filter(p => p.categoria_id !== producto.categoria_id);
+        this.relacionados = [...mismaCategoria, ...otras].slice(0, 4);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.relacionados = [];
+      }
+    });
+  }
+
+  cargarRecomendaciones(producto: Producto): void {
+    if (!this.authService.estaAutenticado()) return;
+    this.iaService.recomendar({ categoria_id: producto.categoria_id, limite: 3 }).subscribe({
+      next: (res) => {
+        this.recomendaciones = res.recomendaciones;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.recomendaciones = [];
       }
     });
   }
@@ -89,28 +198,154 @@ export class ProductoDetalle implements OnInit {
     return [...new Set(this.variantes.map(v => v.talla_nombre))];
   }
 
-  coloresParaTalla(talla: string): Variante[] {
-    return this.variantes.filter(v => v.talla_nombre === talla);
+  /** Colores únicos del producto (sin repetir por talla). */
+  coloresUnicos(): Variante[] {
+    const vistos = new Map<number, Variante>();
+    for (const v of this.variantes) {
+      if (!vistos.has(v.color_id)) {
+        vistos.set(v.color_id, v);
+      }
+    }
+    return [...vistos.values()];
   }
 
-  seleccionarVariante(variante: Variante): void {
-    this.varianteSeleccionada = variante;
+  seleccionarTalla(talla: string): void {
+    this.tallaSeleccionada = talla;
     this.mensaje = '';
     this.error = '';
   }
 
+  seleccionarColor(color: Variante): void {
+    this.colorSeleccionado = {
+      id: color.color_id,
+      nombre: color.color_nombre,
+      codigoHex: color.color_codigo_hex ?? null
+    };
+    this.mensaje = '';
+    this.error = '';
+  }
+
+  /** Variante concreta (talla + color) seleccionada en este momento. */
+  get varianteActual(): Variante | null {
+    if (!this.tallaSeleccionada || !this.colorSeleccionado) return null;
+    return this.variantes.find(v =>
+      v.talla_nombre === this.tallaSeleccionada &&
+      v.color_id === this.colorSeleccionado!.id
+    ) ?? null;
+  }
+
+  /** Nombre visible: siempre el del producto (el color es un atributo, no cambia el nombre). */
+  get nombreTitulo(): string {
+    return this.producto?.nombre || '';
+  }
+
+  incrementar(): void {
+    if (this.stockDisponible > 0 && this.cantidad < this.stockDisponible) {
+      this.cantidad++;
+      this.error = '';
+    }
+  }
+
+  decrementar(): void {
+    if (this.cantidad > 1) {
+      this.cantidad--;
+      this.error = '';
+    }
+  }
+
+  toggleDeseo(): void {
+    this.deseado = !this.deseado;
+  }
+
   get stockDisponible(): number {
-    return this.varianteSeleccionada?.stock_disponible ?? 0;
+    return this.varianteActual?.stock_disponible ?? 0;
+  }
+
+  get tieneStock(): boolean {
+    const variante = this.varianteActual;
+    return variante != null && variante.stock_disponible > 0;
+  }
+
+  /**
+   * Imagen principal: la de la variante (talla + color) seleccionada.
+   * Prioridad: 1) varianteActual().imagen_url, 2) producto.imagen_url, 3) null.
+   */
+  get imagenPrincipal(): string | null {
+    const variante = this.varianteActual ?? this.varianteConImagenDelColor();
+    const urlVariante = variante?.imagen_url ? this.normalizarImagen(variante.imagen_url) : null;
+    if (urlVariante && !this.imagenesFallidas.has(urlVariante)) {
+      return urlVariante;
+    }
+
+    const urlProducto = this.producto?.imagen_url ? this.normalizarImagen(this.producto.imagen_url) : null;
+    if (urlProducto && !this.imagenesFallidas.has(urlProducto)) {
+      return urlProducto;
+    }
+
+    return null;
+  }
+
+  /** Variante con imagen del color seleccionado (si aún no hay talla elegida). */
+  private varianteConImagenDelColor(): Variante | null {
+    if (!this.colorSeleccionado) return null;
+    const color = this.colorSeleccionado;
+    return this.variantes.find(v => v.color_id === color.id && v.imagen_url) ?? null;
+  }
+
+  private normalizarImagen(url: string | null): string | null {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return url.startsWith('/') ? url : '/' + url;
+  }
+
+  get tieneDescuento(): boolean {
+    return this.descuento != null && this.descuento.porcentaje > 0;
+  }
+
+  get precioConDescuento(): number {
+    if (!this.descuento || this.descuento.porcentaje <= 0) return this.producto?.precio ?? 0;
+    const bruto = this.producto!.precio * (100 - this.descuento.porcentaje) / 100;
+    return Math.round(bruto * 100) / 100;
+  }
+
+  get descripcionCorta(): string {
+    const texto = (this.producto?.descripcion ?? '').trim();
+    if (texto.length <= 150) return texto;
+    return texto.slice(0, 150).replace(/\s+\S*$/, '') + '…';
+  }
+
+  get descripcionLarga(): boolean {
+    return ((this.producto?.descripcion ?? '').trim().length) > 150;
+  }
+
+  badgeProducto(): { etiqueta: string; tipo: 'acento' | 'aviso' } | null {
+    if (!this.producto) return null;
+    if (this.producto.descuento_id != null) return { etiqueta: 'Oferta', tipo: 'acento' };
+    if (this.idsNuevos.has(this.producto.id)) return { etiqueta: 'Nuevo', tipo: 'aviso' };
+    return null;
+  }
+
+  acentoPara(id: number): string {
+    return this.acentos[id % this.acentos.length];
+  }
+
+  get codigo(): string {
+    return '#' + String(this.producto?.id ?? '').padStart(4, '0');
+  }
+
+  seleccionarTab(tab: 'descripcion' | 'especificaciones' | 'cuidados'): void {
+    this.tabActivo = tab;
   }
 
   agregarAlCarrito(): void {
-    if (!this.varianteSeleccionada) {
+    const variante = this.varianteActual;
+    if (!variante) {
       this.error = 'Selecciona una talla y color disponibles.';
       return;
     }
 
-    if (this.cantidad < 1 || this.cantidad > this.stockDisponible) {
-      this.error = `Elige una cantidad entre 1 y ${this.stockDisponible}.`;
+    if (this.cantidad < 1 || this.cantidad > variante.stock_disponible) {
+      this.error = `Elige una cantidad entre 1 y ${variante.stock_disponible}.`;
       return;
     }
 
@@ -118,10 +353,11 @@ export class ProductoDetalle implements OnInit {
     this.error = '';
     this.mensaje = '';
 
-    this.carritoService.agregarItem(this.varianteSeleccionada.id, this.cantidad).subscribe({
+    this.carritoService.agregarItem(variante.id, this.cantidad).subscribe({
       next: () => {
         this.agregando = false;
         this.mensaje = 'Prenda agregada al carrito.';
+        this.toastService.exito('Prenda agregada al carrito.');
         this.cdr.detectChanges();
       },
       error: (error) => {
@@ -136,19 +372,42 @@ export class ProductoDetalle implements OnInit {
     });
   }
 
+  reservar(): void {
+    if (!this.varianteActual) {
+      this.toastService.aviso('Primero elegí talla y color.');
+      return;
+    }
+    this.toastService.info('Las reservas se gestionan desde tu cuenta.');
+    this.router.navigate(['/reservas']);
+  }
+
+  avisarDisponible(): void {
+    this.toastService.info('Te avisaremos cuando esta prenda vuelva a estar disponible.');
+  }
+
   irCarrito(): void {
     this.router.navigate(['/carrito']);
   }
 
+  irCatalogo(): void {
+    this.router.navigate(['/catalogo']);
+  }
+
+  irProducto(id: number): void {
+    this.router.navigate(['/producto', id]);
+  }
+
   /**
-   * Fallback si la imagen del producto no carga: la oculta y
-   * el @else del template muestra el placeholder SVG.
+   * Fallback si la imagen no carga: la marca como fallida y
+   * el getter imagenPrincipal baja al siguiente candidato
+   * (variante → producto → placeholder SVG).
    */
   onImagenError(event: Event): void {
     const img = event.target as HTMLImageElement;
     img.style.display = 'none';
-    if (this.producto) {
-      this.producto.imagen_url = null;
+    const url = this.imagenPrincipal;
+    if (url) {
+      this.imagenesFallidas.add(url);
     }
     this.cdr.detectChanges();
   }

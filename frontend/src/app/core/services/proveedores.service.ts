@@ -20,6 +20,15 @@ export interface ProveedorCrear {
   direccion?: string | null;
 }
 
+export interface ProveedorActualizar {
+  nombre?: string;
+  contacto?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  direccion?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -51,6 +60,14 @@ export class ProveedoresService {
   eliminar(id: number): Observable<Proveedor> {
     return this.http.delete<Proveedor>(
       `${this.apiUrl}/${id}`,
+      { headers: this.headers() }
+    );
+  }
+
+  actualizar(id: number, datos: ProveedorActualizar): Observable<Proveedor> {
+    return this.http.put<Proveedor>(
+      `${this.apiUrl}/${id}`,
+      datos,
       { headers: this.headers() }
     );
   }

@@ -39,6 +39,28 @@ def listar_inventario(
     )
 
 
+# Consulta paginada y enriquecida (producto_nombre, variante_talla,
+# variante_color, producto_imagen_url) para el panel admin web.
+# IMPORTANTE: declararse antes de /{inventario_id} para que "detallado"
+# no se interprete como un inventario_id.
+@router.get(
+    "/detallado",
+    response_model=dict
+)
+def listar_inventario_detallado(
+    sucursal_id: Optional[int] = None,
+    page: int = 0,
+    page_size: int = 20,
+    db: Session = Depends(obtener_db)
+):
+    return inventory_service.listar_inventario_paginado(
+        db,
+        sucursal_id=sucursal_id,
+        page=page,
+        page_size=page_size
+    )
+
+
 @router.get(
     "/{inventario_id}",
     response_model=InventarioRespuesta

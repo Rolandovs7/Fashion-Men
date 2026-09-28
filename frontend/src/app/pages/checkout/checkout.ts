@@ -12,12 +12,21 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PagosService } from '../../core/services/pagos.service';
 import { PedidosService, Pedido } from '../../core/services/pedidos.service';
+import { HeaderComponent } from '../../shared/header/header';
+import {
+  ButtonComponent,
+  AlertComponent,
+  BadgeComponent,
+  LoaderComponent,
+  PriceComponent,
+  FooterComponent
+} from '../../shared/ui';
 
 declare var Stripe: any;
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, HeaderComponent, ButtonComponent, AlertComponent, BadgeComponent, LoaderComponent, PriceComponent, FooterComponent],
   templateUrl: './checkout.html',
   styleUrl: './checkout.css',
 })
@@ -43,6 +52,24 @@ export class Checkout implements OnInit, OnDestroy {
   private clientSecret = '';
   private paymentIntentId = '';
 
+  tipoBadgeEstados: Record<string, 'neutral' | 'aviso' | 'info' | 'acento' | 'exito' | 'error'> = {
+    pendiente: 'aviso',
+    pagado: 'info',
+    procesando: 'info',
+    enviado: 'acento',
+    entregado: 'exito',
+    cancelado: 'error'
+  };
+
+  etiquetaEstados: Record<string, string> = {
+    pendiente: 'Pendiente',
+    pagado: 'Pagado',
+    procesando: 'Procesando',
+    enviado: 'Enviado',
+    entregado: 'Entregado',
+    cancelado: 'Cancelado'
+  };
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('pedidoId');
     if (!id) {
@@ -67,6 +94,16 @@ export class Checkout implements OnInit, OnDestroy {
         this.cargando = false;
       }
     });
+  }
+
+  reintentarStripe(): void {
+    try { if (this.card) this.card.destroy(); } catch {}
+    this.errorMsg = '';
+    this.cdr.detectChanges();
+    if (this.cardElement) {
+      this.cardElement.nativeElement.innerHTML = '';
+    }
+    this.iniciarStripe();
   }
 
   private iniciarStripe(): void {

@@ -44,11 +44,20 @@ class RecomendacionResponse(BaseModel):
 class ChatRequest(BaseModel):
     """Request para interactuar con el asistente virtual."""
     mensaje: str = Field(..., min_length=1, max_length=500)
+    historial: Optional[List[dict]] = Field(
+        None,
+        description="Historial reciente de la conversación "
+        "(cada item: {'rol': 'usuario'|'bot', 'texto': '...'})"
+    )
 
     class Config:
         json_schema_extra = {
             "example": {
-                "mensaje": "Busco un traje formal para una boda"
+                "mensaje": "Busco un traje formal para una boda",
+                "historial": [
+                    {"rol": "usuario", "texto": "Hola, busco ropa formal"},
+                    {"rol": "bot", "texto": "Claro, ¿para qué ocasión?"}
+                ]
             }
         }
 

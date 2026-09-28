@@ -158,3 +158,9 @@ out/
 
 # Backups locales
 *.bak*
+
+# ---------- Enterprise Architect ----------
+# El archivo .eap es binario grande (4.6 MB), se regenera con EA
+EA/*.eap
+EA/*.qea
+EA/*.bak

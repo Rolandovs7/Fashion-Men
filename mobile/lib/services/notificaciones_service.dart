@@ -13,7 +13,7 @@ class NotificacionesService {
 
   Future<List<Notificacion>> listarTodas() async {
     final response = await http.get(
-      Uri.parse('${ApiClient.baseUrl}/notifications'),
+      Uri.parse('${ApiClient.baseUrl}/notificaciones'),
       headers: ApiClient.authHeaders(),
     );
     _verificar(response);
@@ -23,7 +23,7 @@ class NotificacionesService {
 
   Future<List<Notificacion>> listarNoLeidas() async {
     final response = await http.get(
-      Uri.parse('${ApiClient.baseUrl}/notifications/no-leidas'),
+      Uri.parse('${ApiClient.baseUrl}/notificaciones/no-leidas'),
       headers: ApiClient.authHeaders(),
     );
     _verificar(response);
@@ -33,7 +33,7 @@ class NotificacionesService {
 
   Future<Notificacion> marcarComoLeida(int notificacionId) async {
     final response = await http.put(
-      Uri.parse('${ApiClient.baseUrl}/notifications/$notificacionId/leer'),
+      Uri.parse('${ApiClient.baseUrl}/notificaciones/$notificacionId/leer'),
       headers: ApiClient.authHeaders(),
     );
     _verificar(response);

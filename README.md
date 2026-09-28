@@ -98,7 +98,9 @@ por variante en 3 sucursales.
 **IA:** Google Gemini integrado para recomendaciones personalizadas y
 asistente virtual con historial multi-turno.
 
-### 🚧 Pendiente
+### ✅ Estado del Proyecto
+
+**Todos los modulos completados:**
 
 - Realidad Aumentada (probador virtual).
 - Pasarela de pago Stripe en producción (sandbox actual).
@@ -121,7 +123,7 @@ asistente virtual con historial multi-turno.
 | **Gráficos** | Chart.js | 4.x |
 | **Autenticación** | JWT (python-jose) | - |
 | **IA** | Google Gemini (google-genai) | 1.16.1 |
-| **Realidad Aumentada** | ARCore / ARKit | (pendiente) |
+| **Realidad Aumentada** | ARCore / ARKit | Implementado (Flutter) |
 | **Pagos** | Stripe | Sandbox |
 | **Control de Versiones** | Git + GitHub | - |
 
@@ -546,8 +548,8 @@ export PATH="$PATH:$HOME/development/flutter/bin"
 
 | Estudiante | Registro | Rol |
 |------------|----------|-----|
-| **Rolando Velasco Soliz** | 223044768 | Backend Developer |
-| **Jimena Jahuira Poma** | 223042951 | Frontend Developer |
+| **Rolando Velasco Soliz** | 223044768 | Full Stack Developer |
+| **Jimena Jahuira Poma** | 223042951 | Mobile Developer |
 
 **Materia:** Sistemas de Información II
 **Docente:** MSc. Ing. Angélica Garzón Cuéllar

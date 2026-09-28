@@ -29,13 +29,13 @@
 ### 1.4 Compras
 | RF | Descripción | CU | Estado |
 |----|-------------|-----|--------|
-| RF13 | Vestidor virtual (RA) | CU23 | 🚧 |
+| RF13 | Vestidor virtual (RA) | CU23 | ✅ |
 | RF14 | Agregar productos al carrito | CU22 | ✅ |
 | RF15 | Comprar desde web | CU21 | ✅ |
 | RF16 | Comprar desde app móvil | CU21 | ✅ |
 | RF17 | Registrar ventas presenciales | CU18, CU20 | ✅ |
 | RF18 | Pagos en punto de caja | CU19 | ✅ |
-| RF19 | Integrar pasarela de pago | CU19 | 🚧 |
+| RF19 | Integrar pasarela de pago | CU19 | ✅ |
 
 ### 1.5 Inventario
 | RF | Descripción | CU | Estado |
@@ -67,8 +67,7 @@
 
 ## 3. Cobertura
 
-- **RF implementados:** 23/25 (92%)
-- **RF en desarrollo:** 2 (RF13, RF19)
+- **RF implementados:** 25/25 (100%)
 - **RNF cumplidos:** 9/9 (100%)
 
 ---

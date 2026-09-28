@@ -96,7 +96,7 @@ def crear_reserva(
     # Validar variantes y stock disponible en la sucursal seleccionada
     inventarios_a_actualizar = []
 
-    for variante_id, cantidad_total in cantidades_por_variante.items():
+    for variante_id, cantidad_total in sorted(cantidades_por_variante.items()):
         variante = db.query(ProductoVariante).filter(
             ProductoVariante.id == variante_id
         ).first()
@@ -110,7 +110,7 @@ def crear_reserva(
         inventario = db.query(Inventario).filter(
             Inventario.variante_id == variante_id,
             Inventario.sucursal_id == datos.sucursal_id
-        ).first()
+        ).with_for_update(of=Inventario).first()
 
         if not inventario:
             raise HTTPException(

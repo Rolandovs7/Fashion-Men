@@ -13,7 +13,7 @@ class AppTheme {
 
   static const Color negro = Color(0xFF0D0D0D);
   static const Color carbon = Color(0xFF1C1B19);
-  static const Color bronce = Color(0xFFB08968);
+  static const Color bronce = Color(0xFFD98A2B);
   static const Color grisTexto = Color(0xFF6B6560);
   static const Color grisTextoOscuro = Color(0xFFB8B2A8);
   static const Color fondoClaro = Color(0xFFF7F3EC);

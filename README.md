@@ -167,7 +167,7 @@ MenStyle/
 │   ├── ios/
 │   └── pubspec.yaml
 │
-├── docs/                       # Documentación PUDS + UML
+├── docs/                       # Documentación PUDS + UML2.5+
 │   ├── 01_perfil/
 │   ├── 02_marco_teorico/
 │   ├── 03_modelo_negocio/
@@ -360,16 +360,6 @@ flutter run
 | **Swagger UI** | https://menstyle-api-n77g.onrender.com/docs | - |
 | **PostgreSQL** | (Render PostgreSQL) | Render |
 
-### Credenciales de Prueba
-
-**Administrador:**
-- Email: rolando@gmail.com
-- Password: 123456
-
-**Cliente:**
-- Email: cliente@ejemplo.com
-- Password: cliente123
-
 ---
 
 ## 🔑 Variables de Entorno
@@ -552,16 +542,9 @@ export PATH="$PATH:$HOME/development/flutter/bin"
 | **Jimena Jahuira Poma** | 223042951 | Mobile Developer |
 
 **Materia:** Sistemas de Información II
-**Docente:** MSc. Ing. Angélica Garzón Cuéllar
 **Sigla:** INF412-SA
 **Grupo:** #23
 **Semestre:** 2-2026
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la **Licencia MIT** — ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 

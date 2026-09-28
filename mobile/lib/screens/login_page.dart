@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../services/auth_service.dart';
 import 'main_shell.dart';
+import 'admin_catalogo_page.dart';
 import 'registro_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -37,9 +38,15 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => MainShell(usuario: usuario)),
-      );
+      if (authService.esAdministrador) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminCatalogoPage()),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => MainShell(usuario: usuario)),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -65,112 +72,129 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Imagen de fondo
+          // Fondo: sastrería masculina en tonos oscuros.
           Image.network(
-            'https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=1200',
+            'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?q=80&w=1400',
             fit: BoxFit.cover,
           ),
-          // Degradado oscuro encima para que el texto se lea bien
+          // Vignette oscuro para look editorial de revista.
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Colors.black54, Colors.black87],
+                colors: [Colors.black87, Colors.black54, Colors.black87],
+                stops: [0.0, 0.5, 1.0],
               ),
             ),
           ),
-          // Contenido
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
-                child: Card(
-                  color: Colors.white.withValues(alpha: 0.96),
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'MENSTYLE',
-                          textAlign: TextAlign.center,
-                          style: AppTheme.fuenteTitulo.copyWith(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 6,
-                            color: AppTheme.negro,
-                          ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Título fuera de la tarjeta, sobre la imagen.
+                    Text(
+                      'MENSTYLE',
+                      textAlign: TextAlign.center,
+                      style: AppTheme.fuenteTitulo.copyWith(
+                        fontSize: 44,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 8,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(width: 60, height: 1.4, color: AppTheme.bronce),
+                    const SizedBox(height: 10),
+                    Text(
+                      'SASTRERÍA · ESTILO · DISTINCIÓN',
+                      textAlign: TextAlign.center,
+                      style: AppTheme.fuenteCuerpo.copyWith(
+                        color: AppTheme.bronce,
+                        letterSpacing: 3,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    // Tarjeta translúcida tipo "vidrio esmerilado".
+                    Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.94),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: AppTheme.bronce.withValues(alpha: 0.4),
+                          width: 1,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Moda masculina a tu estilo',
-                          textAlign: TextAlign.center,
-                          style: AppTheme.fuenteCuerpo.copyWith(
-                            color: AppTheme.grisTexto,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 35),
-                        Text(
-                          'Iniciar sesión',
-                          style: AppTheme.fuenteTitulo.copyWith(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.negro,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        TextField(
-                          controller: emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Correo electrónico',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextField(
-                          controller: passwordController,
-                          obscureText: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Contraseña',
-                            prefixIcon: Icon(Icons.lock_outline),
-                          ),
-                        ),
-                        if (error.isNotEmpty) ...[
-                          const SizedBox(height: 15),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           Text(
-                            error,
+                            'Iniciar sesión',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ],
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 52,
-                          child: FilledButton(
-                            onPressed: cargando ? null : iniciarSesion,
-                            child: Text(
-                              cargando ? 'CARGANDO...' : 'INICIAR SESIÓN',
+                            style: AppTheme.fuenteTitulo.copyWith(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.negro,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: cargando
-                              ? null
-                              : () => Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const RegistroPage(),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: const InputDecoration(
+                              labelText: 'Correo electrónico',
+                              prefixIcon: Icon(Icons.email_outlined),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Contraseña',
+                              prefixIcon: Icon(Icons.lock_outline),
+                            ),
+                          ),
+                          if (error.isNotEmpty) ...[
+                            const SizedBox(height: 15),
+                            Text(
+                              error,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            height: 52,
+                            child: FilledButton(
+                              onPressed: cargando ? null : iniciarSesion,
+                              child: Text(
+                                cargando ? 'CARGANDO...' : 'INICIAR SESIÓN',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: cargando
+                                ? null
+                                : () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const RegistroPage(),
+                                    ),
                                   ),
-                                ),
-                          child: const Text('¿No tienes cuenta? Regístrate'),
-                        ),
-                      ],
+                            child: const Text('¿No tienes cuenta? Regístrate'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),

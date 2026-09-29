@@ -440,7 +440,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
 
     // El usuario confirmó que ya pagó. Registrar el pago manualmente.
     try {
-      await _pagosService.registrarPago(
+      await pedidosService.pagar(
         pedidoId: pedido.id,
         metodo: 'qr',
         monto: pedido.total,
@@ -452,7 +452,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
           content: Text('Pago por QR registrado. Esperando confirmación.'),
         ),
       );
-      await _cargarPedidos();
+      await _cargar();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

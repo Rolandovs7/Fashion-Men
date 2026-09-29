@@ -70,9 +70,9 @@ class PagoQrPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Pedido #$pedidoId',
-                style: TextStyle(color: Colors.grey),
+                style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 30),
               ElevatedButton.icon(

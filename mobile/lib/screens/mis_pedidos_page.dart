@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../services/tipos_pago_service.dart';
 import '../services/stripe_service.dart';
 import '../core/theme.dart';
+import 'pago_qr_page.dart';
 
 class MisPedidosPage extends StatefulWidget {
   const MisPedidosPage({super.key});
@@ -377,6 +378,12 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 if (pedido.estado == 'pendiente')
+                                  TextButton.icon(
+                                    onPressed: () => _pagarConQr(pedido),
+                                    icon: const Icon(Icons.qr_code, size: 18),
+                                    label: const Text('Pagar con QR'),
+                                  ),
+                                if (pedido.estado == 'pendiente')
                                   TextButton(
                                     onPressed: () => _pagar(pedido),
                                     child: const Text('Registrar pago manual'),
@@ -416,4 +423,42 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
       style: TextStyle(color: color, fontWeight: FontWeight.w600),
     ),
   );
+
+  Future<void> _pagarConQr(Pedido pedido) async {
+    // Abrir la pantalla de QR y esperar el resultado
+    final referencia = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PagoQrPage(
+          pedidoId: pedido.id,
+          monto: pedido.total,
+        ),
+      ),
+    );
+
+    if (referencia == null) return;
+
+    // El usuario confirmó que ya pagó. Registrar el pago manualmente.
+    try {
+      await _pagosService.registrarPago(
+        pedidoId: pedido.id,
+        metodo: 'qr',
+        monto: pedido.total,
+        referencia: referencia,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pago por QR registrado. Esperando confirmación.'),
+        ),
+      );
+      await _cargarPedidos();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
 }

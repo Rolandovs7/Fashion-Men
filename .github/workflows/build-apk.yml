@@ -47,7 +47,18 @@ jobs:
       
       - name: Build Release APK
         working-directory: mobile
-        run: flutter build apk --release
+        run: flutter build apk --release --no-watch-fs
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.vfs.watch=false"
+
+      - name: Build Release APK (fallback sin watch)
+        if: failure()
+        working-directory: mobile
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon --no-watch-fs --no-build-cache
+          cd ..
+          echo "APK generado via gradlew directo"
       
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

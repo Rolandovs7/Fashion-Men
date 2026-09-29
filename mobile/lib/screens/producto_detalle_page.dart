@@ -377,6 +377,7 @@ class _ImagenDetalle extends StatelessWidget {
     return Image.network(
       url,
       fit: BoxFit.cover,
+      filterQuality: FilterQuality.high,
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;
         return _placeholder(cargando: true);

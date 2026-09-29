@@ -325,7 +325,7 @@ class _PintorPrenda extends CustomPainter {
       imagenPrenda.height.toDouble(),
     );
 
-    final pintura = Paint()..filterQuality = FilterQuality.medium;
+    final pintura = Paint()..filterQuality = FilterQuality.high;
     canvas.drawImageRect(imagenPrenda, origen, destino, pintura);
   }
 

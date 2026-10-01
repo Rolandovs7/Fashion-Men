@@ -152,8 +152,8 @@ def fix_imagenes(x_admin_key: str = Header(None)):
 
     # Mapeo: nombre del producto -> ruta de imagen
     MAPA = {
-        "Camisa Formal Blanca":          "/imagenes/camisas/camisa-formal-blanca.jpg",
-        "Camisa Casual Azul":            "/imagenes/camisas/camisa-casual-azul.jpg",
+        "Camisa Formal Blanca":          "/imagenes/camisas/camisa-formal-blanca-png.png",
+        "Camisa Casual Azul":            "/imagenes/camisas/camisa-casual-azul-png.png",
         "Pantalón de Vestir Negro":      "/imagenes/pantalones/pantalon-vestir-negro.jpg",
         "Jean Clásico Azul":             "/imagenes/pantalones/jean-clasico-azul.jpg",
         "Zapato Formal Negro":           "/imagenes/zapatos/zapato-formal-negro.jpg",

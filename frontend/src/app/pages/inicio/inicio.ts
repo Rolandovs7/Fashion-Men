@@ -62,7 +62,7 @@ export class Inicio {
   private toastService = inject(ToastService);
 
   categorias: CategoriaVitrina[] = [
-    { nombre: 'Camisas', etiqueta: 'Telas nobles',   imagen: '/imagenes/camisas/camisa-formal-blanca.jpg' },
+    { nombre: 'Camisas', etiqueta: 'Telas nobles',   imagen: '/imagenes/camisas/camisa-formal-blanca-png.png' },
     { nombre: 'Chaquetas', etiqueta: 'Corte urbano', imagen: '/imagenes/chaquetas/chaqueta-cuero.jpg' },
     { nombre: 'Pantalones', etiqueta: 'Ajuste perfecto', imagen: '/imagenes/pantalones/pantalon-vestir-negro.jpg' },
     { nombre: 'Accesorios', etiqueta: 'Detalles finos', imagen: '/imagenes/accesorios/cinturon-cuero.jpg' }
@@ -77,7 +77,7 @@ export class Inicio {
       precio: 420,
       badge: 'Nuevo',
       badgeTipo: 'acento',
-      imagen: '/imagenes/camisas/camisa-formal-blanca.jpg'
+      imagen: '/imagenes/camisas/camisa-formal-blanca-png.png'
     },
     {
       id: 2,

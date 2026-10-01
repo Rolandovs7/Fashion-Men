@@ -37,13 +37,13 @@ IMAGENES_VARIANTES_EXISTENTES = {
         "Blanco": "/imagenes/camisetas/camiseta-basica-blanca.jpg",
     },
     "Camisa Formal": {
-        "Blanco": "/imagenes/camisas/camisa-formal-blanca.jpg",
-        "Azul": "/imagenes/camisas/camisa-formal-azul.jpg",
+        "Blanco": "/imagenes/camisas/camisa-formal-blanca-png.png",
+        "Azul": "/imagenes/camisas/camisa-formal-azul-png.png",
     },
     "Camisa Casual": {
-        "Azul": "/imagenes/camisas/camisa-casual-azul.jpg",
-        "Blanco": "/imagenes/camisas/camisa-casual-blanca.jpg",
-        "Gris": "/imagenes/camisas/camisa-casual-gris.jpg",
+        "Azul": "/imagenes/camisas/camisa-casual-azul-png.png",
+        "Blanco": "/imagenes/camisas/camisa-casual-blanca-png.png",
+        "Gris": "/imagenes/camisas/camisa-casual-gris-png.png",
     },
     "Pantalón de Vestir": {
         "Negro": "/imagenes/pantalones/pantalon-vestir-negro.jpg",

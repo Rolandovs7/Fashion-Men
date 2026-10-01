@@ -287,8 +287,8 @@ def sembrar_productos(db):
 
     # (nombre, desc, precio, categoria, marca, proveedor, temporada, coleccion, tipo, imagen_url)
     productos_data = [
-        ("Camisa Formal Blanca", "Camisa de vestir manga larga", 180, "Camisas", "Zara", "Textiles Bolivia S.A.", "Primavera-Verano 2026", "Clásica Premium", "Camisa Formal", "/imagenes/camisas/camisa-formal-blanca.jpg"),
-        ("Camisa Casual Azul", "Camisa casual de algodón", 150, "Camisas", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Camisa Casual", "/imagenes/camisas/camisa-casual-azul.jpg"),
+        ("Camisa Formal Blanca", "Camisa de vestir manga larga", 180, "Camisas", "Zara", "Textiles Bolivia S.A.", "Primavera-Verano 2026", "Clásica Premium", "Camisa Formal", "/imagenes/camisas/camisa-formal-blanca-png.png"),
+        ("Camisa Casual Azul", "Camisa casual de algodón", 150, "Camisas", "H&M", "Importadora Andina", "Primavera-Verano 2026", "Urbana 2026", "Camisa Casual", "/imagenes/camisas/camisa-casual-azul-png.png"),
         ("Pantalón de Vestir Negro", "Pantalón formal de corte recto", 250, "Pantalones", "Zara", "Textiles Bolivia S.A.", "Otoño-Invierno 2026", "Clásica Premium", "Pantalón de Vestir", "/imagenes/pantalones/pantalon-vestir-negro.jpg"),
         ("Jean Clásico Azul", "Jean de mezclilla corte regular", 220, "Pantalones", "Levi's", "Moda Import SRL", "Primavera-Verano 2026", "Casual Weekend", "Jean", "/imagenes/pantalones/jean-clasico-azul.jpg"),
         ("Zapato Formal Negro", "Zapato de cuero para vestir", 380, "Zapatos", "Tommy Hilfiger", "Distribuidora Central", "Otoño-Invierno 2026", "Clásica Premium", "Zapato Formal", "/imagenes/zapatos/zapato-formal-negro.jpg"),

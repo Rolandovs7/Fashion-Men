@@ -66,6 +66,35 @@
         <!-- Datos de pago -->
         <div class="md:col-span-2">
           <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 sm:p-8">
+            <!-- Selector de método de pago -->
+            <div class="mb-6">
+              <p class="text-xs font-bold uppercase tracking-[0.2em] text-ms-slate mb-3">Método de pago</p>
+              <div class="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  (click)="cambiarMetodoPago('tarjeta')"
+                  [class]="metodoPago === 'tarjeta' ? 'border-ms-amber bg-ms-cream ring-2 ring-ms-amber' : 'border-ms-stone-200 bg-white hover:bg-ms-cream/50'"
+                  class="flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all cursor-pointer">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span class="text-sm font-bold">Tarjeta</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="cambiarMetodoPago('qr')"
+                  [class]="metodoPago === 'qr' ? 'border-ms-amber bg-ms-cream ring-2 ring-ms-amber' : 'border-ms-stone-200 bg-white hover:bg-ms-cream/50'"
+                  class="flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all cursor-pointer">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  </svg>
+                  <span class="text-sm font-bold">QR</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Formulario de tarjeta (solo si metodoPago === 'tarjeta') -->
+            @if (metodoPago === 'tarjeta') {
             <div class="flex items-center gap-2 mb-1">
               <svg class="w-4.5 h-4.5 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -103,6 +132,44 @@
               <p>Procesado por Stripe.</p>
               <p class="mt-1">Modo test: usá la tarjeta <strong class="text-ms-ink">4242 4242 4242 4242</strong>, cualquier fecha futura y CVC.</p>
             </div>
+            }
+
+            <!-- Bloque QR (solo si metodoPago === 'qr') -->
+            @if (metodoPago === 'qr') {
+            <div class="flex flex-col items-center gap-4">
+              <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Pago con código QR</h2>
+              @if (qrGenerando) {
+                <div class="p-14">
+                  <app-loader size="lg" [centrado]="false"></app-loader>
+                </div>
+              } @else if (qrDataUrl) {
+                <div class="bg-white p-4 rounded-xl border border-ms-stone-200 shadow-card">
+                  <img [src]="qrDataUrl" alt="QR de pago" class="w-[280px] h-[280px]">
+                </div>
+                <p class="text-xs text-ms-slate text-center max-w-xs">
+                  Escaneá este código con tu app bancaria. Cuando lo hayas hecho, presioná el botón de abajo.
+                </p>
+                <div class="text-center">
+                  <p class="text-lg font-bold text-ms-ink">Total: {{ pedido.total.toFixed(2) }} Bs</p>
+                  <p class="text-xs text-ms-slate">Pedido #{{ pedido.id }}</p>
+                </div>
+                <app-button
+                  variant="primario"
+                  [block]="true"
+                  size="lg"
+                  [loading]="procesando"
+                  [disabled]="procesando"
+                  (click)="registrarPagoQr()">
+                  @if (!procesando) {
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Ya realicé el pago
+                  }
+                </app-button>
+              }
+            </div>
+            }
           </div>
         </div>
 

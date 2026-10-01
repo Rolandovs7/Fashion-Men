@@ -28,6 +28,7 @@ class VestidorVirtualPage extends StatefulWidget {
 class _VestidorVirtualPageState extends State<VestidorVirtualPage> {
   CameraController? _controller;
   List<CameraDescription> _camaras = [];
+  int _camaraActual = 0;
   final PoseDetector _detectorPose = PoseDetector(
     options: PoseDetectorOptions(mode: PoseDetectionMode.stream),
   );
@@ -127,6 +128,35 @@ class _VestidorVirtualPageState extends State<VestidorVirtualPage> {
     }
   }
 
+  Future<void> _switchCamera() async {
+    if (_camaras.length < 2) return;
+
+    // Detener la cámara actual
+    await _controller?.stopImageStream();
+    await _controller?.dispose();
+
+    // Cambiar al siguiente índice
+    _camaraActual = (_camaraActual + 1) % _camaras.length;
+
+    try {
+      final controller = CameraController(
+        _camaras[_camaraActual],
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.nv21,
+      );
+
+      await controller.initialize();
+      if (!mounted) return;
+
+      setState(() => _controller = controller);
+      controller.startImageStream(_procesarFrame);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorCamara = 'No se pudo cambiar la cámara: $e');
+    }
+  }
+
   void _procesarFrame(CameraImage imagen) async {
     if (_procesandoFrame || _controller == null) return;
     _procesandoFrame = true;
@@ -192,6 +222,14 @@ class _VestidorVirtualPageState extends State<VestidorVirtualPage> {
           'Probándote: ${widget.nombrePrenda}',
           style: const TextStyle(fontSize: 14),
         ),
+        actions: [
+          if (_camaras.length >= 2)
+            IconButton(
+              icon: const Icon(Icons.cameraswitch),
+              tooltip: 'Cambiar cámara',
+              onPressed: _switchCamera,
+            ),
+        ],
       ),
       body: _construirCuerpo(),
     );
@@ -325,7 +363,7 @@ class _PintorPrenda extends CustomPainter {
       imagenPrenda.height.toDouble(),
     );
 
-    final pintura = Paint()..filterQuality = FilterQuality.medium;
+    final pintura = Paint()..filterQuality = FilterQuality.high;
     canvas.drawImageRect(imagenPrenda, origen, destino, pintura);
   }
 

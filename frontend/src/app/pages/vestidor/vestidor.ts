@@ -55,6 +55,7 @@ export class VestidorComponent implements OnInit, OnDestroy {
   cargando = false;
   error = '';
   poseDetectada = false;
+  facingMode: 'user' | 'environment' = 'user';
 
   prendas: Prenda[] = [
     { id: 1, nombre: 'Camisa Formal Blanca',  imagen: '/imagenes/camisas/camisa-formal-blanca-png.png',  categoria: 'Camisa Formal' },
@@ -120,7 +121,7 @@ export class VestidorComponent implements OnInit, OnDestroy {
   async activarCamara() {
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' }
+        video: { width: 640, height: 480, facingMode: this.facingMode }
       });
       this.videoRef.nativeElement.srcObject = this.stream;
       await this.videoRef.nativeElement.play();
@@ -130,6 +131,18 @@ export class VestidorComponent implements OnInit, OnDestroy {
     } catch (e: any) {
       this.error = 'No se pudo acceder a la camara: ' + (e.message || e);
       this.cdr.detectChanges();
+    }
+  }
+
+  async cambiarCamara() {
+    this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+    this.detenerCamara();
+    // Pequena espera para que se libere la camara anterior
+    await new Promise(r => setTimeout(r, 300));
+    await this.activarCamara();
+    if (!this.stream) {
+      this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
+      this.toast.aviso('No se pudo cambiar de cámara en este dispositivo');
     }
   }
 
@@ -168,8 +181,12 @@ export class VestidorComponent implements OnInit, OnDestroy {
       const ctx = canvas.getContext('2d');
       if (ctx) {
         ctx.save();
-        ctx.scale(-1, 1);
-        ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        if (this.facingMode === 'user') {
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        } else {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
         ctx.restore();
 
         const results = this.poseLandmarker.detectForVideo(video, performance.now());
@@ -182,7 +199,9 @@ export class VestidorComponent implements OnInit, OnDestroy {
             const caderaIzq = lm[23];
             const caderaDer = lm[24];
 
-            const toCanvasX = (p: any) => (1 - p.x) * canvas.width;
+            const toCanvasX = (p: any) => this.facingMode === 'user' 
+              ? (1 - p.x) * canvas.width 
+              : p.x * canvas.width;
             const toCanvasY = (p: any) => p.y * canvas.height;
 
             const hIzqX = toCanvasX(hombroIzq);
@@ -194,18 +213,14 @@ export class VestidorComponent implements OnInit, OnDestroy {
             const cDerX = toCanvasX(caderaDer);
             const cDerY = toCanvasY(caderaDer);
 
-            const centroHombrosX = (hIzqX + hDerX) / 2;
-            const centroHombrosY = (hIzqY + hDerY) / 2;
-            const centroCaderasX = (cIzqX + cDerX) / 2;
-            const centroCaderasY = (cIzqY + cDerY) / 2;
-            const centroX = (centroHombrosX + centroCaderasX) / 2;
-            const centroY = (centroHombrosY + centroCaderasY) / 2;
+            const centroX = (hIzqX + hDerX + cIzqX + cDerX) / 4;
+            const centroY = (hIzqY + hDerY + cIzqY + cDerY) / 4;
 
             const anchoHombros = Math.hypot(hDerX - hIzqX, hDerY - hIzqY);
             const anchoPrenda = anchoHombros * 2.2;
 
-            const distanciaVertical = Math.abs(centroCaderasY - centroHombrosY);
-            const altoPrenda = distanciaVertical * 2.0;
+            const distanciaVertical = Math.abs((cIzqY + cDerY) / 2 - (hIzqY + hDerY) / 2);
+            const altoPrenda = distanciaVertical * 2.2;
 
             const anguloNuevo = Math.atan2(hDerY - hIzqY, hDerX - hIzqX);
 
@@ -214,23 +229,35 @@ export class VestidorComponent implements OnInit, OnDestroy {
             this.escala = this.lerp(this.escala, anchoPrenda, this.LERP);
             this.angulo = this.lerp(this.angulo, anguloNuevo, this.LERP);
 
+            // Mascara del torso: poligono expandido. Fuera de este area
+            // se ve el video real (brazos, cabeza, fondo).
+            const padding = 25;
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(hIzqX - padding, hIzqY - padding);
+            ctx.lineTo(hDerX + padding, hDerY - padding);
+            ctx.lineTo(cDerX + padding, cDerY + padding);
+            ctx.lineTo(cIzqX - padding, cIzqY + padding);
+            ctx.closePath();
+            ctx.clip();
+
+            // Dentro de la mascara: prenda OPACA, sin sombra (reemplazo)
             if (this.prendaImagen && this.prendaImagen.complete) {
               ctx.save();
               ctx.translate(this.posX, this.posY);
               ctx.rotate(this.angulo);
-              ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-              ctx.shadowBlur = 15;
-              ctx.shadowOffsetY = 5;
-              ctx.globalAlpha = 0.95;
+              ctx.globalAlpha = 1.0;
               ctx.drawImage(
                 this.prendaImagen,
                 -this.escala / 2,
-                -altoPrenda / 2.5,
+                -altoPrenda / 2.2,
                 this.escala,
                 altoPrenda
               );
               ctx.restore();
             }
+
+            ctx.restore();
           }
         } else {
           this.poseDetectada = false;

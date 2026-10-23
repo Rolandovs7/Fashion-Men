@@ -33,8 +33,8 @@ from app.models.branch import Sucursal
 # ------------------------------------------------------------
 IMAGENES_VARIANTES_EXISTENTES = {
     "Camiseta Básica": {
-        "Negro": "/imagenes/camisetas/camiseta-basica-negra.jpg",
-        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca.jpg",
+        "Negro": "/imagenes/camisetas/camiseta-basica-negra-png.png",
+        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca-png.png",
     },
     "Camisa Formal": {
         "Blanco": "/imagenes/camisas/camisa-formal-blanca-png.png",
@@ -68,21 +68,21 @@ IMAGENES_VARIANTES_EXISTENTES = {
         "Negro": "/imagenes/zapatos/zapatilla-urbana-negra.jpg",
     },
     "Chaqueta de Cuero": {
-        "Negro": "/imagenes/chaquetas/chaqueta-cuero-negro.jpg",
-        "Marrón": "/imagenes/chaquetas/chaqueta-cuero-marron.jpg",
+        "Negro": "/imagenes/chaquetas/chaqueta-cuero-negro-png.png",
+        "Marrón": "/imagenes/chaquetas/chaqueta-cuero-marron-png.png",
     },
     "Chaqueta Deportiva": {
-        "Azul": "/imagenes/chaquetas/chaqueta-deportiva-azul.jpg",
-        "Negro": "/imagenes/chaquetas/chaqueta-deportiva-negro.jpg",
+        "Azul": "/imagenes/chaquetas/chaqueta-deportiva-azul-png.png",
+        "Negro": "/imagenes/chaquetas/chaqueta-deportiva-negro-png.png",
     },
     "Polera Básica": {
-        "Negro": "/imagenes/camisetas/camiseta-basica-negra.jpg",
-        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca.jpg",
-        "Gris": "/imagenes/poleras/polera-basica-gris.jpg",
+        "Negro": "/imagenes/poleras/polera-basica-negro-png.png",
+        "Blanco": "/imagenes/poleras/polera-basica-blanca-png.png",
+        "Gris": "/imagenes/poleras/polera-basica-gris-png.png",
     },
     "Polera Estampada": {
-        "Negro": "/imagenes/poleras/polera-estampada-negro.jpg",
-        "Azul": "/imagenes/poleras/polera-estampada-azul.jpg",
+        "Negro": "/imagenes/poleras/polera-estampada-negro-png.png",
+        "Azul": "/imagenes/poleras/polera-estampada-azul-png.png",
     },
     "Traje Completo": {
         "Gris": "/imagenes/trajes/traje-completo-gris.jpg",

@@ -63,7 +63,7 @@ export class Inicio {
 
   categorias: CategoriaVitrina[] = [
     { nombre: 'Camisas', etiqueta: 'Telas nobles',   imagen: '/imagenes/camisas/camisa-formal-blanca-png.png' },
-    { nombre: 'Chaquetas', etiqueta: 'Corte urbano', imagen: '/imagenes/chaquetas/chaqueta-cuero.jpg' },
+    { nombre: 'Chaquetas', etiqueta: 'Corte urbano', imagen: '/imagenes/chaquetas/chaqueta-cuero-negro-png.png' },
     { nombre: 'Pantalones', etiqueta: 'Ajuste perfecto', imagen: '/imagenes/pantalones/pantalon-vestir-negro.jpg' },
     { nombre: 'Accesorios', etiqueta: 'Detalles finos', imagen: '/imagenes/accesorios/cinturon-cuero.jpg' }
   ];
@@ -87,7 +87,7 @@ export class Inicio {
       precio: 1250,
       badge: 'Nuevo',
       badgeTipo: 'acento',
-      imagen: '/imagenes/chaquetas/chaqueta-deportiva.jpg'
+      imagen: '/imagenes/chaquetas/chaqueta-deportiva-negro-png.png'
     },
     {
       id: 3,

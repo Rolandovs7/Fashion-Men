@@ -142,3 +142,19 @@ def saludo():
     return {
         "mensaje": "MenStyle está funcionando correctamente"
     }
+
+
+@app.get("/admin/bootstrap")
+def bootstrap():
+    """Endpoint temporal para inicializar la DB después de crearla."""
+    import subprocess
+    try:
+        # 1. Migraciones
+        subprocess.run(["alembic", "upgrade", "head"], check=True, cwd="/app")
+        # 2. Seed demo (productos, categorías, variantes)
+        subprocess.run(["python", "seed_demo.py"], check=True, cwd="/app")
+        # 3. Seed imagenes (actualiza rutas a PNG)
+        subprocess.run(["python", "seed_imagenes_variantes.py"], check=True, cwd="/app")
+        return {"status": "ok", "message": "DB inicializada correctamente"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

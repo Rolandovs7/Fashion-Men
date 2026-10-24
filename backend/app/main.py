@@ -150,11 +150,26 @@ def bootstrap():
     import subprocess
     try:
         # 1. Migraciones
-        subprocess.run(["alembic", "upgrade", "head"], check=True, cwd="/app")
-        # 2. Seed demo (productos, categorías, variantes)
-        subprocess.run(["python", "seed_demo.py"], check=True, cwd="/app")
-        # 3. Seed imagenes (actualiza rutas a PNG)
-        subprocess.run(["python", "seed_imagenes_variantes.py"], check=True, cwd="/app")
-        return {"status": "ok", "message": "DB inicializada correctamente"}
+        r1 = subprocess.run(["alembic", "upgrade", "head"], check=True, cwd="/app", capture_output=True, text=True)
+        # 2. Seed demo
+        r2 = subprocess.run(["python", "seed_demo.py"], check=True, cwd="/app", capture_output=True, text=True)
+        # 3. Seed imagenes
+        r3 = subprocess.run(["python", "seed_imagenes_variantes.py"], check=True, cwd="/app", capture_output=True, text=True)
+        return {
+            "status": "ok",
+            "message": "DB inicializada correctamente",
+            "output": {
+                "alembic": r1.stdout[-500:] if r1.stdout else "",
+                "seed_demo": r2.stdout[-500:] if r2.stdout else "",
+                "seed_imagenes": r3.stdout[-500:] if r3.stdout else ""
+            }
+        }
+    except subprocess.CalledProcessError as e:
+        return {
+            "status": "error",
+            "command": " ".join(e.cmd) if e.cmd else "unknown",
+            "stdout": e.stdout[-1000:] if e.stdout else "",
+            "stderr": e.stderr[-1000:] if e.stderr else ""
+        }
     except Exception as e:
         return {"status": "error", "message": str(e)}

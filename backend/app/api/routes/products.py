@@ -2,7 +2,8 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, requerir_rol
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id
+from app.models.product import Producto
 from app.schemas.product import (
     ProductoCrear,
     ProductoActualizar,
@@ -20,10 +21,14 @@ router = APIRouter(
     response_model=List[ProductoRespuesta]
 )
 def listar_productos(
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Listar todos los productos activos"""
-    return product_service.listar_productos(db)
+    """Listar todos los productos activos de la empresa del usuario logueado"""
+    return db.query(Producto).filter(
+        Producto.activo == True,
+        Producto.empresa_id == empresa_id
+    ).all()
 
 
 @router.get(

@@ -3,7 +3,8 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, requerir_rol
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id
+from app.models.branch import Sucursal
 from app.schemas.branch import (
     SucursalCrear,
     SucursalActualizar,
@@ -22,10 +23,14 @@ router = APIRouter(
 )
 def listar_sucursales(
     solo_activos: bool = True,
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Listar las sucursales de la cadena"""
-    return branch_service.listar_sucursales(db, solo_activos=solo_activos)
+    """Listar las sucursales de la empresa del usuario logueado"""
+    query = db.query(Sucursal).filter(Sucursal.empresa_id == empresa_id)
+    if solo_activos:
+        query = query.filter(Sucursal.activo == True)
+    return query.all()
 
 
 @router.get(

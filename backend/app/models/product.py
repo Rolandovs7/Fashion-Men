@@ -67,6 +67,12 @@ class Producto(Base):
         nullable=True
     )
 
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
+    )
+
     activo: Mapped[bool] = mapped_column(
         Boolean,
         default=True,

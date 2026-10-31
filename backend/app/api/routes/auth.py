@@ -126,7 +126,8 @@ def login_usuario(
 
     token_data = {
         "sub": usuario.email,
-        "rol": usuario.rol
+        "rol": usuario.rol,
+        "empresa_id": usuario.empresa_id
     }
 
     access_token = crear_access_token(token_data)

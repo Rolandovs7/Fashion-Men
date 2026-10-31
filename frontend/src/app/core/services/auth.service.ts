@@ -9,6 +9,8 @@ export interface Usuario {
   email: string;
   activo: boolean;
   rol: string;
+  empresa_id?: number | null;
+  sucursal_id?: number | null;
 }
 
 export interface Token {

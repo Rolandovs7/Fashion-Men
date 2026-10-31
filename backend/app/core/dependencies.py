@@ -1,3 +1,8 @@
+"""
+[Segundo Parcial] CU03 - Iniciar sesión - JWT con empresa_id
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+Consumido por: Frontend (Admin/Cliente)
+"""
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
@@ -66,7 +71,11 @@ def requerir_rol(rol_requerido: str):
 
 
 def get_current_empresa_id(usuario_actual: Usuario = Depends(obtener_usuario_actual)) -> int:
-    """Extraer el empresa_id del usuario autenticado desde el contexto del token/usuario"""
+    """
+    [Segundo Parcial] CU03 - Aislamiento
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Extraer el empresa_id del usuario autenticado desde el contexto del token/usuario
+    """
     if usuario_actual.empresa_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

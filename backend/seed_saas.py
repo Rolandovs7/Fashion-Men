@@ -1,3 +1,9 @@
+"""
+[Segundo Parcial] CU01 - Registrar empresa y contratar plan
+[Segundo Parcial] CU02 - Suscripción
+[Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+Consumido por: Frontend (Admin)
+"""
 import os
 import sys
 from datetime import datetime, timezone
@@ -14,6 +20,11 @@ from app.models.branch import Sucursal
 
 
 def seed_saas():
+    """
+    [Segundo Parcial] CU01 - Registrar empresa y contratar plan
+    [Segundo Parcial] CU02 - Suscripción
+    """
+
     db: Session = SessionLocal()
     try:
         print("Creando tablas si no existen...")

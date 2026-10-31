@@ -158,3 +158,6 @@ out/
 
 # Backups locales
 *.bak*
+
+mobile/android/.kotlin/
+.pytest_cache/

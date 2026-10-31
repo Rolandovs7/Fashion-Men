@@ -11,6 +11,7 @@ en el metadata de SQLAlchemy, lo que permite:
 from app.models.user import Usuario
 from app.models.role import Rol
 from app.models.permission import Permiso, RolPermiso
+from app.models.saas import Empresa, Plan, Suscripcion
 
 from app.models.category import Categoria
 from app.models.brand import Marca
@@ -49,6 +50,9 @@ __all__ = [
     "Rol",
     "Permiso",
     "RolPermiso",
+    "Empresa",
+    "Plan",
+    "Suscripcion",
     "Categoria",
     "Marca",
     "Talla",

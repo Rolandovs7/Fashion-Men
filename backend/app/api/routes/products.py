@@ -39,7 +39,6 @@ router = APIRouter(
 )
 def listar_productos(
     db: Session = Depends(obtener_db),
-    empresa_id: int = 1,
     categoria_id: Optional[int] = None,
     marca_id: Optional[int] = None,
     tipo_prenda_id: Optional[int] = None,
@@ -50,30 +49,24 @@ def listar_productos(
 ):
     """
     [Segundo Parcial] CU07 - Consultar catálogo
-    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
-    Listar productos de la empresa con filtros y optimización
+    Listar productos
     """
-    try:
-        query = db.query(Producto).options(
-            joinedload(Producto.variantes) if hasattr(Producto, 'variantes') else joinedload(Producto)
-        ).filter(Producto.empresa_id == empresa_id)
-        if solo_activos:
-            query = query.filter(Producto.activo == True)
-        if categoria_id is not None:
-            query = query.filter(Producto.categoria_id == categoria_id)
-        if marca_id is not None:
-            query = query.filter(Producto.marca_id == marca_id)
-        if tipo_prenda_id is not None:
-            query = query.filter(Producto.tipo_prenda_id == tipo_prenda_id)
-        if coleccion_id is not None:
-            query = query.filter(Producto.coleccion_id == coleccion_id)
-        if temporada_id is not None:
-            query = query.filter(Producto.temporada_id == temporada_id)
-        if proveedor_id is not None:
-            query = query.filter(Producto.proveedor_id == proveedor_id)
-        return query.all()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    query = db.query(Producto)
+    if solo_activos:
+        query = query.filter(Producto.activo == True)
+    if categoria_id is not None:
+        query = query.filter(Producto.categoria_id == categoria_id)
+    if marca_id is not None:
+        query = query.filter(Producto.marca_id == marca_id)
+    if tipo_prenda_id is not None:
+        query = query.filter(Producto.tipo_prenda_id == tipo_prenda_id)
+    if coleccion_id is not None:
+        query = query.filter(Producto.coleccion_id == coleccion_id)
+    if temporada_id is not None:
+        query = query.filter(Producto.temporada_id == temporada_id)
+    if proveedor_id is not None:
+        query = query.filter(Producto.proveedor_id == proveedor_id)
+    return query.all()
 
 
 @router.get(
@@ -82,25 +75,16 @@ def listar_productos(
 )
 def obtener_producto(
     producto_id: int,
-    db: Session = Depends(obtener_db),
-    empresa_id: int = 1
+    db: Session = Depends(obtener_db)
 ):
     """
     [Segundo Parcial] CU07 - Consultar catálogo
-    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
     Obtener un producto por su ID
     """
-    try:
-        producto = db.query(Producto).filter(Producto.id == producto_id).first()
-        if not producto:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto not found")
-        if producto.empresa_id != empresa_id:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a este producto")
-        return producto
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    producto = db.query(Producto).filter(Producto.id == producto_id).first()
+    if not producto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto not found")
+    return producto
 
 
 @router.post(

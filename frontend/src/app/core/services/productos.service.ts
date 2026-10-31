@@ -46,11 +46,11 @@ export class ProductosService {
   }
 
   listar(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.apiUrl}/`);
+    return this.http.get<Producto[]>(`${this.apiUrl}/`, { headers: this.headers() });
   }
 
   obtener(id: number): Observable<Producto> {
-    return this.http.get<Producto>(`${this.apiUrl}/${id}`);
+    return this.http.get<Producto>(`${this.apiUrl}/${id}`, { headers: this.headers() });
   }
 
   crear(datos: ProductoCrear): Observable<Producto> {

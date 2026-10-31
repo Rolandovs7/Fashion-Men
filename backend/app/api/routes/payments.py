@@ -1,8 +1,13 @@
+"""
+[Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+"""
 from typing import List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, obtener_usuario_actual
+from app.core.dependencies import obtener_db, obtener_usuario_actual, get_current_empresa_id
+from app.models.order import Pedido
 from app.models.user import Usuario
 from app.schemas.payment import PagoCrear, PagoRespuesta
 from app.services import payment_service
@@ -28,8 +33,19 @@ router = APIRouter(
 def registrar_pago(
     datos: PagoCrear,
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
+    """
+    [Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Validar que el pedido pertenezca a la empresa
+    """
+    pedido = db.query(Pedido).filter(Pedido.id == datos.pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
+    if pedido.empresa_id != empresa_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Pedido no pertenece a su empresa")
     return payment_service.registrar_pago(
         db,
         usuario_actual.id,
@@ -44,8 +60,18 @@ def registrar_pago(
 def listar_pagos_pedido(
     pedido_id: int,
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
+    """
+    [Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    """
+    pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
+    if pedido.empresa_id != empresa_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Pedido no pertenece a su empresa")
     return payment_service.listar_pagos_pedido(
         db,
         usuario_actual.id,
@@ -85,12 +111,20 @@ def obtener_config_stripe():
 def crear_stripe_intent(
     datos: StripeIntentRequest,
     usuario_actual: Usuario = Depends(obtener_usuario_actual),
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
     """
+    [Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
     CU19 - Administrar Tipo de Pago
     RF19 - Crear un PaymentIntent de Stripe para un pedido.
     """
+    pedido = db.query(Pedido).filter(Pedido.id == datos.pedido_id).first()
+    if not pedido:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
+    if pedido.empresa_id != empresa_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Pedido no pertenece a su empresa")
     return stripe_service.crear_payment_intent(
         db,
         usuario_actual.id,

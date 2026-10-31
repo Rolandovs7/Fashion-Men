@@ -1,3 +1,6 @@
+"""
+[Segundo Parcial] CU12 - Gestionar cambio de prendas (Devoluciones)
+"""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, DateTime, ForeignKey, Integer
@@ -7,6 +10,9 @@ from app.core.database import Base
 
 
 class Devolucion(Base):
+    """
+    [Segundo Parcial] CU12 - Gestionar cambio de prendas (Devoluciones)
+    """
     __tablename__ = "devoluciones"
 
     id: Mapped[int] = mapped_column(
@@ -22,6 +28,12 @@ class Devolucion(Base):
     variante_id: Mapped[int] = mapped_column(
         ForeignKey("producto_variantes.id"),
         nullable=False
+    )
+
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
     )
 
     cantidad: Mapped[int] = mapped_column(

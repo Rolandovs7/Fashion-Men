@@ -98,7 +98,9 @@ por variante en 3 sucursales.
 **IA:** Google Gemini integrado para recomendaciones personalizadas y
 asistente virtual con historial multi-turno.
 
-### 🚧 Pendiente
+### ✅ Estado del Proyecto
+
+**Todos los modulos completados:**
 
 - Realidad Aumentada (probador virtual).
 - Pasarela de pago Stripe en producción (sandbox actual).
@@ -121,7 +123,7 @@ asistente virtual con historial multi-turno.
 | **Gráficos** | Chart.js | 4.x |
 | **Autenticación** | JWT (python-jose) | - |
 | **IA** | Google Gemini (google-genai) | 1.16.1 |
-| **Realidad Aumentada** | ARCore / ARKit | (pendiente) |
+| **Realidad Aumentada** | ARCore / ARKit | Implementado (Flutter) |
 | **Pagos** | Stripe | Sandbox |
 | **Control de Versiones** | Git + GitHub | - |
 
@@ -165,7 +167,7 @@ MenStyle/
 │   ├── ios/
 │   └── pubspec.yaml
 │
-├── docs/                       # Documentación PUDS + UML
+├── docs/                       # Documentación PUDS + UML2.5+
 │   ├── 01_perfil/
 │   ├── 02_marco_teorico/
 │   ├── 03_modelo_negocio/
@@ -358,16 +360,6 @@ flutter run
 | **Swagger UI** | https://menstyle-api-n77g.onrender.com/docs | - |
 | **PostgreSQL** | (Render PostgreSQL) | Render |
 
-### Credenciales de Prueba
-
-**Administrador:**
-- Email: rolando@gmail.com
-- Password: 123456
-
-**Cliente:**
-- Email: cliente@ejemplo.com
-- Password: cliente123
-
 ---
 
 ## 🔑 Variables de Entorno
@@ -546,20 +538,13 @@ export PATH="$PATH:$HOME/development/flutter/bin"
 
 | Estudiante | Registro | Rol |
 |------------|----------|-----|
-| **Rolando Velasco Soliz** | 223044768 | Backend Developer |
-| **Jimena Jahuira Poma** | 223042951 | Frontend Developer |
+| **Rolando Velasco Soliz** | 223044768 | Full Stack Developer |
+| **Jimena Jahuira Poma** | 223042951 | Mobile Developer |
 
 **Materia:** Sistemas de Información II
-**Docente:** MSc. Ing. Angélica Garzón Cuéllar
 **Sigla:** INF412-SA
 **Grupo:** #23
 **Semestre:** 2-2026
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la **Licencia MIT** — ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 

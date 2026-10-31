@@ -24,7 +24,7 @@
 | Recurso | Ubicación |
 |---------|-----------|
 | **Código fuente** | https://github.com/Rolandovs7/Fashion-Men/tree/develop/mobile |
-| **APK de desarrollo** | (pendiente de compilar) |
+| **APK de desarrollo** | [Descargar](https://github.com/Rolandovs7/Fashion-Men/releases) |
 | **Instrucciones de instalación** | Ver README.md del repositorio |
 
 ---
@@ -104,7 +104,7 @@ text
 | Estudiante | Registro | Email |
 |------------|----------|-------|
 | Rolando Velasco Soliz | 223044768 | rolando.vsoliz@gmail.com |
-| Jimena Jahuira Poma | 223042951 | (pendiente) |
+| Jimena Jahuira Poma | 223042951 | jahuira.jimena@gmail.com |
 
 **Materia:** Sistemas de Información II
 **Docente:** MSc. Ing. Angélica Garzón Cuéllar

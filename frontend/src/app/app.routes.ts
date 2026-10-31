@@ -21,6 +21,7 @@ import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
 import { NotificacionesPage } from './pages/notificaciones/notificaciones';
+import { VestidorComponent } from './pages/vestidor/vestidor';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -89,6 +90,11 @@ export const routes: Routes = [
   {
     path: 'notificaciones',
     component: NotificacionesPage,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'vestidor',
+    component: VestidorComponent,
     canActivate: [authGuard]
   },
   {

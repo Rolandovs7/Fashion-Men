@@ -56,13 +56,10 @@ Desarrollar una plataforma inteligente de comercio electrónico para una cadena 
 - ✅ Gestión de inventario multi-sucursal
 - ✅ Reportes y dashboard ejecutivo
 - ✅ Recomendaciones IA y chatbot (Gemini)
-- 🚧 Vestidor virtual con RA (en desarrollo)
-- 🚧 Pasarela Stripe (en desarrollo)
+- ✅ Vestidor virtual con RA
+- ✅ Pasarela Stripe integrada
 
-**Fuera del alcance (post-MVP):**
-- ❌ Delivery / envíos
-- ❌ Múltiples idiomas
-- ❌ App iOS nativa
+
 
 ## 6. Restricciones
 

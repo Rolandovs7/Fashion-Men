@@ -1,3 +1,7 @@
+"""
+[Segundo Parcial] CU10 - Gestionar ventas presenciales
+[Segundo Parcial] CU13 - Carrito y Pedidos
+"""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, DateTime, ForeignKey, Numeric
@@ -7,6 +11,10 @@ from app.core.database import Base
 
 
 class Pedido(Base):
+    """
+    [Segundo Parcial] CU10 - Gestionar ventas presenciales
+    [Segundo Parcial] CU13 - Gestionar carrito y pedidos
+    """
     __tablename__ = "pedidos"
 
     id: Mapped[int] = mapped_column(
@@ -22,6 +30,12 @@ class Pedido(Base):
     sucursal_id: Mapped[int | None] = mapped_column(
         ForeignKey("sucursales.id"),
         nullable=True
+    )
+
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
     )
 
     fecha_pedido: Mapped[datetime] = mapped_column(

@@ -33,58 +33,58 @@ from app.models.branch import Sucursal
 # ------------------------------------------------------------
 IMAGENES_VARIANTES_EXISTENTES = {
     "Camiseta Básica": {
-        "Negro": "/imagenes/camisetas/camiseta-basica-negra.jpg",
-        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca.jpg",
+        "Negro": "/imagenes/camisetas/camiseta-basica-negra-png.png",
+        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca-png.png",
     },
-    "Camisa Formal": {
-        "Blanco": "/imagenes/camisas/camisa-formal-blanca.jpg",
-        "Azul": "/imagenes/camisas/camisa-formal-azul.jpg",
+    "Camisa Formal Blanca": {
+        "Blanco": "/imagenes/camisas/camisa-formal-blanca-png.png",
+        "Azul": "/imagenes/camisas/camisa-formal-azul-png.png",
     },
-    "Camisa Casual": {
-        "Azul": "/imagenes/camisas/camisa-casual-azul.jpg",
-        "Blanco": "/imagenes/camisas/camisa-casual-blanca.jpg",
-        "Gris": "/imagenes/camisas/camisa-casual-gris.jpg",
+    "Camisa Casual Azul": {
+        "Azul": "/imagenes/camisas/camisa-casual-azul-png.png",
+        "Blanco": "/imagenes/camisas/camisa-casual-blanca-png.png",
+        "Gris": "/imagenes/camisas/camisa-casual-gris-png.png",
     },
-    "Pantalón de Vestir": {
+    "Pantalón de Vestir Negro": {
         "Negro": "/imagenes/pantalones/pantalon-vestir-negro.jpg",
         "Azul Marino": "/imagenes/pantalones/pantalon-vestir-azul-marino.jpg",
         "Gris": "/imagenes/pantalones/pantalon-vestir-gris.jpg",
     },
-    "Jean Clásico": {
+    "Jean Clásico Azul": {
         "Azul": "/imagenes/pantalones/jean-clasico-azul.jpg",
         "Negro": "/imagenes/pantalones/jean-clasico-negro.jpg",
         "Gris": "/imagenes/pantalones/jean-clasico-gris.jpg",
     },
-    "Zapato Formal": {
+    "Zapato Formal Negro": {
         "Negro": "/imagenes/zapatos/zapato-formal-negro.jpg",
         "Marrón": "/imagenes/zapatos/zapato-formal-marron.jpg",
     },
-    "Zapatilla Deportiva": {
+    "Zapatilla Deportiva Blanca": {
         "Blanco": "/imagenes/zapatos/zapatilla-deportiva-blanca.jpg",
         "Negro": "/imagenes/zapatos/zapatilla-deportiva-negro.jpg",
     },
-    "Zapatilla Urbana": {
+    "Zapatilla Urbana Negra": {
         "Blanco": "/imagenes/zapatos/zapatilla-urbana-blanca.jpg",
         "Negro": "/imagenes/zapatos/zapatilla-urbana-negra.jpg",
     },
     "Chaqueta de Cuero": {
-        "Negro": "/imagenes/chaquetas/chaqueta-cuero-negro.jpg",
-        "Marrón": "/imagenes/chaquetas/chaqueta-cuero-marron.jpg",
+        "Negro": "/imagenes/chaquetas/chaqueta-cuero-negro-png.png",
+        "Marrón": "/imagenes/chaquetas/chaqueta-cuero-marron-png.png",
     },
     "Chaqueta Deportiva": {
-        "Azul": "/imagenes/chaquetas/chaqueta-deportiva-azul.jpg",
-        "Negro": "/imagenes/chaquetas/chaqueta-deportiva-negro.jpg",
+        "Azul": "/imagenes/chaquetas/chaqueta-deportiva-azul-png.png",
+        "Negro": "/imagenes/chaquetas/chaqueta-deportiva-negro-png.png",
     },
-    "Polera Básica": {
-        "Negro": "/imagenes/camisetas/camiseta-basica-negra.jpg",
-        "Blanco": "/imagenes/camisetas/camiseta-basica-blanca.jpg",
-        "Gris": "/imagenes/poleras/polera-basica-gris.jpg",
+    "Polera Básica Negra": {
+        "Negro": "/imagenes/poleras/polera-basica-negro-png.png",
+        "Blanco": "/imagenes/poleras/polera-basica-blanca-png.png",
+        "Gris": "/imagenes/poleras/polera-basica-gris-png.png",
     },
     "Polera Estampada": {
-        "Negro": "/imagenes/poleras/polera-estampada-negro.jpg",
-        "Azul": "/imagenes/poleras/polera-estampada-azul.jpg",
+        "Negro": "/imagenes/poleras/polera-estampada-negro-png.png",
+        "Azul": "/imagenes/poleras/polera-estampada-azul-png.png",
     },
-    "Traje Completo": {
+    "Traje Completo Gris": {
         "Gris": "/imagenes/trajes/traje-completo-gris.jpg",
         "Negro": "/imagenes/trajes/traje-completo-negro.jpg",
         "Azul Marino": "/imagenes/trajes/traje-completo-azul-marino.jpg",
@@ -105,11 +105,23 @@ IMAGENES_VARIANTES_EXISTENTES = {
 }
 
 # ------------------------------------------------------------
-# 2) PRODUCTOS NUEVOS (17-21)
+# 2) PRODUCTOS NUEVOS (16-21)
 # Cada variante: tallas x color -> imagen_url
-# Inventario: stock 10 en sucursal_id=4
+# Inventario: stock 10 en sucursal de La Paz
 # ------------------------------------------------------------
 PRODUCTOS_NUEVOS = [
+    {
+        "nombre": "Camiseta Básica",
+        "descripcion": "Camiseta de algodón cuello redondo, corte clásico.",
+        "precio": 95.00,
+        "categoria": "Poleras",
+        "imagen_url": "/imagenes/camisetas/camiseta-basica-negra-png.png",
+        "tallas": ["S", "M", "L", "XL"],
+        "variantes": [
+            ("Negro", "/imagenes/camisetas/camiseta-basica-negra-png.png"),
+            ("Blanco", "/imagenes/camisetas/camiseta-basica-blanca-png.png"),
+        ],
+    },
     {
         "nombre": "Camisa de Lino",
         "descripcion": "Camisa de lino ligera y transpirable, ideal para climas cálidos. Corte relajado con cuello clásico.",
@@ -212,11 +224,11 @@ def cargar_imagenes_variantes_existentes(db):
 
 
 def crear_productos_nuevos(db):
-    """Crea los 5 productos nuevos con variantes e inventario en sucursal 4."""
-    sucursal = db.query(Sucursal).filter(Sucursal.id == 4).first()
+    """Crea los productos nuevos con variantes e inventario en la sucursal de La Paz."""
+    sucursal = db.query(Sucursal).filter(Sucursal.nombre.like('%La Paz%')).first()
     if not sucursal:
         raise RuntimeError(
-            "No existe la sucursal id=4 (MenStyle La Paz Centro). "
+            "No se encontró la sucursal de La Paz. "
             f"Sucursales disponibles: {[(s.id, s.nombre) for s in db.query(Sucursal).all()]}"
         )
 

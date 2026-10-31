@@ -135,7 +135,7 @@ class _NotificacionesPageState extends State<NotificacionesPage> {
                   : ListView.separated(
                       padding: const EdgeInsets.all(16),
                       itemCount: notificaciones.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (_, _) => const SizedBox(height: 10),
                       itemBuilder: (context, index) {
                         final n = notificaciones[index];
                         return GestureDetector(

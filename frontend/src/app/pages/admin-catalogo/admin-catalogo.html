@@ -289,7 +289,7 @@
                   (ngModelChange)="setNuevaVarianteColor($event)" />
                 <app-input
                   label="Imagen URL (opcional)"
-                  placeholder="ej. /imagenes/camisas/camisa-formal-azul.jpg"
+                  placeholder="ej. /imagenes/camisas/camisa-formal-azul-png.png"
                   [(ngModel)]="nuevaVariante.imagen_url" />
                 <app-button variant="primario" [block]="true" [loading]="guardando" (click)="crearVariante()">
                   Agregar variante
@@ -1021,7 +1021,7 @@
       <app-input
         label="Imagen URL"
         [(ngModel)]="varianteImagenEditandoUrl"
-        placeholder="/imagenes/camisas/camisa-formal-azul.jpg"
+        placeholder="/imagenes/camisas/camisa-formal-azul-png.png"
         hint="Ruta local dentro de public/imagenes/ o URL completa."></app-input>
 
       @if (varianteImagenEditandoUrl.trim()) {

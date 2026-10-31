@@ -61,6 +61,10 @@
         class="px-3 py-2 rounded-lg text-sm font-semibold text-neutral-300 hover:bg-neutral-900 hover:text-white transition-all">
         Catálogo
       </a>
+      <a routerLink="/vestidor" routerLinkActive="bg-neutral-800 text-white"
+        class="px-3 py-2 rounded-lg text-sm font-semibold text-neutral-300 hover:bg-neutral-900 hover:text-white transition-all">
+        Vestidor
+      </a>
       <a routerLink="/pedidos" routerLinkActive="bg-neutral-800 text-white"
         class="px-3 py-2 rounded-lg text-sm font-semibold text-neutral-300 hover:bg-neutral-900 hover:text-white transition-all">
         Mis Pedidos
@@ -188,6 +192,12 @@
           class="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-300 hover:bg-neutral-900 hover:text-white font-semibold transition-all">
           <span class="text-lg">🛍️</span>
           <span>Catálogo</span>
+        </a>
+        <a routerLink="/vestidor" routerLinkActive="bg-neutral-800 text-white"
+          (click)="cerrarMenu()"
+          class="flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-300 hover:bg-neutral-900 hover:text-white font-semibold transition-all">
+          <span class="text-lg">👔</span>
+          <span>Vestidor</span>
         </a>
         <a routerLink="/pedidos" routerLinkActive="bg-neutral-800 text-white"
           (click)="cerrarMenu()"

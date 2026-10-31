@@ -152,17 +152,17 @@ def fix_imagenes(x_admin_key: str = Header(None)):
 
     # Mapeo: nombre del producto -> ruta de imagen
     MAPA = {
-        "Camisa Formal Blanca":          "/imagenes/camisas/camisa-formal-blanca.jpg",
-        "Camisa Casual Azul":            "/imagenes/camisas/camisa-casual-azul.jpg",
+        "Camisa Formal Blanca":          "/imagenes/camisas/camisa-formal-blanca-png.png",
+        "Camisa Casual Azul":            "/imagenes/camisas/camisa-casual-azul-png.png",
         "Pantalón de Vestir Negro":      "/imagenes/pantalones/pantalon-vestir-negro.jpg",
         "Jean Clásico Azul":             "/imagenes/pantalones/jean-clasico-azul.jpg",
         "Zapato Formal Negro":           "/imagenes/zapatos/zapato-formal-negro.jpg",
         "Zapatilla Deportiva Blanca":    "/imagenes/zapatos/zapatilla-deportiva-blanca.jpg",
         "Zapatilla Urbana Negra":        "/imagenes/zapatos/zapatilla-urbana-negra.jpg",
-        "Chaqueta de Cuero":             "/imagenes/chaquetas/chaqueta-cuero.jpg",
-        "Chaqueta Deportiva":            "/imagenes/chaquetas/chaqueta-deportiva.jpg",
-        "Polera Básica Negra":           "/imagenes/poleras/polera-basica-negra.jpg",
-        "Polera Estampada":              "/imagenes/poleras/polera-estampada.jpg",
+        "Chaqueta de Cuero":             "/imagenes/chaquetas/chaqueta-cuero-negro-png.png",
+        "Chaqueta Deportiva":            "/imagenes/chaquetas/chaqueta-deportiva-negro-png.png",
+        "Polera Básica Negra":           "/imagenes/poleras/polera-basica-negro-png.png",
+        "Polera Estampada":              "/imagenes/poleras/polera-estampada-negro-png.png",
         "Traje Completo Gris":           "/imagenes/trajes/traje-completo-gris.jpg",
         "Short Deportivo":               "/imagenes/ropa-deportiva/short-deportivo.jpg",
         "Cinturón de Cuero":             "/imagenes/accesorios/cinturon-cuero.jpg",

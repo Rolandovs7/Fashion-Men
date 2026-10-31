@@ -48,7 +48,7 @@ class AppTheme {
     );
 
     return base.copyWith(
-      textTheme: GoogleFonts.jostTextTheme(base.textTheme)
+      textTheme: GoogleFonts.jostTextTheme(base.textTheme as TextTheme?)
           .apply(bodyColor: colorTexto, displayColor: colorTexto),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,

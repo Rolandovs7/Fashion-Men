@@ -161,3 +161,8 @@ out/
 
 mobile/android/.kotlin/
 .pytest_cache/
+# ---------- Enterprise Architect ----------
+# El archivo .eap es binario grande (4.6 MB), se regenera con EA
+EA/*.eap
+EA/*.qea
+EA/*.bak

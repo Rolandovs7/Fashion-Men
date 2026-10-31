@@ -13,6 +13,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PagosService } from '../../core/services/pagos.service';
 import { PedidosService, Pedido } from '../../core/services/pedidos.service';
 import { HeaderComponent } from '../../shared/header/header';
+import * as QRCode from 'qrcode';
 import {
   ButtonComponent,
   AlertComponent,
@@ -51,6 +52,12 @@ export class Checkout implements OnInit, OnDestroy {
   private card: any;
   private clientSecret = '';
   private paymentIntentId = '';
+
+  // QR de pago
+  metodoPago: 'tarjeta' | 'qr' = 'tarjeta';
+  qrDataUrl: string | null = null;
+  qrGenerando = false;
+  qrRegistrado = false;
 
   tipoBadgeEstados: Record<string, 'neutral' | 'aviso' | 'info' | 'acento' | 'exito' | 'error'> = {
     pendiente: 'aviso',
@@ -186,6 +193,63 @@ export class Checkout implements OnInit, OnDestroy {
           }
         });
       }
+    });
+  }
+
+  // ============================================================
+  // QR de pago
+  // ============================================================
+  cambiarMetodoPago(metodo: 'tarjeta' | 'qr'): void {
+    this.metodoPago = metodo;
+    this.errorMsg = '';
+    if (metodo === 'qr' && !this.qrDataUrl) {
+      this.generarQr();
+    }
+  }
+
+  async generarQr(): Promise<void> {
+    if (!this.pedido) return;
+    this.qrGenerando = true;
+    this.errorMsg = '';
+    try {
+      const data = `MenStyle|PAGO|${this.pedido.id}|${this.pedido.total.toFixed(2)}|${Date.now()}`;
+      this.qrDataUrl = await QRCode.toDataURL(data, {
+        width: 300,
+        margin: 2,
+        color: { dark: '#1f2937', light: '#ffffff' },
+      });
+    } catch (e) {
+      this.errorMsg = 'No se pudo generar el QR';
+    } finally {
+      this.qrGenerando = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  registrarPagoQr(): void {
+    if (!this.pedido) return;
+    const referencia = `QR-${Date.now()}`;
+    this.procesando = true;
+    this.errorMsg = '';
+
+    this.pagosService.registrarPago({
+      pedido_id: this.pedido.id,
+      metodo: 'qr',
+      monto: this.pedido.total,
+      referencia,
+    }).subscribe({
+      next: () => {
+        this.procesando = false;
+        this.qrRegistrado = true;
+        this.exitoMsg = 'Pago por QR registrado. Esperando confirmación.';
+        this.cdr.detectChanges();
+        setTimeout(() => this.router.navigate(['/pedidos']), 2500);
+      },
+      error: (err) => {
+        this.procesando = false;
+        this.errorMsg = err.error?.detail || 'Error registrando pago QR';
+        this.cdr.detectChanges();
+      },
     });
   }
 

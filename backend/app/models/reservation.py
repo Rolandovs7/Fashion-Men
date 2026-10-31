@@ -1,3 +1,6 @@
+"""
+[Segundo Parcial] CU11 - Gestionar reservas
+"""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, DateTime, ForeignKey
@@ -7,6 +10,9 @@ from app.core.database import Base
 
 
 class Reserva(Base):
+    """
+    [Segundo Parcial] CU11 - Gestionar reservas
+    """
     __tablename__ = "reservas"
 
     id: Mapped[int] = mapped_column(
@@ -22,6 +28,12 @@ class Reserva(Base):
     sucursal_id: Mapped[int] = mapped_column(
         ForeignKey("sucursales.id"),
         nullable=False
+    )
+
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
     )
 
     fecha_reserva: Mapped[datetime] = mapped_column(

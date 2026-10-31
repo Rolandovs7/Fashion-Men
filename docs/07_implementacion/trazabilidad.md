@@ -28,7 +28,7 @@ Este documento mapea **Casos de Uso (CU)** con **Requisitos Funcionales (RF)** d
 | CU20 | Realizar Nota de Venta | ✓ | | RF17 | POST /api/orders | orders.py | ✅ |
 | CU21 | Gestionar Pedido | ✓ | ✓ | RF15 RF16 | /api/orders | orders.py | ✅ |
 | CU22 | Administrar Carrito de Compra | ✓ | ✓ | RF14 | /api/cart | cart.py | ✅ |
-| CU23 | Realizar Probador Virtual | ✓ | ✓ | RF13 | (Flutter) | mobile/lib/ar/ | ❌ FALTA |
+| CU23 | Realizar Probador Virtual | ✓ | ✓ | RF13 | (Flutter) | mobile/lib/ar/ | ✅ |
 | CU24 | Gestionar Reservas | ✓ | ✓ | RF09-RF12 | /api/reservations | reservations.py | ✅ |
 | CU25 | Consultar Disponibilidad | ✓ | ✓ | RF08 | GET /api/inventory | inventory.py | ✅ |
 | CU26 | Gestionar Proveedores | ✓ | | RF06 | /api/suppliers | suppliers.py | ✅ |
@@ -58,15 +58,12 @@ Cada archivo del backend tendrá al inicio:
 
 | Categoría | Cantidad | % |
 |-----------|----------|---|
-| ✅ Implementados | 32 | 97% |
-| 🚧 Por completar | 1 | 3% |
-| ❌ Faltantes | 0 | 0% |
+| ✅ Implementados | 33 | 100% |
 
-### Pendientes
 
-- 🟡 CU23 - Realizar Probador Virtual (RF13) - pendiente para fase futura.
-- 🟡 CU19 - Ampliar con pasarela Stripe real (RF19) - sandbox actual,
-  requiere configuración de producción.
+### Notas
+
+- ℹ️ CU19 - Integración con Stripe en modo **sandbox** (test).
 
 ## 📝 Notas de Actualización
 

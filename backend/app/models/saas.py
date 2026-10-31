@@ -1,3 +1,9 @@
+"""
+[Segundo Parcial] CU01 - Registrar empresa y contratar plan
+[Segundo Parcial] CU02 - Suscripción
+[Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+Consumido por: Frontend (Admin)
+"""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer
@@ -7,6 +13,10 @@ from app.core.database import Base
 
 
 class Empresa(Base):
+    """
+    [Segundo Parcial] CU01 - Registrar empresa y contratar plan
+    [Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+    """
     __tablename__ = "empresas"
 
     id: Mapped[int] = mapped_column(
@@ -34,6 +44,10 @@ class Empresa(Base):
 
 
 class Plan(Base):
+    """
+    [Segundo Parcial] CU01 - Registrar empresa y contratar plan
+    [Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+    """
     __tablename__ = "planes"
 
     id: Mapped[int] = mapped_column(
@@ -67,6 +81,10 @@ class Plan(Base):
 
 
 class Suscripcion(Base):
+    """
+    [Segundo Parcial] CU02 - Suscripción
+    [Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+    """
     __tablename__ = "suscripciones"
 
     id: Mapped[int] = mapped_column(

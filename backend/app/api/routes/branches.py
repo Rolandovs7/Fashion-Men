@@ -1,10 +1,17 @@
+"""
+[Segundo Parcial] CU05 - Gestionar sucursales
+[Segundo Parcial] RN-SaaS-01 - Límite de sucursales por plan
+[Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+Consumido por: Frontend (Admin)
+"""
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id, obtener_usuario_actual
 from app.models.branch import Sucursal
+from app.models.saas import Plan, Suscripcion
 from app.schemas.branch import (
     SucursalCrear,
     SucursalActualizar,
@@ -26,7 +33,11 @@ def listar_sucursales(
     db: Session = Depends(obtener_db),
     empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Listar las sucursales de la empresa del usuario logueado"""
+    """
+    [Segundo Parcial] CU05 - Gestionar sucursales
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Listar las sucursales de la empresa del usuario logueado
+    """
     query = db.query(Sucursal).filter(Sucursal.empresa_id == empresa_id)
     if solo_activos:
         query = query.filter(Sucursal.activo == True)
@@ -39,10 +50,20 @@ def listar_sucursales(
 )
 def obtener_sucursal(
     sucursal_id: int,
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Obtener una sucursal por su ID"""
-    return branch_service.obtener_sucursal_por_id(db, sucursal_id)
+    """
+    [Segundo Parcial] CU05 - Gestionar sucursales
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Obtener una sucursal por su ID
+    """
+    sucursal = db.query(Sucursal).filter(Sucursal.id == sucursal_id).first()
+    if not sucursal:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sucursal no encontrada")
+    if sucursal.empresa_id != empresa_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a esta sucursal")
+    return sucursal
 
 
 @router.post(
@@ -53,10 +74,57 @@ def obtener_sucursal(
 def crear_sucursal(
     datos: SucursalCrear,
     db: Session = Depends(obtener_db),
-    _usuario_admin=Depends(requerir_rol("administrador"))
+    _usuario_admin=Depends(requerir_rol("administrador")),
+    usuario_actual=Depends(obtener_usuario_actual),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Crear una nueva sucursal (solo administradores)"""
-    return branch_service.crear_sucursal(db, datos)
+    """
+    [Segundo Parcial] CU05 - Gestionar sucursales
+    [Segundo Parcial] RN-SaaS-01 - Límite de sucursales por plan
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Consumido por: Frontend (Admin)
+    Crear una nueva sucursal (solo administradores)
+    """
+    # Validar límite de sucursales según plan
+    suscripcion = db.query(Suscripcion).filter(
+        Suscripcion.empresa_id == empresa_id,
+        Suscripcion.estado == "activo"
+    ).first()
+
+    if not suscripcion:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No existe una suscripción activa para su empresa"
+        )
+
+    plan = db.query(Plan).filter(Plan.id == suscripcion.plan_id).first()
+    if not plan:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Plan no encontrado"
+        )
+
+    cantidad_actual = db.query(Sucursal).filter(Sucursal.empresa_id == empresa_id).count()
+    if cantidad_actual >= plan.max_sucursales:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Límite de sucursales alcanzado para su plan actual. Tu plan actual permite hasta {plan.max_sucursales}"
+        )
+
+    sucursal = Sucursal(
+        nombre=datos.nombre,
+        direccion=datos.direccion,
+        ciudad=datos.ciudad,
+        telefono=datos.telefono,
+        activo=datos.activo if datos.activo is not None else True,
+        empresa_id=empresa_id
+    )
+
+    db.add(sucursal)
+    db.commit()
+    db.refresh(sucursal)
+    return sucursal
+
 
 
 @router.put(

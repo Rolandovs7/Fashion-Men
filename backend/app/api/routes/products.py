@@ -1,3 +1,8 @@
+"""
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+[Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+Consumido por: Frontend (Admin/Cliente)
+"""
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -24,7 +29,10 @@ def listar_productos(
     db: Session = Depends(obtener_db),
     empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Listar todos los productos activos de la empresa del usuario logueado"""
+    """
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Listar todos los productos activos de la empresa del usuario logueado
+    """
     return db.query(Producto).filter(
         Producto.activo == True,
         Producto.empresa_id == empresa_id

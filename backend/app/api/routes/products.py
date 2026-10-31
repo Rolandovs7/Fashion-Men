@@ -6,6 +6,15 @@
 [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
 Consumido por: Frontend (Admin/Cliente)
 """
+"""
+[Segundo Parcial] CU06 - Gestionar catálogo
+[Segundo Parcial] CU07 - Consultar catálogo
+[Segundo Parcial] CU14 - Usar probador virtual (AR)
+[Segundo Parcial] CU27 - Gestionar listas de precios
+[Segundo Parcial] RF01 - Aislamiento Multitenant
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+Consumido por: Frontend (Admin/Cliente)
+"""
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload

@@ -1,3 +1,6 @@
+/**
+ * [Segundo Parcial] CU17 - Registrar venta offline
+ */
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +14,7 @@ import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.servi
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { ReciboComponent } from '../../shared/recibo/recibo';
 import { ToastService } from '../../shared/ui/toast/toast.service';
+import { OfflineDbService } from '../../core/services/offline-db.service';
 import {
   ButtonComponent,
   InputComponent,
@@ -47,6 +51,7 @@ export class PuntoVenta implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private offlineDb = inject(OfflineDbService);
 
   clientes: Usuario[] = [];
   sucursales: Sucursal[] = [];
@@ -146,7 +151,7 @@ export class PuntoVenta implements OnInit {
     return this.itemsVenta.reduce((acc, i) => acc + i.producto.precio * i.cantidad, 0);
   }
 
-  registrarVenta(): void {
+  async registrarVenta(): Promise<void> {
     if (!this.clienteId) {
       this.error = 'Selecciona el cliente que realiza la compra.';
       return;
@@ -164,6 +169,37 @@ export class PuntoVenta implements OnInit {
       variante_id: i.variante.id,
       cantidad: i.cantidad
     }));
+
+    if (!navigator.onLine) {
+      try {
+        await this.offlineDb.guardarOperacionPendiente({
+          tipo: 'venta',
+          productos: this.itemsVenta.map(i => ({
+            variante_id: i.variante.id,
+            cantidad: i.cantidad,
+            precio_unitario: i.producto.precio,
+            precio: i.producto.precio
+          })),
+          monto: this.total,
+          datosExtra: {
+            cliente_id: this.clienteId,
+            sucursal_id: this.sucursalId,
+            metodo_pago: this.metodoPago
+          }
+        });
+        this.itemsVenta = [];
+        this.procesando = false;
+        this.mensaje = 'Venta guardada localmente. Se enviará cuando recupere conexión.';
+        this.toast.exito('Venta guardada localmente. Se enviará cuando recupere conexión.');
+        this.error = '';
+        this.cdr.detectChanges();
+        return;
+      } catch (e) {
+        this.error = 'No se pudo guardar la venta offline.';
+        this.toast.error(this.error);
+        return;
+      }
+    }
 
     this.procesando = true;
     this.error = '';

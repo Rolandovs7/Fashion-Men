@@ -13,6 +13,7 @@ import { Checkout } from './pages/checkout/checkout';
 import { ReservasPage } from './pages/reservas/reservas';
 import { AdminCatalogo } from './pages/admin-catalogo/admin-catalogo';
 import { AdminOperaciones } from './pages/admin-operaciones/admin-operaciones';
+import { OperacionesPendientes } from './pages/operaciones-pendientes/operaciones-pendientes';
 import { PuntoVenta } from './pages/punto-venta/punto-venta';
 import { AdminConfiguracion } from './pages/admin-configuracion/admin-configuracion';
 import { AdminInventario } from './pages/admin-inventario/admin-inventario';
@@ -105,6 +106,11 @@ export const routes: Routes = [
   {
     path: 'admin/operaciones',
     component: AdminOperaciones,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/operaciones-pendientes',
+    component: OperacionesPendientes,
     canActivate: [adminGuard]
   },
   {

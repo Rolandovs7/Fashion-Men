@@ -1,0 +1,55 @@
+<app-admin-shell titulo="Operaciones Pendientes">
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full bg-ms-alabaster">
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Operaciones Pendientes</span>
+    </nav>
+
+    <div class="mb-8">
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Offline</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Operaciones Pendientes</h1>
+      <p class="mt-2 text-sm text-ms-slate">Ventas y reservas guardadas localmente mientras no hay conexión.</p>
+    </div>
+
+    @if (cargando) {
+      <div class="py-20">
+        <app-loader size="md" texto="Cargando operaciones..." [centrado]="true"></app-loader>
+      </div>
+    } @else {
+      <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card overflow-hidden overflow-x-auto">
+        <table class="w-full text-left text-sm min-w-[860px]">
+          <thead>
+            <tr class="bg-ms-ink text-ms-white text-[11px] font-bold uppercase tracking-[0.2em]">
+              <th class="py-3 px-5">ID</th>
+              <th class="py-3 px-5">Fecha</th>
+              <th class="py-3 px-5">Tipo</th>
+              <th class="py-3 px-5">Monto</th>
+              <th class="py-3 px-5">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-ms-stone-200">
+            @for (op of operaciones; track op.uuid) {
+              <tr class="transition-colors hover:bg-ms-stone/60">
+                <td class="py-3.5 px-5 font-mono text-xs text-ms-slate">{{ op.uuid }}</td>
+                <td class="py-3.5 px-5 text-ms-ink">{{ formatearFecha(op.fecha) }}</td>
+                <td class="py-3.5 px-5 text-ms-ink capitalize">{{ op.tipo }}</td>
+                <td class="py-3.5 px-5 text-ms-ink">{{ op.monto | currency:'USD':'symbol':'1.2-2' }}</td>
+                <td class="py-3.5 px-5">
+                  <app-badge tipo="info" [etiqueta]="op.estado"></app-badge>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="py-8 px-5">
+                  <app-empty-state icono="📦" titulo="Sin operaciones pendientes" descripcion="No hay ventas ni reservas guardadas localmente." />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</app-admin-shell>

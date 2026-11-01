@@ -170,7 +170,7 @@ export class PuntoVenta implements OnInit {
       cantidad: i.cantidad
     }));
 
-    if (!navigator.onLine) {
+    const guardarOffline = async () => {
       try {
         await this.offlineDb.guardarOperacionPendiente({
           tipo: 'venta',
@@ -189,16 +189,22 @@ export class PuntoVenta implements OnInit {
         });
         this.itemsVenta = [];
         this.procesando = false;
-        this.mensaje = 'Venta guardada localmente. Se enviará cuando recupere conexión.';
-        this.toast.exito('Venta guardada localmente. Se enviará cuando recupere conexión.');
+        this.mensaje = 'No hay conexión. La venta se guardó localmente y se enviará al recuperar internet.';
+        this.toast.exito(this.mensaje);
         this.error = '';
         this.cdr.detectChanges();
-        return;
+        return true;
       } catch (e) {
         this.error = 'No se pudo guardar la venta offline.';
         this.toast.error(this.error);
-        return;
+        this.cdr.detectChanges();
+        return false;
       }
+    };
+
+    if (!navigator.onLine) {
+      await guardarOffline();
+      return;
     }
 
     this.procesando = true;
@@ -216,10 +222,13 @@ export class PuntoVenta implements OnInit {
         this.pedidoParaComprobante = pedido;
         this.cdr.detectChanges();
       },
-      error: (error) => {
+      error: async (error) => {
         this.procesando = false;
-        this.error = error.error?.detail || 'No se pudo registrar la venta.';
-        this.toast.error(this.error);
+        await guardarOffline();
+        if (!this.mensaje) {
+          this.error = error.error?.detail || 'No se pudo registrar la venta.';
+          this.toast.error(this.error);
+        }
         this.cdr.detectChanges();
       }
     });

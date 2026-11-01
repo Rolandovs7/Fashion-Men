@@ -393,7 +393,7 @@ export class ProductoDetalle implements OnInit {
             producto_id: this.producto?.id
           }
         });
-        this.toastService.exito('Reserva guardada localmente. Se enviará cuando recupere conexión.');
+        this.toastService.exito('No hay conexión. La venta se guardó localmente y se enviará al recuperar internet.');
         return;
       } catch (e) {
         this.toastService.error('No se pudo guardar la reserva offline.');

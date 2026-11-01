@@ -46,18 +46,22 @@ export class OperacionesPendientes implements OnInit {
 
   async sincronizarAhora(): Promise<void> {
     this.sincronizando = true;
+    this.cdr.detectChanges();
     try {
-      if (!navigator.onLine) {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
         this.toast.error('No se pudo sincronizar. Verificá tu conexión a internet.');
         this.sincronizando = false;
         this.cdr.detectChanges();
         return;
       }
-      await this.syncService.sincronizar();
+      await Promise.resolve().then(async () => {
+        await this.syncService.sincronizar();
+      });
       await this.cargar();
     } catch (e) {
       // mantener pendientes
       this.toast.error('No se pudo sincronizar. Verificá tu conexión a internet.');
+      await this.cargar();
     }
     this.sincronizando = false;
     this.cdr.detectChanges();

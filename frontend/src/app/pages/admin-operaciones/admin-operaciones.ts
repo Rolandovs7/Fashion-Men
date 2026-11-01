@@ -54,7 +54,7 @@ export class AdminOperaciones implements OnInit {
   error = '';
   mensaje = '';
 
-  estadosPedido = ['pendiente', 'pagado', 'procesando', 'enviado', 'entregado', 'cancelado'];
+  estadosPedido = ['pendiente', 'pagado', 'procesando', 'enviado', 'entregado', 'cancelado', 'Procesada con Conflicto'];
   estadosReserva = ['pendiente', 'confirmada', 'completada', 'cancelada'];
 
   ngOnInit(): void {
@@ -139,6 +139,9 @@ export class AdminOperaciones implements OnInit {
   }
 
   tipoBadgePedido(estado: string): BadgeTipo {
+    if (estado === 'Procesada con Conflicto') {
+      return 'error';
+    }
     const mapa: Record<string, BadgeTipo> = {
       pendiente: 'aviso',
       pagado: 'info',

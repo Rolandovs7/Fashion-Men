@@ -44,6 +44,7 @@ export class AdminShellComponent implements OnInit {
       enlaces: [
         { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta' },
         { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas' },
+        { ruta: '/admin/operaciones-pendientes', etiqueta: 'Operaciones Pendientes', icono: 'offline' },
       ]
     },
     {

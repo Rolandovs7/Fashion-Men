@@ -11,6 +11,7 @@ import { OfflineDbService } from '../../core/services/offline-db.service';
 import { SyncService } from '../../core/services/sync.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { LoaderComponent, EmptyStateComponent, BadgeComponent, ButtonComponent } from '../../shared/ui';
+import { ToastService } from '../../shared/ui/toast/toast.service';
 
 @Component({
   selector: 'app-operaciones-pendientes',
@@ -21,6 +22,7 @@ export class OperacionesPendientes implements OnInit {
   private offlineDb = inject(OfflineDbService);
   private syncService = inject(SyncService);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   operaciones: any[] = [];
   cargando = false;
@@ -45,10 +47,17 @@ export class OperacionesPendientes implements OnInit {
   async sincronizarAhora(): Promise<void> {
     this.sincronizando = true;
     try {
+      if (!navigator.onLine) {
+        this.toast.error('No se pudo sincronizar. Verificá tu conexión a internet.');
+        this.sincronizando = false;
+        this.cdr.detectChanges();
+        return;
+      }
       await this.syncService.sincronizar();
       await this.cargar();
     } catch (e) {
       // mantener pendientes
+      this.toast.error('No se pudo sincronizar. Verificá tu conexión a internet.');
     }
     this.sincronizando = false;
     this.cdr.detectChanges();

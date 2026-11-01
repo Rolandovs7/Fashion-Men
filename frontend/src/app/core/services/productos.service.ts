@@ -1,6 +1,12 @@
+/**
+ * [Segundo Parcial] CU15 - Instalar PWA
+ * [Segundo Parcial] CU16 - Consultar catálogo local
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from, of } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
+import { OfflineDbService } from './offline-db.service';
 
 export interface Producto {
   id: number;
@@ -37,6 +43,7 @@ export interface ProductoCrear {
 })
 export class ProductosService {
   private http = inject(HttpClient);
+  private offlineDb = inject(OfflineDbService);
   private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/productos';
 
   private headers(): HttpHeaders {
@@ -46,7 +53,16 @@ export class ProductosService {
   }
 
   listar(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(`${this.apiUrl}/`, { headers: this.headers() });
+    return this.http.get<Producto[]>(`${this.apiUrl}/`, { headers: this.headers() }).pipe(
+      switchMap((productos) =>
+        from(this.offlineDb.guardarProductos(productos)).pipe(map(() => productos))
+      ),
+      catchError(() =>
+        from(this.offlineDb.obtenerProductos()).pipe(
+          map((productos) => (productos.length ? productos : []))
+        )
+      )
+    );
   }
 
   obtener(id: number): Observable<Producto> {

@@ -2,6 +2,13 @@
 
   <app-header></app-header>
 
+  <!-- [Segundo Parcial] CU16 - Consultar catálogo local -->
+  @if (isOffline) {
+    <div class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm text-center py-2 px-4">
+      Estás viendo información guardada. Puede estar desactualizada.
+    </div>
+  }
+
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 w-full">
 
     <!-- ═══════════════════════════════════════════════════════ -->

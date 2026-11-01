@@ -7,10 +7,13 @@
       <span class="text-ms-ink">Operaciones Pendientes</span>
     </nav>
 
-    <div class="mb-8">
-      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Offline</p>
-      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Operaciones Pendientes</h1>
-      <p class="mt-2 text-sm text-ms-slate">Ventas y reservas guardadas localmente mientras no hay conexión.</p>
+    <div class="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Offline</p>
+        <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Operaciones Pendientes</h1>
+        <p class="mt-2 text-sm text-ms-slate">Ventas y reservas guardadas localmente mientras no hay conexión.</p>
+      </div>
+      <app-button variant="primario" [loading]="sincronizando" (click)="sincronizarAhora()">Sincronizar Ahora</app-button>
     </div>
 
     @if (cargando) {
@@ -34,10 +37,12 @@
               <tr class="transition-colors hover:bg-ms-stone/60">
                 <td class="py-3.5 px-5 font-mono text-xs text-ms-slate">{{ op.uuid }}</td>
                 <td class="py-3.5 px-5 text-ms-ink">{{ formatearFecha(op.fecha) }}</td>
-                <td class="py-3.5 px-5 text-ms-ink capitalize">{{ op.tipo }}</td>
+                <td class="py-3.5 px-5 text-ms-ink capitalize">
+                  <app-badge [tipo]="getTipoBadge(op)" [etiqueta]="op.tipo"></app-badge>
+                </td>
                 <td class="py-3.5 px-5 text-ms-ink">{{ op.monto | currency:'USD':'symbol':'1.2-2' }}</td>
                 <td class="py-3.5 px-5">
-                  <app-badge tipo="info" [etiqueta]="op.estado"></app-badge>
+                  <app-badge [tipo]="op.estado === 'CONFLICTO' ? 'error' : op.estado === 'SINCRONIZADO' ? 'exito' : op.estado === 'ERROR' ? 'error' : 'info'" [etiqueta]="getEstado(op)"></app-badge>
                 </td>
               </tr>
             } @empty {

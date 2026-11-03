@@ -99,8 +99,38 @@ export class PuntoVenta implements OnInit {
     });
 
     this.productosService.listar().subscribe({
-      next: (p) => { this.productos = p.filter(prod => prod.activo); this.cdr.detectChanges(); }
+      next: (p) => {
+        this.productos = p.filter(prod => prod.activo);
+        this.cdr.detectChanges();
+        this.precargarVariantes();
+      }
     });
+  }
+
+  private precargarVariantes(): void {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return;
+    }
+    for (const prod of this.productos) {
+      const cacheKey = `menstyle_cache_variantes_${prod.id}`;
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          continue;
+        }
+      } catch {
+        // ignore
+      }
+      this.variantesService.listarPorProducto(prod.id).subscribe({
+        next: (variantes) => {
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(variantes.filter(v => v.stock_disponible > 0)));
+          } catch {
+            // ignore
+          }
+        }
+      });
+    }
   }
 
   cargarVariantes(): void {
@@ -110,9 +140,32 @@ export class PuntoVenta implements OnInit {
       return;
     }
 
+    const cacheKey = `menstyle_cache_variantes_${this.productoSeleccionadoId}`;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const variantes = JSON.parse(cached) as Variante[];
+          this.variantesDisponibles = variantes.filter(v => v.stock_disponible > 0);
+          this.cdr.detectChanges();
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      this.variantesDisponibles = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.variantesService.listarPorProducto(this.productoSeleccionadoId).subscribe({
       next: (variantes) => {
         this.variantesDisponibles = variantes.filter(v => v.stock_disponible > 0);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(this.variantesDisponibles));
+        } catch {
+          // ignore
+        }
         this.cdr.detectChanges();
       }
     });

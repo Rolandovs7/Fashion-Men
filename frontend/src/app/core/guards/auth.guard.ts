@@ -23,6 +23,13 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (authService.estaAutenticado()) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return true;
+    }
+    return true;
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine && typeof localStorage !== 'undefined' && localStorage.getItem('access_token')) {
     return true;
   }
 
@@ -38,8 +45,15 @@ export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   if (!authService.estaAutenticado()) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine && typeof localStorage !== 'undefined' && localStorage.getItem('access_token')) {
+      return of(true);
+    }
     router.navigate(['/login']);
     return of(false);
+  }
+
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    return of(true);
   }
 
   return authService.obtenerUsuarioActual().pipe(
@@ -51,6 +65,9 @@ export const adminGuard: CanActivateFn = () => {
       return false;
     }),
     catchError(() => {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('access_token')) {
+        return of(true);
+      }
       router.navigate(['/login']);
       return of(false);
     })

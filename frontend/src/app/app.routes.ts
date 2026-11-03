@@ -141,6 +141,11 @@ export const routes: Routes = [
     canActivate: [adminGuard]
   },
   {
+    path: 'admin/asistente-ia',
+    component: AdminAsistenteIa,
+    canActivate: [adminGuard]
+  },
+  {
     path: 'usuarios',
     component: Usuarios,
     canActivate: [adminGuard]

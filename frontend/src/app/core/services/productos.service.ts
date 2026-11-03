@@ -57,11 +57,21 @@ export class ProductosService {
       switchMap((productos) =>
         from(this.offlineDb.guardarProductos(productos)).pipe(map(() => productos))
       ),
-      catchError(() =>
-        from(this.offlineDb.obtenerProductos()).pipe(
+      catchError((err) => {
+        if (err?.status === 401) {
+          try {
+            localStorage.removeItem('access_token');
+          } catch {
+            // ignore
+          }
+          return from(this.offlineDb.obtenerProductos()).pipe(
+            map((productos) => (productos.length ? productos : []))
+          );
+        }
+        return from(this.offlineDb.obtenerProductos()).pipe(
           map((productos) => (productos.length ? productos : []))
-        )
-      )
+        );
+      })
     );
   }
 

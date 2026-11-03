@@ -555,33 +555,23 @@ Asistente:"""
     # ============================================================
     def consultar_sql_natural(self, pregunta: str, empresa_id: int) -> dict:
         from sqlalchemy import text
-        from app.core.config import settings
 
         # Generar SQL con Gemini
         sql_generado = None
         if GEMINI_DISPONIBLE and GEMINI_CLIENT is not None:
             try:
-                prompt = f"""Eres un experto en SQL para PostgreSQL. 
-Genera ÚNICAMENTE una consulta SELECT para responder: "{pregunta}"
-Tablas relevantes: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), 
-detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal),
-productos(id, nombre, precio, empresa_id, activo),
-producto_variantes(id, producto_id, color_id, talla_id, precio),
-sucursales(id, nombre, empresa_id),
-usuarios(id, nombre, apellido, rol, empresa_id).
-REGLAS ESTRICTAS:
-- SOLO SELECT. NO DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE.
-- DEBE incluir filtro empresa_id = {empresa_id} (usar nombre de tabla con alias o tabla directa).
-- Usa JOINs correctos si es necesario.
-- Devuelve solo el SQL, sin markdown, sin explicación.
-"""
+                prompt = f"""Genera una consulta SQL SELECT para PostgreSQL.
+Solo responde con el SQL, sin markdown, sin explicación.
+Pregunta: {pregunta}
+Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).
+Obligatorio: incluir filtro WHERE empresa_id = {empresa_id}. Solo SELECT. Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE."""
                 response = GEMINI_CLIENT.models.generate_content(
                     model="gemini-2.5-flash",
                     contents=prompt,
                 )
                 sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()
-            except Exception:
-                sql_generado = None
+            except Exception as e:
+                raise ValueError(f"Error Gemini: {str(e)}")
 
         if not sql_generado:
             sql_lower = pregunta.lower()

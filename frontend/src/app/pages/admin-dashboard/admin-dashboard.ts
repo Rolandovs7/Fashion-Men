@@ -64,12 +64,6 @@ export class AdminDashboard implements OnInit {
     responsive: true,
   };
 
-  // [Segundo Parcial] CU23 - Asistente IA
-  preguntaIA = '';
-  consultandoIA = false;
-  resultadoIA: any = null;
-  errorIA = '';
-
   // [Segundo Parcial] CU24 - Predicciones ML
   predicciones: any = null;
   cargandoPred = false;
@@ -161,28 +155,5 @@ export class AdminDashboard implements OnInit {
         this.cdr.detectChanges();
       },
     });
-  }
-
-  preguntarIA(): void {
-    if (!this.preguntaIA.trim()) {
-      return;
-    }
-    this.consultandoIA = true;
-    this.errorIA = '';
-    this.resultadoIA = null;
-    this.http
-      .post<any>(`${this.iaUrl}/consultar`, { pregunta: this.preguntaIA }, { headers: this.headers() })
-      .subscribe({
-        next: (res) => {
-          this.resultadoIA = res;
-          this.consultandoIA = false;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          this.errorIA = err?.error?.detail || 'Error al consultar IA';
-          this.consultandoIA = false;
-          this.cdr.detectChanges();
-        },
-      });
   }
 }

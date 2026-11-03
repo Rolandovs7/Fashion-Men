@@ -53,3 +53,58 @@
     }
   </div>
 </app-admin-shell>
+
+
+<!-- [Segundo Parcial] CU23 - Reportes Generativos IA -->
+<section class="mt-10">
+  <div class="rounded-2xl border border-ms-stone-200 bg-white shadow-[0_30px_60px_-40px_rgba(10,10,10,0.8)]">
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-ms-stone-200 px-6 py-5">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Inteligencia Artificial</p>
+        <h2 class="mt-1 font-display text-2xl tracking-[-0.01em] text-ms-ink">Asistente IA - Reportes Generativos (CU23)</h2>
+        <p class="mt-1 text-sm text-ms-slate">Pregunta en lenguaje natural. Solo se permiten consultas SELECT con filtro por empresa.</p>
+      </div>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <textarea [(ngModel)]="preguntaIA" rows="3" class="w-full rounded-xl border border-ms-stone-200 px-4 py-3 text-sm" placeholder="Ej: Mostrame los productos más vendidos de este mes"></textarea>
+      <button (click)="preguntarIA()" [disabled]="consultandoIA" class="px-4 py-2 rounded-lg bg-ms-black text-white text-sm font-semibold disabled:opacity-50">
+        {{ consultandoIA ? 'Consultando...' : 'Preguntar' }}
+      </button>
+      <div *ngIf="errorIA" class="text-sm text-red-600">{{ errorIA }}</div>
+      <div *ngIf="resultadoIA" class="overflow-x-auto">
+        <p class="text-xs text-ms-slate mb-2">SQL: {{ resultadoIA.sql }}</p>
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b">
+              <th *ngFor="let c of resultadoIA.columnas" class="text-left py-2 px-2">{{ c }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of resultadoIA.resultados" class="border-b">
+              <td *ngFor="let c of resultadoIA.columnas" class="py-2 px-2">{{ r[c] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- [Segundo Parcial] CU24 - Machine Learning Predicciones -->
+<section class="mt-10 mb-10">
+  <div class="rounded-2xl border border-ms-stone-200 bg-white shadow-[0_30px_60px_-40px_rgba(10,10,10,0.8)]">
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-ms-stone-200 px-6 py-5">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Machine Learning</p>
+        <h2 class="mt-1 font-display text-2xl tracking-[-0.01em] text-ms-ink">Predicción de Ventas - Regresión Lineal (CU24)</h2>
+        <p class="mt-1 text-sm text-ms-slate">Ventas pasadas y proyección para el próximo mes.</p>
+      </div>
+    </div>
+    <div class="px-6 py-5">
+      <div class="h-80">
+        <canvas baseChart [data]="predChartData" [type]="predChartType" [options]="predChartOptions"></canvas>
+      </div>
+      <div class="mt-4 text-sm text-ms-slate" *ngIf="predicciones?.mensaje">{{ predicciones.mensaje }}</div>
+    </div>
+  </div>
+</section>

@@ -12,7 +12,7 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
   templateUrl: './header.html'
 })
 export class HeaderComponent implements OnInit {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private carritoService = inject(CarritoService);
   private notifService = inject(NotificacionesService);
   private router = inject(Router);

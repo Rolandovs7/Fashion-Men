@@ -64,10 +64,16 @@ export class AdminShellComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.authService.obtenerUsuarioActual().subscribe({
-      next: (usuario) => (this.usuario = usuario),
-      error: () => {}
-    });
+    try {
+      if (this.authService.estaAutenticado()) {
+        this.authService.obtenerUsuarioActual().subscribe({
+          next: (usuario) => (this.usuario = usuario),
+          error: () => {}
+        });
+      }
+    } catch {
+      // ignore
+    }
   }
 
   irATienda(): void {

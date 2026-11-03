@@ -209,39 +209,40 @@ class ReportService:
     # ========================================================
     # Inventario bajo (CU30)
     # ========================================================
-    def inventario_bajo(self, umbral: int = 5, limite: int = 20) -> List[dict]:
+    def inventario_bajo(self, umbral: int = 5, limite: int = 20, empresa_id: int | None = None) -> List[dict]:
         """Productos con stock disponible bajo el umbral."""
-        resultados = (
-            self.db.query(
-                Inventario.id.label("inventario_id"),
-                Inventario.variante_id,
-                ProductoVariante.producto_id,
-                Producto.nombre.label("producto_nombre"),
-                Sucursal.nombre.label("sucursal"),
-                Inventario.cantidad,
-                Inventario.cantidad_reservada,
-            )
-            .join(ProductoVariante, ProductoVariante.id == Inventario.variante_id)
-            .join(Producto, Producto.id == ProductoVariante.producto_id)
-            .join(Sucursal, Sucursal.id == Inventario.sucursal_id)
-            .filter((Inventario.cantidad - Inventario.cantidad_reservada) < umbral)
-            .order_by((Inventario.cantidad - Inventario.cantidad_reservada).asc())
-            .limit(limite)
-            .all()
-        )
+        key = f"inventario_bajo_{empresa_id}_{umbral}_{limite}"
+        cached = self._cache_get(key)
+        if cached is not None:
+            return cached
 
-        return [
-            {
-                "variante_id": r.variante_id,
-                "producto_id": r.producto_id,
-                "producto_nombre": r.producto_nombre,
-                "sucursal": r.sucursal,
-                "cantidad": int(r.cantidad or 0),
-                "cantidad_reservada": int(r.cantidad_reservada or 0),
-                "cantidad_disponible": int((r.cantidad or 0) - (r.cantidad_reservada or 0)),
-            }
-            for r in resultados
-        ]
+        subq_prod = self.db.query(Producto.id)
+        if empresa_id is not None:
+            subq_prod = subq_prod.filter(Producto.empresa_id == empresa_id)
+        subq_var = self.db.query(ProductoVariante.id).filter(ProductoVariante.producto_id.in_(subq_prod))
+        subq_inv = self.db.query(Inventario).filter(Inventario.variante_id.in_(subq_var))
+
+        resultados = []
+        for inv in subq_inv.all():
+            disponible = int((inv.cantidad or 0) - (inv.cantidad_reservada or 0))
+            if disponible < umbral:
+                var = self.db.query(ProductoVariante).filter(ProductoVariante.id == inv.variante_id).first()
+                prod = self.db.query(Producto).filter(Producto.id == var.producto_id).first() if var else None
+                suc = self.db.query(Sucursal).filter(Sucursal.id == inv.sucursal_id).first()
+                if empresa_id is not None and suc and suc.empresa_id != empresa_id:
+                    continue
+                resultados.append({
+                    "variante_id": inv.variante_id,
+                    "producto_id": prod.id if prod else 0,
+                    "producto_nombre": prod.nombre if prod else "",
+                    "sucursal": suc.nombre if suc else "",
+                    "cantidad": int(inv.cantidad or 0),
+                    "cantidad_reservada": int(inv.cantidad_reservada or 0),
+                    "cantidad_disponible": disponible,
+                })
+        resultados = sorted(resultados, key=lambda x: x["cantidad_disponible"])[:limite]
+        self._cache_set(key, resultados)
+        return resultados
 
     # ========================================================
     # Ventas por sucursal (CU30)

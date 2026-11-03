@@ -1,3 +1,8 @@
+/**
+ * [Segundo Parcial] CU22 - Exportación de reportes
+ * [Segundo Parcial] CU25 - Dashboard analítico
+ * [Segundo Parcial] RNF02 - Aislamiento por empresa
+ */
 import {
   Component, OnInit, AfterViewInit, OnDestroy,
   inject, ChangeDetectorRef, ViewChild, ElementRef,
@@ -5,6 +10,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import {
   ReportsService,
@@ -127,6 +135,38 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
     this.reportsService.ventasPorSucursal().subscribe({
       next: (d) => { this.ventasSucursal = d; listo(); }, error: fallo,
     });
+  }
+
+  exportarExcel(): void {
+    try {
+      const datos = this.productosTop.map(p => ({
+        Producto: p.nombre,
+        'Total Vendido': p.total_vendido,
+        Ingresos: p.ingresos
+      }));
+      const ws = XLSX.utils.json_to_sheet(datos);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Productos Top');
+      XLSX.writeFile(wb, 'reporte_menstyle.xlsx');
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  exportarPDF(): void {
+    try {
+      const doc = new jsPDF();
+      doc.text('Reporte MenStyle - Productos Top', 14, 16);
+      const rows = this.productosTop.map(p => [p.nombre, String(p.total_vendido), p.ingresos.toFixed(2)]);
+      autoTable(doc, {
+        head: [['Producto', 'Total Vendido', 'Ingresos']],
+        body: rows,
+        startY: 22
+      });
+      doc.save('reporte_menstyle.pdf');
+    } catch (e) {
+      // ignore
+    }
   }
 
   private renderizarGraficos(): void {

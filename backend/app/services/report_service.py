@@ -29,46 +29,42 @@ class ReportService:
     # ========================================================
     # KPIs Dashboard (CU29)
     # ========================================================
-    def dashboard_kpis(self) -> dict:
+    def dashboard_kpis(self, empresa_id: int | None = None) -> dict:
         """Totales generales para el dashboard ejecutivo."""
 
-        # Total ventas (pedidos no cancelados)
-        total_ventas = (
-            self.db.query(func.coalesce(func.sum(Pedido.total), 0))
-            .filter(Pedido.estado != "cancelado")
-            .scalar()
-        )
+        q_ventas = self.db.query(func.coalesce(func.sum(Pedido.total), 0)).filter(Pedido.estado != "cancelado")
+        if empresa_id is not None:
+            q_ventas = q_ventas.filter(Pedido.empresa_id == empresa_id)
+        total_ventas = q_ventas.scalar()
 
-        # Total pedidos
-        total_pedidos = self.db.query(func.count(Pedido.id)).scalar()
+        q_pedidos = self.db.query(func.count(Pedido.id))
+        if empresa_id is not None:
+            q_pedidos = q_pedidos.filter(Pedido.empresa_id == empresa_id)
+        total_pedidos = q_pedidos.scalar()
 
-        # Total productos activos
-        total_productos = (
-            self.db.query(func.count(Producto.id))
-            .filter(Producto.activo == True)
-            .scalar()
-        )
+        q_productos = self.db.query(func.count(Producto.id)).filter(Producto.activo == True)
+        if empresa_id is not None:
+            q_productos = q_productos.filter(Producto.empresa_id == empresa_id)
+        total_productos = q_productos.scalar()
 
-        # Total sucursales activas
-        total_sucursales = (
-            self.db.query(func.count(Sucursal.id))
-            .filter(Sucursal.activo == True)
-            .scalar()
-        )
+        q_sucursales = self.db.query(func.count(Sucursal.id)).filter(Sucursal.activo == True)
+        if empresa_id is not None:
+            q_sucursales = q_sucursales.filter(Sucursal.empresa_id == empresa_id)
+        total_sucursales = q_sucursales.scalar()
 
-        # Productos con stock bajo (<5 unidades disponibles)
-        productos_bajo_stock = (
+        q_bajo = (
             self.db.query(func.count(Inventario.id))
+            .join(Sucursal, Sucursal.id == Inventario.sucursal_id)
             .filter((Inventario.cantidad - Inventario.cantidad_reservada) < 5)
-            .scalar()
         )
+        if empresa_id is not None:
+            q_bajo = q_bajo.filter(Sucursal.empresa_id == empresa_id)
+        productos_bajo_stock = q_bajo.scalar()
 
-        # Clientes registrados (rol cliente)
-        clientes_registrados = (
-            self.db.query(func.count(Usuario.id))
-            .filter(Usuario.rol == "cliente")
-            .scalar()
-        )
+        q_clientes = self.db.query(func.count(Usuario.id)).filter(Usuario.rol == "cliente")
+        if empresa_id is not None:
+            q_clientes = q_clientes.filter(Usuario.empresa_id == empresa_id)
+        clientes_registrados = q_clientes.scalar()
 
         return {
             "total_ventas": float(total_ventas or 0),
@@ -82,9 +78,9 @@ class ReportService:
     # ========================================================
     # Productos Top (CU30)
     # ========================================================
-    def productos_top(self, limite: int = 10) -> List[dict]:
+    def productos_top(self, limite: int = 10, empresa_id: int | None = None) -> List[dict]:
         """Top N productos más vendidos."""
-        resultados = (
+        q = (
             self.db.query(
                 Producto.id.label("producto_id"),
                 Producto.nombre.label("nombre"),
@@ -95,7 +91,11 @@ class ReportService:
             .join(DetallePedido, DetallePedido.variante_id == ProductoVariante.id)
             .join(Pedido, Pedido.id == DetallePedido.pedido_id)
             .filter(Pedido.estado != "cancelado")
-            .group_by(Producto.id, Producto.nombre)
+        )
+        if empresa_id is not None:
+            q = q.filter(Pedido.empresa_id == empresa_id)
+        resultados = (
+            q.group_by(Producto.id, Producto.nombre)
             .order_by(desc("total_vendido"))
             .limit(limite)
             .all()
@@ -114,11 +114,11 @@ class ReportService:
     # ========================================================
     # Ventas por mes (CU30)
     # ========================================================
-    def ventas_por_mes(self, meses: int = 12) -> List[dict]:
+    def ventas_por_mes(self, meses: int = 12, empresa_id: int | None = None) -> List[dict]:
         """Ventas agrupadas por mes (últimos N meses)."""
         fecha_limite = datetime.utcnow() - timedelta(days=30 * meses)
 
-        resultados = (
+        q = (
             self.db.query(
                 extract("year", Pedido.fecha_pedido).label("anio"),
                 extract("month", Pedido.fecha_pedido).label("mes_num"),
@@ -127,7 +127,11 @@ class ReportService:
             )
             .filter(Pedido.fecha_pedido >= fecha_limite)
             .filter(Pedido.estado != "cancelado")
-            .group_by("anio", "mes_num")
+        )
+        if empresa_id is not None:
+            q = q.filter(Pedido.empresa_id == empresa_id)
+        resultados = (
+            q.group_by("anio", "mes_num")
             .order_by("anio", "mes_num")
             .all()
         )
@@ -207,13 +211,13 @@ class ReportService:
     # ========================================================
     # Ventas por sucursal (CU30)
     # ========================================================
-    def ventas_por_sucursal(self) -> List[dict]:
+    def ventas_por_sucursal(self, empresa_id: int | None = None) -> List[dict]:
         """
         Ventas agrupadas por sucursal.
         Como Pedido NO tiene sucursal_id, se calcula vía Inventario:
         Pedido -> DetallePedido -> variante_id -> Inventario.sucursal_id
         """
-        resultados = (
+        q = (
             self.db.query(
                 Sucursal.id.label("sucursal_id"),
                 Sucursal.nombre.label("sucursal"),
@@ -226,7 +230,11 @@ class ReportService:
             .join(DetallePedido, DetallePedido.variante_id == ProductoVariante.id)
             .join(Pedido, Pedido.id == DetallePedido.pedido_id)
             .filter(Pedido.estado != "cancelado")
-            .group_by(Sucursal.id, Sucursal.nombre, Sucursal.ciudad)
+        )
+        if empresa_id is not None:
+            q = q.filter(Sucursal.empresa_id == empresa_id)
+        resultados = (
+            q.group_by(Sucursal.id, Sucursal.nombre, Sucursal.ciudad)
             .order_by(desc("total_ventas"))
             .all()
         )

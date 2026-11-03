@@ -18,6 +18,7 @@ import { PuntoVenta } from './pages/punto-venta/punto-venta';
 import { AdminConfiguracion } from './pages/admin-configuracion/admin-configuracion';
 import { AdminInventario } from './pages/admin-inventario/admin-inventario';
 import { AdminReportes } from './pages/admin-reportes/admin-reportes';
+import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
@@ -131,6 +132,11 @@ export const routes: Routes = [
   {
     path: 'admin/reportes',
     component: AdminReportes,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/dashboard',
+    component: AdminDashboard,
     canActivate: [adminGuard]
   },
   {

@@ -85,18 +85,74 @@ export class PuntoVenta implements OnInit {
       }
     });
 
-    this.usuariosService.listar().subscribe({
-      next: (usuarios) => {
-        this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
-        this.cargando = false;
-        this.cdr.detectChanges();
-      },
-      error: () => { this.cargando = false; }
-    });
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cachedClientes = localStorage.getItem('menstyle_cache_clientes');
+        if (cachedClientes) {
+          const usuarios = JSON.parse(cachedClientes) as Usuario[];
+          this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        const cachedSuc = localStorage.getItem('menstyle_cache_sucursales');
+        if (cachedSuc) {
+          this.sucursales = JSON.parse(cachedSuc) as Sucursal[];
+        }
+      } catch {
+        // ignore
+      }
+      this.cargando = false;
+      this.cdr.detectChanges();
+    } else {
+      this.usuariosService.listar().subscribe({
+        next: (usuarios) => {
+          this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+          try {
+            localStorage.setItem('menstyle_cache_clientes', JSON.stringify(usuarios));
+          } catch {
+            // ignore
+          }
+          this.cargando = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          try {
+            const cachedClientes = localStorage.getItem('menstyle_cache_clientes');
+            if (cachedClientes) {
+              const usuarios = JSON.parse(cachedClientes) as Usuario[];
+              this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+            }
+          } catch {
+            // ignore
+          }
+          this.cargando = false;
+        }
+      });
 
-    this.sucursalesService.listar(true).subscribe({
-      next: (s) => { this.sucursales = s; this.cdr.detectChanges(); }
-    });
+      this.sucursalesService.listar(true).subscribe({
+        next: (s) => {
+          this.sucursales = s;
+          try {
+            localStorage.setItem('menstyle_cache_sucursales', JSON.stringify(s));
+          } catch {
+            // ignore
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          try {
+            const cachedSuc = localStorage.getItem('menstyle_cache_sucursales');
+            if (cachedSuc) {
+              this.sucursales = JSON.parse(cachedSuc) as Sucursal[];
+            }
+          } catch {
+            // ignore
+          }
+        }
+      });
+    }
 
     this.productosService.listar().subscribe({
       next: (p) => {

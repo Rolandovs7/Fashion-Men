@@ -555,6 +555,7 @@ Asistente:"""
     # ============================================================
     def consultar_sql_natural(self, pregunta: str, empresa_id: int) -> dict:
         from sqlalchemy import text
+        import time
 
         # Generar SQL con Gemini
         sql_generado = None
@@ -565,13 +566,27 @@ Solo responde con el SQL, sin markdown, sin explicación.
 Pregunta: {pregunta}
 Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).
 Obligatorio: incluir filtro WHERE empresa_id = {empresa_id}. Solo SELECT. Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE."""
-                response = GEMINI_CLIENT.models.generate_content(
-                    model="gemini-3.8-flash",
-                    contents=prompt,
-                )
-                sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()
+                last_err = None
+                for intento in range(3):
+                    try:
+                        response = GEMINI_CLIENT.models.generate_content(
+                            model="gemini-1.5-flash",
+                            contents=prompt,
+                        )
+                        sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()
+                        break
+                    except Exception as e:
+                        last_err = e
+                        if intento < 2:
+                            time.sleep(2)
+                        else:
+                            raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
+                if sql_generado is None and last_err:
+                    raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
+            except ValueError:
+                raise
             except Exception as e:
-                raise ValueError(f"Error Gemini: {str(e)}")
+                raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
 
         if not sql_generado:
             sql_lower = pregunta.lower()

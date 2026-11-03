@@ -17,6 +17,8 @@ import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import { LoaderComponent } from '../../shared/ui/loader/loader';
+import { AlertComponent } from '../../shared/ui/alert/alert';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -25,9 +27,10 @@ import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
     FormsModule,
     AdminShellComponent,
     BaseChartDirective,
+    LoaderComponent,
+    AlertComponent,
   ],
   templateUrl: './admin-dashboard.html',
-  
 })
 export class AdminDashboard implements OnInit {
   private http = inject(HttpClient);

@@ -1,0 +1,46 @@
+<app-admin-shell titulo="Asistente IA">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Asistente IA</span>
+    </nav>
+
+    <div class="mb-8">
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Inteligencia Artificial</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Asistente IA</h1>
+      <p class="mt-2 text-sm text-ms-slate">[Segundo Parcial] CU23 - Reportes Generativos (Text-to-SQL). Usa lenguaje natural para consultar datos filtrados por empresa.</p>
+    </div>
+
+    <div class="rounded-2xl border border-ms-stone-200 bg-white shadow-[0_30px_60px_-40px_rgba(10,10,10,0.8)]">
+      <div class="px-6 py-5 space-y-4">
+        <textarea [(ngModel)]="pregunta" rows="4" class="w-full rounded-xl border border-ms-stone-200 px-4 py-3 text-sm" placeholder="Ej: Mostrame los productos más vendidos de este mes"></textarea>
+        <div class="flex items-center gap-3 flex-wrap">
+          <app-button variant="primario" size="md" (click)="preguntar()" [disabled]="consultando">
+            {{ consultando ? 'Consultando...' : 'Preguntar' }}
+          </app-button>
+          <button type="button" (click)="escuchar()" [disabled]="grabando" class="px-4 py-2 rounded-lg border border-ms-stone-200 text-sm font-semibold flex items-center gap-2" [class.bg-red-50]="grabando" [class.text-red-600]="grabando">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 14 0h-2zm-5 7a7 7 0 0 1-7-7H3a9 9 0 0 0 18 0h-2a7 7 0 0 1-7 7zm0 0v3"/></svg>
+            {{ grabando ? 'Grabando...' : 'Comando de voz' }}
+          </button>
+        </div>
+        <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
+        <div *ngIf="resultado?.sql" class="text-xs text-ms-slate break-all">SQL generado: {{ resultado.sql }}</div>
+        <div *ngIf="resultado?.resultados?.length" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b">
+                <th *ngFor="let c of resultado.columnas" class="text-left py-2 px-2 font-semibold">{{ c }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of resultado.resultados" class="border-b">
+                <td *ngFor="let c of resultado.columnas" class="py-2 px-2">{{ r[c] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-admin-shell>

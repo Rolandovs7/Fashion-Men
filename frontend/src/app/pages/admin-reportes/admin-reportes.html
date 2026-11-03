@@ -18,6 +18,8 @@
       </div>
 
       <div class="flex items-center gap-3 flex-wrap">
+        <button type="button" (click)="exportarExcel()" class="px-3 py-1.5 rounded-lg border border-ms-stone-200 text-sm font-semibold hover:bg-ms-stone/60">Exportar a Excel</button>
+        <button type="button" (click)="exportarPDF()" class="px-3 py-1.5 rounded-lg border border-ms-stone-200 text-sm font-semibold hover:bg-ms-stone/60">Exportar a PDF</button>
         <label class="flex items-center gap-2 text-sm text-ms-slate font-medium">
           Meses:
           <select

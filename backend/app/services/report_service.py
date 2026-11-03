@@ -7,6 +7,8 @@
 # ============================================================
 from typing import List, Optional
 from datetime import datetime, timedelta
+import time
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, extract
 
@@ -20,17 +22,37 @@ from app.models.payment import Pago
 from app.models.user import Usuario
 
 
+_CACHE = {}
+_CACHE_TTL = 60
+
+
 class ReportService:
     """Genera reportes consolidados de ventas e inventario (RF24)."""
 
     def __init__(self, db: Session):
         self.db = db
 
+    def _cache_get(self, key):
+        item = _CACHE.get(key)
+        if not item:
+            return None
+        if time.time() - item[0] > _CACHE_TTL:
+            _CACHE.pop(key, None)
+            return None
+        return item[1]
+
+    def _cache_set(self, key, value):
+        _CACHE[key] = (time.time(), value)
+
     # ========================================================
     # KPIs Dashboard (CU29)
     # ========================================================
     def dashboard_kpis(self, empresa_id: int | None = None) -> dict:
         """Totales generales para el dashboard ejecutivo."""
+        key = f"dashboard_{empresa_id}"
+        cached = self._cache_get(key)
+        if cached is not None:
+            return cached
 
         q_ventas = self.db.query(func.coalesce(func.sum(Pedido.total), 0)).filter(Pedido.estado != "cancelado")
         if empresa_id is not None:
@@ -66,7 +88,7 @@ class ReportService:
             q_clientes = q_clientes.filter(Usuario.empresa_id == empresa_id)
         clientes_registrados = q_clientes.scalar()
 
-        return {
+        res = {
             "total_ventas": float(total_ventas or 0),
             "total_pedidos": int(total_pedidos or 0),
             "total_productos": int(total_productos or 0),
@@ -74,6 +96,8 @@ class ReportService:
             "productos_bajo_stock": int(productos_bajo_stock or 0),
             "clientes_registrados": int(clientes_registrados or 0),
         }
+        self._cache_set(key, res)
+        return res
 
     # ========================================================
     # Productos Top (CU30)
@@ -148,21 +172,30 @@ class ReportService:
     # ========================================================
     # Ventas por método de pago (CU30)
     # ========================================================
-    def ventas_por_metodo_pago(self) -> List[dict]:
+    def ventas_por_metodo_pago(self, empresa_id: int | None = None) -> List[dict]:
         """Ventas agrupadas por método de pago."""
-        resultados = (
+        key = f"ventas_metodo_{empresa_id}"
+        cached = self._cache_get(key)
+        if cached is not None:
+            return cached
+        q = (
             self.db.query(
                 Pago.metodo.label("metodo"),
                 func.sum(Pago.monto).label("total"),
                 func.count(Pago.id).label("cantidad"),
             )
+            .join(Pedido, Pedido.id == Pago.pedido_id)
             .filter(Pago.estado == "completado")
-            .group_by(Pago.metodo)
+        )
+        if empresa_id is not None:
+            q = q.filter(Pedido.empresa_id == empresa_id)
+        resultados = (
+            q.group_by(Pago.metodo)
             .order_by(desc("total"))
             .all()
         )
 
-        return [
+        res = [
             {
                 "metodo": r.metodo,
                 "total": float(r.total or 0),
@@ -170,6 +203,8 @@ class ReportService:
             }
             for r in resultados
         ]
+        self._cache_set(key, res)
+        return res
 
     # ========================================================
     # Inventario bajo (CU30)

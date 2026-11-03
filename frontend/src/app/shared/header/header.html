@@ -212,8 +212,8 @@
           <span>Mis Reservas</span>
         </a>
 
-        @if (esAdministrador()) {
-          <a routerLink="/admin/catalogo" routerLinkActive="bg-neutral-800 text-white"
+        @if (authService.estaAutenticado()) {
+          <a routerLink="/admin/punto-venta" routerLinkActive="bg-neutral-800 text-white"
             (click)="cerrarMenu()"
             class="flex items-center gap-3 px-4 py-3 rounded-xl text-amber-300 hover:bg-neutral-900 hover:text-amber-200 font-semibold transition-all">
             <span class="text-lg">⚙️</span>

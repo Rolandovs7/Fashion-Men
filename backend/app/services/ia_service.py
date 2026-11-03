@@ -566,7 +566,7 @@ Pregunta: {pregunta}
 Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).
 Obligatorio: incluir filtro WHERE empresa_id = {empresa_id}. Solo SELECT. Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE."""
                 response = GEMINI_CLIENT.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model="gemini-3.8-flash",
                     contents=prompt,
                 )
                 sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()

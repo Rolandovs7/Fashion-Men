@@ -103,37 +103,60 @@ class ReportService:
     # Productos Top (CU30)
     # ========================================================
     def productos_top(self, limite: int = 10, empresa_id: int | None = None) -> List[dict]:
-        """Top N productos más vendidos."""
+        """Top N productos más vendidos (detalle profesional)."""
+        from app.models.user import Usuario
+        from app.models.payment import Pago
+
         q = (
             self.db.query(
+                Pedido.id.label("pedido_id"),
+                Pedido.fecha_pedido.label("fecha"),
+                Sucursal.nombre.label("sucursal"),
+                Usuario.nombre.label("cliente_nombre"),
+                Usuario.apellido.label("cliente_apellido"),
+                Pago.metodo.label("metodo_pago"),
                 Producto.id.label("producto_id"),
                 Producto.nombre.label("nombre"),
-                func.sum(DetallePedido.cantidad).label("total_vendido"),
-                func.sum(DetallePedido.subtotal).label("ingresos"),
+                DetallePedido.cantidad.label("cantidad"),
+                DetallePedido.subtotal.label("ingresos"),
             )
-            .join(ProductoVariante, ProductoVariante.producto_id == Producto.id)
-            .join(DetallePedido, DetallePedido.variante_id == ProductoVariante.id)
+            .join(ProductoVariante, ProductoVariante.id == DetallePedido.variante_id)
+            .join(Producto, Producto.id == ProductoVariante.producto_id)
             .join(Pedido, Pedido.id == DetallePedido.pedido_id)
+            .outerjoin(Sucursal, Sucursal.id == Pedido.sucursal_id)
+            .outerjoin(Usuario, Usuario.id == Pedido.usuario_id)
+            .outerjoin(Pago, Pago.pedido_id == Pedido.id)
             .filter(Pedido.estado != "cancelado")
         )
         if empresa_id is not None:
             q = q.filter(Pedido.empresa_id == empresa_id)
-        resultados = (
-            q.group_by(Producto.id, Producto.nombre)
-            .order_by(desc("total_vendido"))
-            .limit(limite)
-            .all()
-        )
+        resultados = q.order_by(Pedido.fecha_pedido.desc()).limit(limite * 10).all()
 
-        return [
-            {
+        total_general = 0.0
+        total_prendas = 0
+        items = []
+        for r in resultados:
+            total_general += float(r.ingresos or 0)
+            total_prendas += int(r.cantidad or 0)
+            cliente = ""
+            if r.cliente_nombre:
+                cliente = f"{r.cliente_nombre} {r.cliente_apellido or ''}".strip()
+            items.append({
+                "pedido_id": r.pedido_id,
+                "fecha": r.fecha.strftime("%Y-%m-%d %H:%M") if r.fecha else "",
+                "sucursal": r.sucursal or "",
+                "cliente": cliente,
+                "metodo_pago": r.metodo_pago or "",
                 "producto_id": r.producto_id,
                 "nombre": r.nombre,
-                "total_vendido": int(r.total_vendido or 0),
+                "cantidad": int(r.cantidad or 0),
                 "ingresos": float(r.ingresos or 0),
-            }
-            for r in resultados
-        ]
+                "total_vendido": int(r.cantidad or 0),
+            })
+            if len(items) >= limite:
+                break
+
+        return items
 
     # ========================================================
     # Ventas por mes (CU30)

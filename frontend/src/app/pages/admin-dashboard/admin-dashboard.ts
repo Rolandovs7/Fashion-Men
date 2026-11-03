@@ -5,6 +5,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
@@ -12,7 +13,7 @@ import { LoaderComponent, AlertComponent } from '../../shared/ui';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [CommonModule, AdminShellComponent, BaseChartDirective, LoaderComponent, AlertComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, BaseChartDirective, LoaderComponent, AlertComponent],
   templateUrl: './admin-dashboard.html'
 })
 export class AdminDashboard implements OnInit {
@@ -45,8 +46,20 @@ export class AdminDashboard implements OnInit {
     responsive: true
   };
 
+  // [Segundo Parcial] CU23, CU24
+  preguntaIA = '';
+  consultandoIA = false;
+  resultadoIA: any = null;
+  errorIA = '';
+  predicciones: any = null;
+  cargandoPred = false;
+  predChartData: ChartData<'line'> = { labels: [], datasets: [] };
+  predChartType: ChartType = 'line';
+  predChartOptions: any = { responsive: true };
+
   ngOnInit(): void {
     this.cargar();
+    this.cargarPredicciones();
   }
 
   private headers(): HttpHeaders {
@@ -91,3 +104,50 @@ export class AdminDashboard implements OnInit {
     });
   }
 }
+
+
+// [Segundo Parcial] CU23 - Reportes Generativos IA
+// [Segundo Parcial] CU24 - Machine Learning Predicciones
+
+  cargarPredicciones(): void {
+    this.cargandoPred = true;
+    this.http.get<any>('https://menstyle-api-n77g.onrender.com/api/ia/predicciones', { headers: this.headers() }).subscribe({
+      next: (res) => {
+        this.predicciones = res;
+        const labels = (res.historico || []).map((h: any) => h.mes);
+        labels.push(res.prediccion?.mes);
+        const dataHist = (res.historico || []).map((h: any) => h.ventas);
+        const dataPred = Array(dataHist.length).fill(null);
+        dataPred.push(res.prediccion?.ventas);
+        this.predChartData = {
+          labels,
+          datasets: [
+            { data: dataHist.concat([null]), label: 'Ventas históricas (Bs)', borderColor: '#0a0a0a' },
+            { data: dataPred, label: 'Proyección (Bs)', borderColor: '#d97706', borderDash: [5,5] }
+          ]
+        };
+        this.cargandoPred = false;
+        this.cdr.detectChanges();
+      },
+      error: () => { this.cargandoPred = false; this.cdr.detectChanges(); }
+    });
+  }
+
+  preguntarIA(): void {
+    if (!this.preguntaIA.trim()) return;
+    this.consultandoIA = true;
+    this.errorIA = '';
+    this.resultadoIA = null;
+    this.http.post<any>('https://menstyle-api-n77g.onrender.com/api/ia/consultar', { pregunta: this.preguntaIA }, { headers: this.headers() }).subscribe({
+      next: (res) => {
+        this.resultadoIA = res;
+        this.consultandoIA = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorIA = err?.error?.detail || 'Error al consultar IA';
+        this.consultandoIA = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }

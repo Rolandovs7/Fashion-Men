@@ -22,7 +22,7 @@ from app.models.order_detail import DetallePedido
 
 # Configurar Groq si hay API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL") or "llama-3.1-8b-instant"
+GROQ_MODEL = os.getenv("GROQ_MODEL") or "openai/gpt-oss-20b"
 GROQ_DISPONIBLE = False
 GROQ_CLIENT = None
 

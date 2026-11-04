@@ -40,6 +40,7 @@ export class AdminAsistenteIa {
           this.pregunta = transcript;
           this.grabando = false;
           this.cdr.detectChanges();
+          setTimeout(() => this.preguntar(), 100);
         };
         this.recognition.onerror = () => {
           this.grabando = false;

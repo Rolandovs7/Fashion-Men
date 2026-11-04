@@ -25,17 +25,20 @@
           </button>
         </div>
         <div *ngIf="error" class="text-sm text-red-600">{{ error }}</div>
-        <div *ngIf="resultado?.sql" class="text-xs text-ms-slate break-all">SQL generado: {{ resultado.sql }}</div>
+        <details *ngIf="resultado?.sql" class="text-xs text-ms-slate">
+          <summary class="cursor-pointer font-semibold">Ver consulta generada</summary>
+          <pre class="mt-2 p-3 bg-gray-100 rounded-lg overflow-x-auto">{{ resultado.sql }}</pre>
+        </details>
         <div *ngIf="resultado?.resultados?.length" class="overflow-x-auto">
-          <table class="w-full text-sm">
+          <table class="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
             <thead>
-              <tr class="border-b">
-                <th *ngFor="let c of resultado.columnas" class="text-left py-2 px-2 font-semibold">{{ c }}</th>
+              <tr class="bg-gray-800 text-white">
+                <th *ngFor="let c of resultado.columnas" class="text-left py-3 px-4 font-semibold">{{ c }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let r of resultado.resultados" class="border-b">
-                <td *ngFor="let c of resultado.columnas" class="py-2 px-2">{{ r[c] }}</td>
+              <tr *ngFor="let r of resultado.resultados; let i = index" [class.bg-gray-50]="i % 2 === 1" class="border-b border-gray-200">
+                <td *ngFor="let c of resultado.columnas" class="py-2 px-4">{{ r[c] }}</td>
               </tr>
             </tbody>
           </table>

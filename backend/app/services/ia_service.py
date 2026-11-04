@@ -559,10 +559,20 @@ Asistente:"""
         if GROQ_DISPONIBLE and GROQ_CLIENT is not None:
             try:
                 sistema = """Eres un generador de SQL para PostgreSQL. 
-Genera ÚNICAMENTE una consulta SELECT, sin markdown, sin explicación.
+Genera una consulta SQL SELECT para PostgreSQL. Usa EXCLUSIVAMENTE las tablas y columnas listadas a continuación. No inventes columnas.
+Solo responde con el SQL, sin markdown, sin explicación.
 Debes incluir obligatoriamente el filtro WHERE empresa_id = %s.
 Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE, GRANT, EXEC.
-Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).""" % empresa_id
+
+ESQUEMA REAL:
+- productos (id, nombre, precio, precio_mayorista, empresa_id)
+- producto_variantes (id, producto_id, talla_id, color_id, imagen_url)
+- tallas (id, nombre)
+- colores (id, nombre)
+- pedidos (id, fecha_pedido, total, empresa_id, usuario_id, sucursal_id, estado)
+- detalles_pedido (id, pedido_id, variante_id, cantidad, precio_unitario, subtotal)
+- sucursales (id, nombre, empresa_id)
+- usuarios (id, nombre, apellido, rol, empresa_id)""" % empresa_id
                 respuesta = GROQ_CLIENT.chat.completions.create(
                     model=GROQ_MODEL,
                     messages=[

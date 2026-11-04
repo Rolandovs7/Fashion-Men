@@ -570,7 +570,7 @@ Obligatorio: incluir filtro WHERE empresa_id = {empresa_id}. Solo SELECT. Prohib
                 for intento in range(3):
                     try:
                         response = GEMINI_CLIENT.models.generate_content(
-                            model="gemini-1.5-flash",
+                            model="gemini-3.1-flash",
                             contents=prompt,
                         )
                         sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()

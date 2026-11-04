@@ -1,7 +1,13 @@
+"""
+[Segundo Parcial] CU04 - Gestionar usuarios y roles
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+[Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+Consumido por: Frontend (Admin)
+"""
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, requerir_rol
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id, obtener_usuario_actual
 from app.core.security import obtener_password_hash
 from app.models.user import Usuario
 from app.schemas.users import UsuarioRespuesta, UsuarioActualizar, UsuarioCrear
@@ -26,18 +32,30 @@ router = APIRouter(
 @router.get("", response_model=list[UsuarioRespuesta])
 def listar_usuarios(
     db: Session = Depends(obtener_db),
-    usuario_actual: Usuario = Depends(requerir_rol("administrador"))
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    return db.query(Usuario).order_by(Usuario.id).all()
+    """
+    [Segundo Parcial] CU04 - Gestionar usuarios y roles
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Listar usuarios de la empresa
+    """
+    return db.query(Usuario).filter(Usuario.empresa_id == empresa_id).order_by(Usuario.id).all()
 
 
 @router.post("", response_model=UsuarioRespuesta, status_code=status.HTTP_201_CREATED)
 def crear_usuario(
     datos: UsuarioCrear,
     db: Session = Depends(obtener_db),
-    usuario_actual: Usuario = Depends(requerir_rol("administrador"))
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Crear un usuario directamente desde el panel de administración"""
+    """
+    [Segundo Parcial] CU04 - Gestionar usuarios y roles
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Consumido por: Frontend (Admin)
+    Crear un usuario directamente desde el panel de administración (asigna empresa_id del usuario logueado)
+    """
 
     usuario_existente = db.query(Usuario).filter(
         Usuario.email == datos.email
@@ -61,7 +79,8 @@ def crear_usuario(
         email=datos.email,
         password_hash=obtener_password_hash(datos.password),
         rol=datos.rol,
-        activo=True
+        activo=True,
+        empresa_id=empresa_id
     )
 
     db.add(nuevo_usuario)
@@ -71,11 +90,14 @@ def crear_usuario(
     return nuevo_usuario
 
 
+
+
 @router.get("/{usuario_id}", response_model=UsuarioRespuesta)
 def obtener_usuario(
     usuario_id: int,
     db: Session = Depends(obtener_db),
-    usuario_actual: Usuario = Depends(requerir_rol("administrador"))
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
     usuario = db.query(Usuario).filter(
         Usuario.id == usuario_id
@@ -87,6 +109,12 @@ def obtener_usuario(
             detail="Usuario no encontrado"
         )
 
+    if usuario.empresa_id != empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este usuario"
+        )
+
     return usuario
 
 
@@ -95,7 +123,8 @@ def actualizar_usuario(
     usuario_id: int,
     datos: UsuarioActualizar,
     db: Session = Depends(obtener_db),
-    usuario_actual: Usuario = Depends(requerir_rol("administrador"))
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
     usuario = db.query(Usuario).filter(
         Usuario.id == usuario_id
@@ -105,6 +134,12 @@ def actualizar_usuario(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usuario no encontrado"
+        )
+
+    if usuario.empresa_id != empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este usuario"
         )
 
     email_existente = db.query(Usuario).filter(
@@ -140,7 +175,8 @@ def actualizar_usuario(
 def eliminar_usuario(
     usuario_id: int,
     db: Session = Depends(obtener_db),
-    usuario_actual: Usuario = Depends(requerir_rol("administrador"))
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
     usuario = db.query(Usuario).filter(
         Usuario.id == usuario_id
@@ -150,6 +186,12 @@ def eliminar_usuario(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Usuario no encontrado"
+        )
+
+    if usuario.empresa_id != empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a este usuario"
         )
 
     if usuario.id == usuario_actual.id:

@@ -72,3 +72,33 @@ class TendenciaResponse(BaseModel):
     """Productos más vendidos / tendencias."""
     total: int
     productos: List[ProductoRecomendado]
+
+
+# ============================================================
+# [Segundo Parcial] CU23 - Reportes Generativos (Text-to-SQL)
+# [Segundo Parcial] RN-IA-01 - Seguridad SQL
+# ============================================================
+class ConsultarIARequest(BaseModel):
+    pregunta: str
+
+
+class ConsultarIAResponse(BaseModel):
+    sql: str
+    columnas: List[str]
+    resultados: List[dict]
+    mensaje: str | None = None
+
+
+# ============================================================
+# [Segundo Parcial] CU24 - Machine Learning (Predicciones)
+# ============================================================
+class PrediccionMes(BaseModel):
+    mes: str
+    ventas: float
+    tipo: str
+
+
+class PrediccionesResponse(BaseModel):
+    historico: List[PrediccionMes]
+    prediccion: PrediccionMes
+    mensaje: str | None = None

@@ -1,8 +1,18 @@
-from typing import List
+"""
+[Segundo Parcial] CU06 - Gestionar catálogo
+[Segundo Parcial] CU07 - Consultar catálogo
+[Segundo Parcial] CU14 - Usar probador virtual (AR)
+[Segundo Parcial] CU27 - Gestionar listas de precios
+[Segundo Parcial] RF01 - Aislamiento Multitenant
+[Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+Consumido por: Frontend (Admin/Cliente)
+"""
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, requerir_rol
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id
+from app.models.product import Producto
 from app.schemas.product import (
     ProductoCrear,
     ProductoActualizar,
@@ -10,70 +20,166 @@ from app.schemas.product import (
 )
 from app.services import product_service
 
-router = APIRouter(
-    tags=["Productos"]
-)
+router = APIRouter(tags=["Productos"])
 
 
-@router.get(
-    "/",
-    response_model=List[ProductoRespuesta]
-)
+@router.get("/", response_model=List[ProductoRespuesta])
 def listar_productos(
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id), # Restaurado el token
+    categoria_id: Optional[int] = None,
+    marca_id: Optional[int] = None,
+    tipo_prenda_id: Optional[int] = None,
+    coleccion_id: Optional[int] = None,
+    temporada_id: Optional[int] = None,
+    proveedor_id: Optional[int] = None,
+    solo_activos: bool = True
 ):
-    """Listar todos los productos activos"""
-    return product_service.listar_productos(db)
+    """
+    [Segundo Parcial] CU07 - Consultar catálogo
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Listar productos de la empresa con filtros
+    """
+    # Se eliminó el selectinload(Producto.empresa) que causaba el error 500
+    query = db.query(Producto).filter(Producto.empresa_id == empresa_id)
+    
+    if solo_activos:
+        query = query.filter(Producto.activo == True)
+    if categoria_id is not None:
+        query = query.filter(Producto.categoria_id == categoria_id)
+    if marca_id is not None:
+        query = query.filter(Producto.marca_id == marca_id)
+    if tipo_prenda_id is not None:
+        query = query.filter(Producto.tipo_prenda_id == tipo_prenda_id)
+    if coleccion_id is not None:
+        query = query.filter(Producto.coleccion_id == coleccion_id)
+    if temporada_id is not None:
+        query = query.filter(Producto.temporada_id == temporada_id)
+    if proveedor_id is not None:
+        query = query.filter(Producto.proveedor_id == proveedor_id)
+        
+    return query.all()
 
 
-@router.get(
-    "/{producto_id}",
-    response_model=ProductoRespuesta
-)
+@router.get("/{producto_id}", response_model=ProductoRespuesta)
 def obtener_producto(
     producto_id: int,
-    db: Session = Depends(obtener_db)
+    db: Session = Depends(obtener_db),
+    empresa_id: int = Depends(get_current_empresa_id) # Restaurado para seguridad
 ):
-    """Obtener un producto por su ID"""
-    return product_service.obtener_producto_por_id(db, producto_id)
+    """
+    [Segundo Parcial] CU07 - Consultar catálogo
+    Obtener un producto por su ID
+    """
+    producto = db.query(Producto).filter(
+        Producto.id == producto_id, 
+        Producto.empresa_id == empresa_id
+    ).first()
+    
+    if not producto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto not found o no pertenece a tu empresa")
+    return producto
 
 
-@router.post(
-    "/",
-    response_model=ProductoRespuesta,
-    status_code=status.HTTP_201_CREATED
-)
+@router.post("/", response_model=ProductoRespuesta, status_code=status.HTTP_201_CREATED)
 def crear_producto(
     datos: ProductoCrear,
     db: Session = Depends(obtener_db),
-    _usuario_admin=Depends(requerir_rol("administrador"))
+    _usuario_admin=Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Crear un nuevo producto (solo administradores)"""
-    return product_service.crear_producto(db, datos)
+    """
+    [Segundo Parcial] CU06 - Gestionar catálogo
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Crear un nuevo producto (solo administradores) asignando empresa_id
+    """
+    producto = Producto(
+        nombre=datos.nombre,
+        descripcion=datos.descripcion,
+        imagen_url=datos.imagen_url,
+        modelo_ar_url=datos.modelo_ar_url,
+        precio=datos.precio,
+        precio_mayorista=datos.precio_mayorista,
+        cantidad_mayorista=datos.cantidad_mayorista,
+        categoria_id=datos.categoria_id,
+        proveedor_id=datos.proveedor_id,
+        temporada_id=datos.temporada_id,
+        coleccion_id=datos.coleccion_id,
+        tipo_prenda_id=datos.tipo_prenda_id,
+        marca_id=datos.marca_id,
+        descuento_id=datos.descuento_id,
+        empresa_id=empresa_id,
+        activo=datos.activo if datos.activo is not None else True
+    )
+    db.add(producto)
+    db.commit()
+    db.refresh(producto)
+    return producto
 
 
-@router.put(
-    "/{producto_id}",
-    response_model=ProductoRespuesta
-)
+@router.put("/{producto_id}", response_model=ProductoRespuesta)
 def actualizar_producto(
     producto_id: int,
     datos: ProductoActualizar,
     db: Session = Depends(obtener_db),
-    _usuario_admin=Depends(requerir_rol("administrador"))
+    _usuario_admin=Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Actualizar un producto existente (solo administradores)"""
-    return product_service.actualizar_producto(db, producto_id, datos)
+    """
+    [Segundo Parcial] CU06 - Gestionar catálogo
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Actualizar un producto existente verificando pertenencia a la empresa
+    """
+    producto = db.query(Producto).filter(
+        Producto.id == producto_id,
+        Producto.empresa_id == empresa_id
+    ).first()
+    
+    if not producto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto not found o no pertenece a tu empresa")
+
+    # Actualización de campos
+    if datos.nombre is not None: producto.nombre = datos.nombre
+    if datos.descripcion is not None: producto.descripcion = datos.descripcion
+    if datos.imagen_url is not None: producto.imagen_url = datos.imagen_url
+    if datos.modelo_ar_url is not None: producto.modelo_ar_url = datos.modelo_ar_url
+    if datos.precio is not None: producto.precio = datos.precio
+    if datos.precio_mayorista is not None: producto.precio_mayorista = datos.precio_mayorista
+    if datos.cantidad_mayorista is not None: producto.cantidad_mayorista = datos.cantidad_mayorista
+    if datos.categoria_id is not None: producto.categoria_id = datos.categoria_id
+    if datos.proveedor_id is not None: producto.proveedor_id = datos.proveedor_id
+    if datos.temporada_id is not None: producto.temporada_id = datos.temporada_id
+    if datos.coleccion_id is not None: producto.coleccion_id = datos.coleccion_id
+    if datos.tipo_prenda_id is not None: producto.tipo_prenda_id = datos.tipo_prenda_id
+    if datos.marca_id is not None: producto.marca_id = datos.marca_id
+    if datos.descuento_id is not None: producto.descuento_id = datos.descuento_id
+    if datos.activo is not None: producto.activo = datos.activo
+
+    db.commit()
+    db.refresh(producto)
+    return producto
 
 
-@router.delete(
-    "/{producto_id}",
-    status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/{producto_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_producto(
     producto_id: int,
     db: Session = Depends(obtener_db),
-    _usuario_admin=Depends(requerir_rol("administrador"))
+    _usuario_admin=Depends(requerir_rol("administrador")),
+    empresa_id: int = Depends(get_current_empresa_id)
 ):
-    """Eliminar (desactivar) un producto (solo administradores)"""
-    return product_service.eliminar_producto(db, producto_id)
+    """
+    [Segundo Parcial] CU06 - Gestionar catálogo
+    [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
+    Eliminar (desactivar) un producto verificando pertenencia a la empresa
+    """
+    producto = db.query(Producto).filter(
+        Producto.id == producto_id,
+        Producto.empresa_id == empresa_id
+    ).first()
+    
+    if not producto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto not found o no pertenece a tu empresa")
+        
+    producto.activo = False
+    db.commit()
+    return None

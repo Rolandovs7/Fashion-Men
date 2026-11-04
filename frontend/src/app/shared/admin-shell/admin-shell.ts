@@ -44,12 +44,15 @@ export class AdminShellComponent implements OnInit {
       enlaces: [
         { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta' },
         { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas' },
+        { ruta: '/admin/operaciones-pendientes', etiqueta: 'Operaciones Pendientes', icono: 'offline' },
       ]
     },
     {
       titulo: 'Reportes',
       enlaces: [
+        { ruta: '/admin/dashboard', etiqueta: 'Dashboard', icono: 'reportes' },
         { ruta: '/admin/reportes', etiqueta: 'Estadísticas', icono: 'reportes' },
+        { ruta: '/admin/asistente-ia', etiqueta: 'Asistente IA', icono: 'ia' },
       ]
     },
     {
@@ -63,10 +66,16 @@ export class AdminShellComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.authService.obtenerUsuarioActual().subscribe({
-      next: (usuario) => (this.usuario = usuario),
-      error: () => {}
-    });
+    try {
+      if (this.authService.estaAutenticado()) {
+        this.authService.obtenerUsuarioActual().subscribe({
+          next: (usuario) => (this.usuario = usuario),
+          error: () => {}
+        });
+      }
+    } catch {
+      // ignore
+    }
   }
 
   irATienda(): void {

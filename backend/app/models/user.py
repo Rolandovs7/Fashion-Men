@@ -54,6 +54,12 @@ class Usuario(Base):
         index=True
     )
 
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
+    )
+
     fecha_creacion: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),

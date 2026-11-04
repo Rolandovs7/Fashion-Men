@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 export interface Variante {
   id: number;
@@ -84,7 +85,27 @@ export class VariantesService {
   }
 
   listarTallas(): Observable<Talla[]> {
-    return this.http.get<Talla[]>(`${this.apiUrl}/tallas`);
+    const cacheKey = 'menstyle_cache_tallas';
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          return of(JSON.parse(cached) as Talla[]);
+        }
+      } catch {
+        /* ignore */
+      }
+      return of([]);
+    }
+    return this.http.get<Talla[]>(`${this.apiUrl}/tallas`).pipe(
+      tap((data: Talla[]) => {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch {
+          /* ignore */
+        }
+      })
+    );
   }
 
   crearTalla(nombre: string): Observable<Talla> {
@@ -111,7 +132,27 @@ export class VariantesService {
   }
 
   listarColores(): Observable<Color[]> {
-    return this.http.get<Color[]>(`${this.apiUrl}/colores`);
+    const cacheKey = 'menstyle_cache_colores';
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          return of(JSON.parse(cached) as Color[]);
+        }
+      } catch {
+        /* ignore */
+      }
+      return of([]);
+    }
+    return this.http.get<Color[]>(`${this.apiUrl}/colores`).pipe(
+      tap((data) => {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(data));
+        } catch {
+          /* ignore */
+        }
+      })
+    );
   }
 
   actualizarColor(

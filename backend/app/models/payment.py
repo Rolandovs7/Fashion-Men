@@ -1,3 +1,6 @@
+"""
+[Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+"""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, DateTime, ForeignKey, Numeric
@@ -7,6 +10,9 @@ from app.core.database import Base
 
 
 class Pago(Base):
+    """
+    [Segundo Parcial] CU26 - Procesar pago (Stripe/QR)
+    """
     __tablename__ = "pagos"
 
     id: Mapped[int] = mapped_column(
@@ -17,6 +23,12 @@ class Pago(Base):
     pedido_id: Mapped[int] = mapped_column(
         ForeignKey("pedidos.id"),
         nullable=False
+    )
+
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
     )
 
     metodo: Mapped[str] = mapped_column(

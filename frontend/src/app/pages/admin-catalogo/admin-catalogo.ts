@@ -790,11 +790,18 @@ nuevaTalla = { nombre: '' };
         this.cancelarEdicionSucursal();
         this.guardando = false;
         this.mensaje = this.sucursalEditandoId ? 'Sucursal actualizada correctamente.' : 'Sucursal creada correctamente.';
+        this.toastService.exito(this.mensaje);
         this.cdr.detectChanges();
       },
       error: (error) => {
         this.guardando = false;
-        this.error = error.error?.detail || 'No se pudo guardar la sucursal.';
+        if (error.status === 403 && error.error?.detail?.includes('Límite de sucursales')) {
+          this.error = error.error.detail;
+          this.toastService.error(error.error.detail);
+        } else {
+          this.error = error.error?.detail || 'No se pudo guardar la sucursal.';
+          this.toastService.error(this.error);
+        }
         this.cdr.detectChanges();
       }
     });

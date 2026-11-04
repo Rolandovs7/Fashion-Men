@@ -64,7 +64,7 @@ export class ReportsService {
   private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/reportes';
 
   private headers(): HttpHeaders {
-    const token = this.auth.getToken() ?? '';
+    const token = this.auth.getToken() ?? localStorage.getItem('access_token') ?? '';
     return new HttpHeaders({ Authorization: `Bearer ${token}` });
   }
 

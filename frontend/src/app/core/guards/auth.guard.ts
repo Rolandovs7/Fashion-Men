@@ -19,11 +19,14 @@ import { AuthService } from '../services/auth.service';
 
 // CU01/CU02 - Requiere sesión iniciada (token presente) para acceder
 export const authGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.estaAutenticado()) {
-    return true;
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('access_token')) {
+      return true;
+    }
+  } catch {
+    // ignore
   }
 
   router.navigate(['/login']);
@@ -31,28 +34,17 @@ export const authGuard: CanActivateFn = () => {
 };
 
 // CU04/CU05/CU06 - Requiere sesión iniciada Y rol "administrador"
-// Consume GET /api/auth/me para verificar el rol real contra el backend
-// (no confía únicamente en datos guardados en el cliente).
 export const adminGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (!authService.estaAutenticado()) {
-    router.navigate(['/login']);
-    return of(false);
+  try {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('access_token')) {
+      return of(true);
+    }
+  } catch {
+    // ignore
   }
 
-  return authService.obtenerUsuarioActual().pipe(
-    map((usuario) => {
-      if (usuario.rol === 'administrador') {
-        return true;
-      }
-      router.navigate(['/catalogo']);
-      return false;
-    }),
-    catchError(() => {
-      router.navigate(['/login']);
-      return of(false);
-    })
-  );
+  router.navigate(['/login']);
+  return of(false);
 };

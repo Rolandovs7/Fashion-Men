@@ -97,16 +97,30 @@
                     <app-badge [tipo]="tipoBadgePedido(pedido.estado)" [etiqueta]="capitalizar(pedido.estado)"></app-badge>
                   </td>
                   <td class="py-3.5 px-5">
-                    <select
-                      [ngModel]="pedido.estado"
-                      (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
-                      [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
-                      aria-label="Acción del pedido #{{ pedido.id }}"
-                      class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
-                      @for (estado of estadosPedido; track estado) {
-                        <option [value]="estado">{{ estado }}</option>
-                      }
-                    </select>
+                    @if (pedido.estado === 'Procesada con Conflicto') {
+                      <select
+                        [ngModel]="pedido.estado"
+                        (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
+                        aria-label="Acción del pedido #{{ pedido.id }}"
+                        class="rounded-lg border border-ms-amber px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black transition-colors cursor-pointer">
+                        <option value="Procesada con Conflicto" disabled>Procesada con Conflicto</option>
+                        <option value="entregado">Resolver Conflicto - Entregado</option>
+                        <option value="cancelado">Resolver Conflicto - Cancelado</option>
+                      </select>
+                    } @else {
+                      <select
+                        [ngModel]="pedido.estado"
+                        (ngModelChange)="cambiarEstadoPedido(pedido, $event)"
+                        [disabled]="pedido.estado === 'cancelado' || pedido.estado === 'entregado'"
+                        aria-label="Acción del pedido #{{ pedido.id }}"
+                        class="rounded-lg border border-ms-stone-200 px-2.5 py-1.5 text-xs font-bold text-ms-ink outline-none focus:border-ms-black disabled:opacity-50 transition-colors cursor-pointer">
+                        @for (estado of estadosPedido; track estado) {
+                          @if (estado !== 'Procesada con Conflicto') {
+                            <option [value]="estado">{{ estado }}</option>
+                          }
+                        }
+                      </select>
+                    }
                   </td>
                   <td class="py-3.5 px-5 text-right">
                     <app-button variant="fantasma" size="sm" (click)="verComprobante(pedido)">Ver</app-button>

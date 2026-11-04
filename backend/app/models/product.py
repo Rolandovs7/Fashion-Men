@@ -1,10 +1,19 @@
-from sqlalchemy import String, Text, Boolean, Numeric, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+"""
+[Segundo Parcial] CU06 - Gestionar catálogo
+[Segundo Parcial] CU27 - Gestionar listas de precios
+[Segundo Parcial] RF01 - Aislamiento Multitenant
+"""
+from sqlalchemy import String, Text, Boolean, Numeric, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
 
 class Producto(Base):
+    """
+    [Segundo Parcial] CU06 - Gestionar catálogo
+    [Segundo Parcial] CU27 - Gestionar listas de precios
+    """
     __tablename__ = "productos"
 
     id: Mapped[int] = mapped_column(
@@ -27,9 +36,24 @@ class Producto(Base):
         nullable=True
     )
 
+    modelo_ar_url: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True
+    )
+
     precio: Mapped[float] = mapped_column(
         Numeric(10, 2),
         nullable=False
+    )
+
+    precio_mayorista: Mapped[float | None] = mapped_column(
+        Numeric(10, 2),
+        nullable=True
+    )
+
+    cantidad_mayorista: Mapped[int | None] = mapped_column(
+        Integer,
+        nullable=True
     )
 
     categoria_id: Mapped[int] = mapped_column(
@@ -67,8 +91,16 @@ class Producto(Base):
         nullable=True
     )
 
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
+    )
+
     activo: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
         nullable=False
     )
+
+    empresa = relationship("Empresa")

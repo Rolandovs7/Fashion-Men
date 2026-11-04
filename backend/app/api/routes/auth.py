@@ -58,7 +58,12 @@ def registro_usuario(
     datos: RegistroUsuario,
     db: Session = Depends(obtener_db)
 ):
-    """Registrar un nuevo usuario"""
+    """
+    [Segundo Parcial] CU08 - Gestionar clientes - asignar tenant
+    [Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+    Consumido por: Frontend (Cliente)
+    Registrar un nuevo usuario (cliente)
+    """
 
     usuario_existente = db.query(Usuario).filter(
         Usuario.email == datos.email
@@ -70,13 +75,18 @@ def registro_usuario(
             detail="El email ya está registrado"
         )
 
+    # Asignar a la empresa por defecto si existe (MenStyle)
+    from app.models.saas import Empresa
+    empresa_default = db.query(Empresa).filter(Empresa.nombre == "MenStyle").first()
+
     nuevo_usuario = Usuario(
         nombre=datos.nombre,
         apellido=datos.apellido,
         email=datos.email,
         password_hash=obtener_password_hash(datos.password),
         rol="cliente",
-        activo=True
+        activo=True,
+        empresa_id=empresa_default.id if empresa_default else None
     )
 
     db.add(nuevo_usuario)
@@ -97,7 +107,12 @@ def login_usuario(
     datos: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(obtener_db)
 ):
-    """Iniciar sesión (limitado a 5 intentos por minuto por IP)"""
+    """
+    [Segundo Parcial] CU03 - Iniciar sesión - JWT con empresa_id
+    [Segundo Parcial] RF01 - Gestión Multitenant y Empresas
+    Consumido por: Frontend (Admin/Cliente)
+    Iniciar sesión (limitado a 5 intentos por minuto por IP)
+    """
 
     usuario = db.query(Usuario).filter(
         Usuario.email == datos.username
@@ -126,7 +141,8 @@ def login_usuario(
 
     token_data = {
         "sub": usuario.email,
-        "rol": usuario.rol
+        "rol": usuario.rol,
+        "empresa_id": usuario.empresa_id
     }
 
     access_token = crear_access_token(token_data)

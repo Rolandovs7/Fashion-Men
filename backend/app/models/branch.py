@@ -1,4 +1,4 @@
-from sqlalchemy import String, Boolean
+from sqlalchemy import String, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -37,4 +37,10 @@ class Sucursal(Base):
         Boolean,
         default=True,
         nullable=False
+    )
+
+    empresa_id: Mapped[int | None] = mapped_column(
+        ForeignKey("empresas.id"),
+        nullable=True,
+        index=True
     )

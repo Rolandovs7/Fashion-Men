@@ -101,7 +101,7 @@ export class VestidorComponent implements OnInit, OnDestroy {
       this.cargando = false;
       this.cdr.detectChanges();
     } catch (e: any) {
-      this.error = 'No se pudo cargar MediaPipe: ' + (e.message || e);
+      this.error = 'Error al cargar la cámara. Verificá tu conexión a internet.';
       this.cargando = false;
       this.cdr.detectChanges();
     }

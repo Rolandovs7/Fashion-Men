@@ -68,3 +68,4 @@ google-genai
 scikit-learn
 pandas
 numpy
+groq

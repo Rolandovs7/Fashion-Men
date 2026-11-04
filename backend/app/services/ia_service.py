@@ -13,10 +13,6 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
-# --- Google Gemini (IA real) ---
-from google import genai
-from google.genai import types
-
 from app.models.product import Producto
 from app.models.product_variant import ProductoVariante
 from app.models.category import Categoria
@@ -24,18 +20,20 @@ from app.models.order import Pedido
 from app.models.order_detail import DetallePedido
 
 
-# Configurar Gemini si hay API key
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GEMINI_DISPONIBLE = False
-GEMINI_CLIENT = None
+# Configurar Groq si hay API key
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL") or "llama-3.1-8b-instant"
+GROQ_DISPONIBLE = False
+GROQ_CLIENT = None
 
-if GEMINI_API_KEY:
+if GROQ_API_KEY:
     try:
-        GEMINI_CLIENT = genai.Client(api_key=GEMINI_API_KEY)
-        GEMINI_DISPONIBLE = True
-        print("✅ Gemini configurado correctamente")
+        from groq import Groq
+        GROQ_CLIENT = Groq(api_key=GROQ_API_KEY)
+        GROQ_DISPONIBLE = True
+        print("✅ Groq configurado correctamente")
     except Exception as e:
-        print(f"⚠️ Gemini no se pudo configurar: {e}")
+        print(f"⚠️ Groq no se pudo configurar: {e}")
 
 
 class IAService:
@@ -555,38 +553,27 @@ Asistente:"""
     # ============================================================
     def consultar_sql_natural(self, pregunta: str, empresa_id: int) -> dict:
         from sqlalchemy import text
-        import time
 
-        # Generar SQL con Gemini
+        # Generar SQL con Groq
         sql_generado = None
-        if GEMINI_DISPONIBLE and GEMINI_CLIENT is not None:
+        if GROQ_DISPONIBLE and GROQ_CLIENT is not None:
             try:
-                prompt = f"""Genera una consulta SQL SELECT para PostgreSQL.
-Solo responde con el SQL, sin markdown, sin explicación.
-Pregunta: {pregunta}
-Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).
-Obligatorio: incluir filtro WHERE empresa_id = {empresa_id}. Solo SELECT. Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE."""
-                last_err = None
-                for intento in range(3):
-                    try:
-                        response = GEMINI_CLIENT.models.generate_content(
-                            model="gemini-3.1-flash",
-                            contents=prompt,
-                        )
-                        sql_generado = (response.text or "").strip().replace("```sql", "").replace("```", "").strip()
-                        break
-                    except Exception as e:
-                        last_err = e
-                        if intento < 2:
-                            time.sleep(2)
-                        else:
-                            raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
-                if sql_generado is None and last_err:
-                    raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
-            except ValueError:
-                raise
+                sistema = """Eres un generador de SQL para PostgreSQL. 
+Genera ÚNICAMENTE una consulta SELECT, sin markdown, sin explicación.
+Debes incluir obligatoriamente el filtro WHERE empresa_id = %s.
+Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE, GRANT, EXEC.
+Tablas: pedidos(id, usuario_id, sucursal_id, empresa_id, fecha_pedido, estado, total), detalles_pedido(id, pedido_id, variante_id, cantidad, precio_unitario, subtotal), productos(id, nombre, precio, empresa_id, activo), producto_variantes(id, producto_id, color_id, talla_id, precio), sucursales(id, nombre, empresa_id), usuarios(id, nombre, apellido, rol, empresa_id).""" % empresa_id
+                respuesta = GROQ_CLIENT.chat.completions.create(
+                    model=GROQ_MODEL,
+                    messages=[
+                        {"role": "system", "content": sistema},
+                        {"role": "user", "content": f"Pregunta: {pregunta}"},
+                    ],
+                    temperature=0.1,
+                )
+                sql_generado = (respuesta.choices[0].message.content or "").strip().replace("```sql", "").replace("```", "").strip()
             except Exception as e:
-                raise ValueError("El asistente de IA está experimentando alta demanda. Por favor, intentá de nuevo en unos segundos.")
+                raise ValueError(f"Error Groq: {str(e)}")
 
         if not sql_generado:
             sql_lower = pregunta.lower()

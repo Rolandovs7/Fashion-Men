@@ -20,6 +20,7 @@ import { AdminInventario } from './pages/admin-inventario/admin-inventario';
 import { AdminReportes } from './pages/admin-reportes/admin-reportes';
 import { AdminAsistenteIa } from './pages/admin-asistente-ia/admin-asistente-ia';
 import { AdminSuscripcion } from './pages/admin-suscripcion/admin-suscripcion';
+import { AdminEmpresas } from './pages/admin-empresas/admin-empresas';
 import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
@@ -149,6 +150,11 @@ export const routes: Routes = [
   {
     path: 'admin/suscripcion',
     component: AdminSuscripcion,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/empresas',
+    component: AdminEmpresas,
     canActivate: [adminGuard]
   },
   {

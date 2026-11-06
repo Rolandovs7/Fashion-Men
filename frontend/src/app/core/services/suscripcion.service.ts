@@ -43,4 +43,8 @@ export class SuscripcionService {
   obtenerMiSuscripcion(): Observable<SuscripcionActual> {
     return this.http.get<SuscripcionActual>(`${this.apiUrl}/mi-suscripcion`, { headers: this.headers() });
   }
+
+  cambiarPlan(plan_id: number): Observable<SuscripcionActual> {
+    return this.http.put<SuscripcionActual>(`${this.apiUrl}/cambiar-plan`, { plan_id }, { headers: this.headers() });
+  }
 }

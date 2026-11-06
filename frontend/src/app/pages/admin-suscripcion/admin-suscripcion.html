@@ -49,9 +49,9 @@
                   class="w-full py-2.5 px-4 rounded-xl font-semibold bg-gray-200 text-gray-500 cursor-not-allowed">
             Plan Actual
           </button>
-          <button *ngIf="!esPlanActual(plan)" (click)="cambiarPlan(plan)"
-                  class="w-full py-2.5 px-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 transition">
-            Cambiar a este Plan
+          <button *ngIf="!esPlanActual(plan)" (click)="cambiarPlan(plan)" [disabled]="cambiando"
+                  class="w-full py-2.5 px-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 transition disabled:opacity-60 disabled:cursor-not-allowed">
+            {{ cambiando ? 'Procesando...' : 'Cambiar a este Plan' }}
           </button>
         </div>
       </div>

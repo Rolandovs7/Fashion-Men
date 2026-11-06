@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id
+from app.core.dependencies import obtener_db, requerir_rol, get_current_empresa_id, requerir_suscripcion_vigente
 from app.services.report_service import ReportService
 from app.schemas.reports import (
     DashboardResponse,
@@ -34,6 +34,7 @@ def dashboard(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     [Segundo Parcial] CU25 - Dashboard analítico
@@ -51,6 +52,7 @@ def productos_top(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     [Segundo Parcial] CU22 - Exportación de reportes
@@ -68,6 +70,7 @@ def ventas_por_mes(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     [Segundo Parcial] CU25 - Dashboard analítico
@@ -84,6 +87,7 @@ def ventas_por_metodo_pago(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     CU30 - Generar Reportes
@@ -101,6 +105,7 @@ def inventario_bajo(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     CU30 - Generar Reportes
@@ -116,6 +121,7 @@ def ventas_por_sucursal(
     db: Session = Depends(obtener_db),
     usuario=Depends(requerir_rol("administrador")),
     empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     [Segundo Parcial] CU25 - Dashboard analítico

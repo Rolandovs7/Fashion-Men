@@ -5,11 +5,11 @@
         "${workspaceFolder}/backend"
     ],
     "dart.flutterSdkPath": "/home/rolando/development/flutter",
-
     "editor.formatOnSave": true,
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true,
         "**/.pytest_cache": true
-    }
+    },
+    "python.terminal.useEnvFile": true
 }

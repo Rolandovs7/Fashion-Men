@@ -6,7 +6,7 @@ Consumido por: Frontend (Admin)
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Integer, Numeric
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -77,6 +77,17 @@ class Plan(Base):
         Boolean,
         default=False,
         nullable=False
+    )
+
+    precio_mensual: Mapped[float] = mapped_column(
+        Numeric(10, 2),
+        nullable=False,
+        default=0
+    )
+
+    descripcion: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
     )
 
 

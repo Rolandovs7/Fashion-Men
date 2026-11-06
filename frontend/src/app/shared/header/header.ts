@@ -39,7 +39,7 @@ export class HeaderComponent implements OnInit {
   }
 
   esAdministrador(): boolean {
-    return this.usuario?.rol === 'administrador';
+    return this.usuario?.rol === 'administrador' || this.usuario?.rol === 'superadmin';
   }
 
   toggleMenu(): void {

@@ -8,11 +8,13 @@ interface EnlaceAdmin {
   ruta: string;
   etiqueta: string;
   icono: string;
+  soloSuperAdmin?: boolean;
 }
 
 interface GrupoAdmin {
   titulo: string;
   enlaces: EnlaceAdmin[];
+  soloSuperAdmin?: boolean;
 }
 
 @Component({
@@ -63,6 +65,13 @@ export class AdminShellComponent implements OnInit {
         { ruta: '/admin/suscripcion', etiqueta: 'Mi Suscripción', icono: 'suscripcion' },
         { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config' },
       ]
+    },
+    {
+      titulo: 'Plataforma',
+      soloSuperAdmin: true,
+      enlaces: [
+        { ruta: '/admin/empresas', etiqueta: 'Empresas', icono: 'empresas', soloSuperAdmin: true },
+      ]
     }
   ];
 
@@ -100,5 +109,17 @@ export class AdminShellComponent implements OnInit {
     const nombre = this.usuario?.nombre ?? '';
     const apellido = this.usuario?.apellido ?? '';
     return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase() || 'U';
+  }
+
+  esSuperAdmin(): boolean {
+    return this.usuario?.rol === 'superadmin';
+  }
+
+  puedeVerGrupo(grupo: GrupoAdmin): boolean {
+    return !grupo.soloSuperAdmin || this.esSuperAdmin();
+  }
+
+  puedeVerEnlace(enlace: EnlaceAdmin): boolean {
+    return !enlace.soloSuperAdmin || this.esSuperAdmin();
   }
 }

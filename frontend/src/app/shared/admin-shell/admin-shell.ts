@@ -60,6 +60,7 @@ export class AdminShellComponent implements OnInit {
       enlaces: [
         { ruta: '/usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
         { ruta: '/permisos', etiqueta: 'Permisos', icono: 'permisos' },
+        { ruta: '/admin/suscripcion', etiqueta: 'Mi Suscripción', icono: 'suscripcion' },
         { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config' },
       ]
     }

@@ -30,19 +30,46 @@ def seed_saas():
         print("Creando tablas si no existen...")
         Base.metadata.create_all(bind=engine)
 
-        # Crear planes
+        # Crear/actualizar planes (3 tiers)
         plan_basico = db.query(Plan).filter(Plan.nombre == "Básico").first()
         if not plan_basico:
             plan_basico = Plan(
                 nombre="Básico",
                 max_sucursales=2,
                 permite_ia=False,
-                permite_offline=False
+                permite_offline=False,
+                precio_mensual=0,
+                descripcion="Ideal para tiendas pequeñas que inician.",
             )
             db.add(plan_basico)
             print("Creado plan Básico")
         else:
-            print("Plan Básico ya existe")
+            plan_basico.max_sucursales = 2
+            plan_basico.permite_ia = False
+            plan_basico.permite_offline = False
+            plan_basico.precio_mensual = 0
+            plan_basico.descripcion = "Ideal para tiendas pequeñas que inician."
+            print("Plan Básico actualizado")
+
+        plan_emprendedor = db.query(Plan).filter(Plan.nombre == "Emprendedor").first()
+        if not plan_emprendedor:
+            plan_emprendedor = Plan(
+                nombre="Emprendedor",
+                max_sucursales=5,
+                permite_ia=False,
+                permite_offline=False,
+                precio_mensual=29,
+                descripcion="Para negocios en crecimiento que necesitan más control.",
+            )
+            db.add(plan_emprendedor)
+            print("Creado plan Emprendedor")
+        else:
+            plan_emprendedor.max_sucursales = 5
+            plan_emprendedor.permite_ia = False
+            plan_emprendedor.permite_offline = False
+            plan_emprendedor.precio_mensual = 29
+            plan_emprendedor.descripcion = "Para negocios en crecimiento que necesitan más control."
+            print("Plan Emprendedor actualizado")
 
         plan_profesional = db.query(Plan).filter(Plan.nombre == "Profesional").first()
         if not plan_profesional:
@@ -50,12 +77,19 @@ def seed_saas():
                 nombre="Profesional",
                 max_sucursales=10,
                 permite_ia=True,
-                permite_offline=True
+                permite_offline=True,
+                precio_mensual=59,
+                descripcion="Potencia total con Inteligencia Artificial y reportes avanzados.",
             )
             db.add(plan_profesional)
             print("Creado plan Profesional")
         else:
-            print("Plan Profesional ya existe")
+            plan_profesional.max_sucursales = 10
+            plan_profesional.permite_ia = True
+            plan_profesional.permite_offline = True
+            plan_profesional.precio_mensual = 59
+            plan_profesional.descripcion = "Potencia total con Inteligencia Artificial y reportes avanzados."
+            print("Plan Profesional actualizado")
 
         db.flush()
 

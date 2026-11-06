@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PlanRead(BaseModel):
@@ -25,3 +25,7 @@ class SuscripcionActualRead(BaseModel):
     estado: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class CambiarPlanRequest(BaseModel):
+    plan_id: int = Field(..., gt=0)

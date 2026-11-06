@@ -17,6 +17,7 @@ export class AdminSuscripcion implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   cargando = true;
+  cambiando = false;
   error = '';
   miSuscripcion: SuscripcionActual | null = null;
   planes: Plan[] = [];
@@ -52,8 +53,22 @@ export class AdminSuscripcion implements OnInit {
   }
 
   cambiarPlan(plan: Plan): void {
-    if (this.esPlanActual(plan)) return;
-    this.toast.info(`Cambio a "${plan.nombre}" simulado. (Integración de pago pendiente)`);
+    if (this.esPlanActual(plan) || this.cambiando) return;
+    this.cambiando = true;
+    this.suscripcionService.cambiarPlan(plan.id).subscribe({
+      next: (s) => {
+        this.miSuscripcion = s;
+        this.toast.exito(`Plan actualizado a "${s.plan.nombre}" correctamente.`);
+        this.cambiando = false;
+        this.cdr.detectChanges();
+      },
+      error: (e) => {
+        const msg = e?.error?.detail || 'No se pudo cambiar el plan.';
+        this.toast.error(msg);
+        this.cambiando = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   caracteristicas(plan: Plan): string[] {

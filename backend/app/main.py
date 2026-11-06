@@ -11,6 +11,7 @@ from app.api.routes.products import router as products_router
 from app.api.routes.product_variants import router as product_variants_router
 from app.api.routes.sync import router as sync_router
 from app.api.routes.suscripciones import router as suscripciones_router
+from app.api.routes.empresas import router as empresas_router
 from app.api.routes.sizes import router as sizes_router
 from app.api.routes.colors import router as colors_router
 from app.api.routes.branches import router as branches_router
@@ -102,6 +103,7 @@ app.include_router(auth_router, prefix="/api/auth", tags=["Autenticación"])
 app.include_router(categories_router, prefix="/api/categorias", tags=["Categorías"])
 app.include_router(sync_router, prefix="/api/sync", tags=["Sincronización"])
 app.include_router(suscripciones_router, prefix="/api/suscripciones", tags=["Suscripciones"])
+app.include_router(empresas_router, prefix="/api/empresas", tags=["Empresas"])
 app.include_router(products_router, prefix="/api/productos", tags=["Productos"])
 app.include_router(product_variants_router, prefix="/api/variantes", tags=["Variantes"])
 app.include_router(sizes_router, prefix="/api/tallas", tags=["Tallas"])

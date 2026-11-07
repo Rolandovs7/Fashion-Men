@@ -18,7 +18,7 @@
       <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">MenStyle · Pago seguro</p>
       <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Finalizar compra</h1>
       @if (pedido) {
-        <p class="mt-2 text-sm text-ms-slate">Pedido #{{ pedido.id }} · Paso final para completar tu compra digital.</p>
+        <p class="mt-2 text-sm text-ms-slate">Pedido #{{ pedido.id }} · Paso final para completar tu compra.</p>
       }
     </div>
 
@@ -32,11 +32,10 @@
 
     <!-- Error -->
     @if (errorMsg && !cargando && !exitoMsg) {
-      <div class="animate-fade-in">
+      <div class="animate-fade-in mb-4">
         <app-alert tipo="error" titulo="No se pudo continuar" [mensaje]="errorMsg"></app-alert>
         @if (pedido) {
-          <div class="mt-4 flex gap-3">
-            <app-button variant="secundario" (click)="reintentarStripe()">Reintentar</app-button>
+          <div class="mt-4">
             <a routerLink="/pedidos" class="inline-flex items-center justify-center rounded-xl border border-ms-stone-200 bg-ms-white text-ms-ink px-4 py-2.5 text-sm font-bold shadow-sm transition-all hover:bg-ms-stone cursor-pointer">
               Volver a mis pedidos
             </a>
@@ -58,117 +57,157 @@
       </div>
     }
 
-    <!-- Checkout Stripe -->
+    <!-- Checkout -->
     @if (!cargando && pedido && !exitoMsg) {
-
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
         <!-- Datos de pago -->
         <div class="md:col-span-2">
           <div class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 sm:p-8">
-            <!-- Selector de método de pago -->
+            <!-- [Segundo Parcial] CU02 - Selector de método de pago -->
             <div class="mb-6">
               <p class="text-xs font-bold uppercase tracking-[0.2em] text-ms-slate mb-3">Método de pago</p>
-              <div class="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  (click)="cambiarMetodoPago('tarjeta')"
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button type="button" (click)="cambiarMetodoPago('tarjeta')"
                   [class]="metodoPago === 'tarjeta' ? 'border-ms-amber bg-ms-cream ring-2 ring-ms-amber' : 'border-ms-stone-200 bg-white hover:bg-ms-cream/50'"
                   class="flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all cursor-pointer">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   <span class="text-sm font-bold">Tarjeta</span>
                 </button>
-                <button
-                  type="button"
-                  (click)="cambiarMetodoPago('qr')"
+                <button type="button" (click)="cambiarMetodoPago('qr')"
                   [class]="metodoPago === 'qr' ? 'border-ms-amber bg-ms-cream ring-2 ring-ms-amber' : 'border-ms-stone-200 bg-white hover:bg-ms-cream/50'"
                   class="flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all cursor-pointer">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
                   <span class="text-sm font-bold">QR</span>
+                </button>
+                <button type="button" (click)="cambiarMetodoPago('efectivo')"
+                  [class]="metodoPago === 'efectivo' ? 'border-ms-amber bg-ms-cream ring-2 ring-ms-amber' : 'border-ms-stone-200 bg-white hover:bg-ms-cream/50'"
+                  class="flex items-center justify-center gap-2 rounded-xl border-2 p-3 transition-all cursor-pointer">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  <span class="text-sm font-bold">Efectivo</span>
                 </button>
               </div>
             </div>
 
-            <!-- Formulario de tarjeta (solo si metodoPago === 'tarjeta') -->
+            <!-- Tarjeta (3 campos formateados + validaciones visuales) -->
             @if (metodoPago === 'tarjeta') {
-            <div class="flex items-center gap-2 mb-1">
-              <svg class="w-4.5 h-4.5 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Datos de la tarjeta</h2>
-            </div>
-
-            <!-- Card Element de Stripe -->
-            <div #cardElement class="input-base !bg-white min-h-[52px]"></div>
-
-            <div class="mt-6">
-              <app-button
-                variant="primario"
-                [block]="true"
-                size="lg"
-                [loading]="procesando"
-                [disabled]="procesando"
-                (click)="pagar()">
-                @if (!procesando) {
-                  <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  Pagar {{ pedido.total.toFixed(2) }} Bs
-                }
-              </app-button>
-            </div>
-
-            <div class="mt-5 rounded-xl bg-ms-cream border border-ms-amber/30 p-4 text-xs text-ms-ink/80">
-              <p class="flex items-center gap-1.5 font-bold text-ms-amber uppercase tracking-wider mb-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Pago seguro
-              </p>
-              <p>Procesado por Stripe.</p>
-              <p class="mt-1">Modo test: usá la tarjeta <strong class="text-ms-ink">4242 4242 4242 4242</strong>, cualquier fecha futura y CVC.</p>
-            </div>
+              <div class="flex items-center gap-2 mb-4">
+                <svg class="w-4.5 h-4.5 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Datos de la tarjeta</h2>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-semibold text-ms-ink mb-1">Número de Tarjeta</label>
+                  <input
+                    [ngModel]="numeroTarjeta" (ngModelChange)="numeroTarjeta=$event; onNumeroInput()"
+                    name="numeroTarjeta" inputmode="numeric" autocomplete="cc-number" maxlength="19"
+                    placeholder="4242 4242 4242 4242"
+                    [class]="claseInput(numeroValido, numeroTarjeta)" />
+                  @if (intentoPagar && !numeroValido) {
+                    <p class="mt-1 text-xs text-red-600">Ingresa 16 dígitos.</p>
+                  } @else if (numeroValido) {
+                    <p class="mt-1 text-xs text-emerald-600">Número válido.</p>
+                  }
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-sm font-semibold text-ms-ink mb-1">Fecha (MM/AA)</label>
+                    <input
+                      [ngModel]="fechaExp" (ngModelChange)="fechaExp=$event; onFechaInput()"
+                      name="fechaExp" inputmode="numeric" autocomplete="cc-exp" maxlength="5"
+                      placeholder="12/28"
+                      [class]="claseInput(fechaValida, fechaExp)" />
+                    @if (intentoPagar && !fechaValida) {
+                      <p class="mt-1 text-xs text-red-600">Formato MM/AA válido.</p>
+                    } @else if (fechaValida) {
+                      <p class="mt-1 text-xs text-emerald-600">Fecha válida.</p>
+                    }
+                  </div>
+                  <div>
+                    <label class="block text-sm font-semibold text-ms-ink mb-1">CVC</label>
+                    <input
+                      [ngModel]="cvc" (ngModelChange)="cvc=$event; onCvcInput()"
+                      name="cvc" inputmode="numeric" autocomplete="cc-csc" maxlength="4"
+                      placeholder="123"
+                      [class]="claseInput(cvcValido, cvc)" />
+                    @if (intentoPagar && !cvcValido) {
+                      <p class="mt-1 text-xs text-red-600">3 o 4 dígitos.</p>
+                    } @else if (cvcValido) {
+                      <p class="mt-1 text-xs text-emerald-600">CVC válido.</p>
+                    }
+                  </div>
+                </div>
+              </div>
+              <div class="mt-6">
+                <app-button variant="primario" [block]="true" size="lg" [loading]="procesando" [disabled]="procesando" (click)="confirmarPago()">
+                  @if (!procesando) { Pagar {{ pedido.total.toFixed(2) }} Bs }
+                </app-button>
+              </div>
+              <div class="mt-5 rounded-xl bg-ms-cream border border-ms-amber/30 p-4 text-xs text-ms-ink/80">
+                <p class="font-bold text-ms-amber uppercase tracking-wider mb-1.5">Pago simulado (CU02)</p>
+                <p>Usa cualquier número de 16 dígitos, fecha MM/AA válida y CVC. La aprobación se simula en el backend.</p>
+              </div>
             }
 
-            <!-- Bloque QR (solo si metodoPago === 'qr') -->
+            <!-- QR estático -->
             @if (metodoPago === 'qr') {
-            <div class="flex flex-col items-center gap-4">
-              <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Pago con código QR</h2>
-              @if (qrGenerando) {
-                <div class="p-14">
-                  <app-loader size="lg" [centrado]="false"></app-loader>
-                </div>
-              } @else if (qrDataUrl) {
+              <div class="flex flex-col items-center gap-4">
+                <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Pago con código QR</h2>
                 <div class="bg-white p-4 rounded-xl border border-ms-stone-200 shadow-card">
-                  <img [src]="qrDataUrl" alt="QR de pago" class="w-[280px] h-[280px]">
+                  <svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-label="Código QR de pago" class="rounded">
+                    <rect width="220" height="220" fill="#ffffff"/>
+                    <rect x="10" y="10" width="60" height="60" fill="#111827"/>
+                    <rect x="18" y="18" width="44" height="44" fill="#ffffff"/>
+                    <rect x="26" y="26" width="28" height="28" fill="#111827"/>
+                    <rect x="150" y="10" width="60" height="60" fill="#111827"/>
+                    <rect x="158" y="18" width="44" height="44" fill="#ffffff"/>
+                    <rect x="166" y="26" width="28" height="28" fill="#111827"/>
+                    <rect x="10" y="150" width="60" height="60" fill="#111827"/>
+                    <rect x="18" y="158" width="44" height="44" fill="#ffffff"/>
+                    <rect x="26" y="166" width="28" height="28" fill="#111827"/>
+                    <g fill="#111827">
+                      <rect x="80" y="12" width="10" height="10"/><rect x="100" y="12" width="10" height="10"/><rect x="120" y="12" width="10" height="10"/>
+                      <rect x="90" y="22" width="10" height="10"/><rect x="110" y="22" width="10" height="10"/><rect x="130" y="22" width="10" height="10"/>
+                      <rect x="80" y="32" width="10" height="10"/><rect x="100" y="42" width="10" height="10"/><rect x="120" y="32" width="10" height="10"/>
+                      <rect x="80" y="52" width="10" height="10"/><rect x="90" y="62" width="10" height="10"/><rect x="110" y="52" width="10" height="10"/><rect x="130" y="62" width="10" height="10"/>
+                      <rect x="12" y="80" width="10" height="10"/><rect x="32" y="90" width="10" height="10"/><rect x="52" y="80" width="10" height="10"/>
+                      <rect x="22" y="100" width="10" height="10"/><rect x="42" y="110" width="10" height="10"/><rect x="12" y="120" width="10" height="10"/>
+                      <rect x="80" y="80" width="10" height="10"/><rect x="100" y="80" width="10" height="10"/><rect x="120" y="90" width="10" height="10"/><rect x="140" y="80" width="10" height="10"/><rect x="160" y="90" width="10" height="10"/><rect x="180" y="80" width="10" height="10"/><rect x="200" y="90" width="10" height="10"/>
+                      <rect x="90" y="100" width="10" height="10"/><rect x="110" y="110" width="10" height="10"/><rect x="130" y="100" width="10" height="10"/><rect x="150" y="110" width="10" height="10"/><rect x="170" y="100" width="10" height="10"/><rect x="190" y="110" width="10" height="10"/>
+                      <rect x="80" y="120" width="10" height="10"/><rect x="100" y="130" width="10" height="10"/><rect x="120" y="120" width="10" height="10"/><rect x="140" y="130" width="10" height="10"/><rect x="160" y="120" width="10" height="10"/><rect x="180" y="130" width="10" height="10"/><rect x="200" y="120" width="10" height="10"/>
+                      <rect x="80" y="150" width="10" height="10"/><rect x="100" y="160" width="10" height="10"/><rect x="120" y="150" width="10" height="10"/><rect x="140" y="160" width="10" height="10"/><rect x="160" y="150" width="10" height="10"/>
+                      <rect x="90" y="170" width="10" height="10"/><rect x="110" y="180" width="10" height="10"/><rect x="130" y="170" width="10" height="10"/><rect x="150" y="180" width="10" height="10"/><rect x="170" y="170" width="10" height="10"/>
+                      <rect x="80" y="190" width="10" height="10"/><rect x="100" y="200" width="10" height="10"/><rect x="120" y="190" width="10" height="10"/><rect x="140" y="200" width="10" height="10"/><rect x="160" y="190" width="10" height="10"/><rect x="180" y="200" width="10" height="10"/><rect x="200" y="190" width="10" height="10"/>
+                    </g>
+                  </svg>
                 </div>
-                <p class="text-xs text-ms-slate text-center max-w-xs">
-                  Escaneá este código con tu app bancaria. Cuando lo hayas hecho, presioná el botón de abajo.
+                <p class="text-sm text-ms-slate text-center max-w-md">
+                  Escaneá este código con tu app bancaria para transferir Bs. <strong class="text-ms-ink">{{ pedido.total.toFixed(2) }}</strong>. Una vez realizado, haz clic en Confirmar.
                 </p>
                 <div class="text-center">
                   <p class="text-lg font-bold text-ms-ink">Total: {{ pedido.total.toFixed(2) }} Bs</p>
                   <p class="text-xs text-ms-slate">Pedido #{{ pedido.id }}</p>
                 </div>
-                <app-button
-                  variant="primario"
-                  [block]="true"
-                  size="lg"
-                  [loading]="procesando"
-                  [disabled]="procesando"
-                  (click)="registrarPagoQr()">
-                  @if (!procesando) {
-                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Ya realicé el pago
-                  }
+                <app-button variant="primario" [block]="true" size="lg" [loading]="procesando" [disabled]="procesando" (click)="confirmarPago()">
+                  @if (!procesando) { Confirmar }
                 </app-button>
-              }
-            </div>
+                <p class="text-xs text-ms-slate text-center">El pedido quedará en estado <strong>Pendiente de Pago</strong> hasta su verificación.</p>
+              </div>
+            }
+
+            <!-- Efectivo -->
+            @if (metodoPago === 'efectivo') {
+              <div class="flex flex-col items-center gap-4 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-ms-cream border border-ms-amber/30 flex items-center justify-center">
+                  <svg class="w-8 h-8 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+                <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Pago en efectivo</h2>
+                <p class="text-sm text-ms-slate max-w-md">Acercate a pagar a la sucursal más cercana. Tu pedido quedará reservado por 24 horas.</p>
+                <p class="text-lg font-bold text-ms-ink">Total a pagar: {{ pedido.total.toFixed(2) }} Bs</p>
+                <app-button variant="primario" [block]="true" size="lg" [loading]="procesando" [disabled]="procesando" (click)="confirmarPago()">
+                  @if (!procesando) { Confirmar pedido }
+                </app-button>
+                <p class="text-xs text-ms-slate">El pedido quedará en estado <strong>Pendiente de Pago</strong>.</p>
+              </div>
             }
           </div>
         </div>
@@ -177,28 +216,22 @@
         <div class="md:col-span-1">
           <aside class="bg-ms-white border border-ms-stone-200 rounded-2xl shadow-card p-6 md:sticky md:top-28">
             <h3 class="text-xs font-bold uppercase tracking-[0.2em] text-ms-slate mb-4">Resumen del pedido</h3>
-
             <div class="flex items-center justify-between text-sm">
               <span class="text-ms-slate">Estado</span>
               <app-badge [tipo]="tipoBadgeEstados[pedido.estado] || 'neutral'" [etiqueta]="etiquetaEstados[pedido.estado] || pedido.estado"></app-badge>
             </div>
-
             <div class="border-t border-ms-stone-200 pt-4 mt-4 flex items-baseline justify-between">
               <span class="font-bold text-ms-ink">Total a pagar</span>
               <span class="text-ms-ink">
                 <app-price [valor]="pedido.total"></app-price>
               </span>
             </div>
-
-            <p class="text-[11px] text-ms-slate mt-4">Al confirmar el pago tu pedido quedará registrado y verás el comprobante en "Mis pedidos".</p>
+            <p class="text-[11px] text-ms-slate mt-4">Al confirmar, tu pedido quedará registrado en "Mis pedidos".</p>
           </aside>
         </div>
-
       </div>
     }
-
   </main>
 
   <app-footer></app-footer>
-
 </div>

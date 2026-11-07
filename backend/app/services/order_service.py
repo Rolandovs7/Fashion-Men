@@ -266,6 +266,7 @@ def cancelar_pedido_cliente(
 
     estados_permitidos = [
         "pendiente",
+        "pendiente_pago",  # [Segundo Parcial] CU02 - pago QR/efectivo pendiente
         "pagado",
         "procesando"
     ]
@@ -396,6 +397,7 @@ def cambiar_estado_pedido_admin(
 
     estados_validos = [
         "pendiente",
+        "pendiente_pago",  # [Segundo Parcial] CU02 - pago QR/efectivo pendiente
         "pagado",
         "procesando",
         "enviado",

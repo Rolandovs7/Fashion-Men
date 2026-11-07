@@ -1,19 +1,19 @@
 // ============================================================
 // TRAZABILIDAD MENSTYLE
-// CU: CU19 - Integrar pasarela de pago
-// RF: RF19 - Compras digitales con Stripe
+// CU: CU19 - Integrar pasarela de pago / [Segundo Parcial] CU02 - Checkout tienda (simulado)
+// RF: RF19 - Compras digitales
 // CAPA: Frontend Angular
 // ============================================================
 import {
-  Component, OnInit, OnDestroy,
-  inject, ChangeDetectorRef, ViewChild, ElementRef,
+  Component, OnInit,
+  inject, ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PagosService } from '../../core/services/pagos.service';
 import { PedidosService, Pedido } from '../../core/services/pedidos.service';
 import { HeaderComponent } from '../../shared/header/header';
-import * as QRCode from 'qrcode';
 import {
   ButtonComponent,
   AlertComponent,
@@ -23,17 +23,15 @@ import {
   FooterComponent
 } from '../../shared/ui';
 
-declare var Stripe: any;
+type MetodoPago = 'tarjeta' | 'qr' | 'efectivo';
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule, RouterModule, HeaderComponent, ButtonComponent, AlertComponent, BadgeComponent, LoaderComponent, PriceComponent, FooterComponent],
+  imports: [CommonModule, FormsModule, RouterModule, HeaderComponent, ButtonComponent, AlertComponent, BadgeComponent, LoaderComponent, PriceComponent, FooterComponent],
   templateUrl: './checkout.html',
   styleUrl: './checkout.css',
 })
-export class Checkout implements OnInit, OnDestroy {
-  @ViewChild('cardElement') cardElement!: ElementRef<HTMLDivElement>;
-
+export class Checkout implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private pagosService = inject(PagosService);
@@ -47,20 +45,17 @@ export class Checkout implements OnInit, OnDestroy {
   errorMsg = '';
   exitoMsg = '';
 
-  private stripe: any;
-  private elements: any;
-  private card: any;
-  private clientSecret = '';
-  private paymentIntentId = '';
+  metodoPago: MetodoPago = 'tarjeta';
 
-  // QR de pago
-  metodoPago: 'tarjeta' | 'qr' = 'tarjeta';
-  qrDataUrl: string | null = null;
-  qrGenerando = false;
-  qrRegistrado = false;
+  // Tarjeta simulada (3 campos)
+  numeroTarjeta = '';
+  fechaExp = '';
+  cvc = '';
+  intentoPagar = false;
 
   tipoBadgeEstados: Record<string, 'neutral' | 'aviso' | 'info' | 'acento' | 'exito' | 'error'> = {
     pendiente: 'aviso',
+    pendiente_pago: 'aviso',
     pagado: 'info',
     procesando: 'info',
     enviado: 'acento',
@@ -70,6 +65,7 @@ export class Checkout implements OnInit, OnDestroy {
 
   etiquetaEstados: Record<string, string> = {
     pendiente: 'Pendiente',
+    pendiente_pago: 'Pendiente de Pago',
     pagado: 'Pagado',
     procesando: 'Procesando',
     enviado: 'Enviado',
@@ -94,168 +90,109 @@ export class Checkout implements OnInit, OnDestroy {
         this.pedido = p;
         this.cargando = false;
         this.cdr.detectChanges();
-        this.iniciarStripe();
       },
-      error: (err) => {
+      error: () => {
         this.errorMsg = 'No se pudo cargar el pedido';
         this.cargando = false;
-      }
-    });
-  }
-
-  reintentarStripe(): void {
-    try { if (this.card) this.card.destroy(); } catch {}
-    this.errorMsg = '';
-    this.cdr.detectChanges();
-    if (this.cardElement) {
-      this.cardElement.nativeElement.innerHTML = '';
-    }
-    this.iniciarStripe();
-  }
-
-  private iniciarStripe(): void {
-    this.pagosService.obtenerConfigStripe().subscribe({
-      next: (config) => {
-        if (!config.publishable_key) {
-          this.errorMsg = 'Stripe no configurado';
-          return;
-        }
-        // Cargar Stripe.js si no está
-        if (typeof Stripe === 'undefined') {
-          const script = document.createElement('script');
-          script.src = 'https://js.stripe.com/v3/';
-          script.onload = () => this.montarCardElement(config.publishable_key);
-          document.head.appendChild(script);
-        } else {
-          this.montarCardElement(config.publishable_key);
-        }
-      },
-      error: () => { this.errorMsg = 'Error obteniendo configuración de Stripe'; }
-    });
-  }
-
-  private montarCardElement(publishableKey: string): void {
-    this.stripe = Stripe(publishableKey);
-    this.elements = this.stripe.elements();
-
-    // Crear PaymentIntent
-    this.pagosService.crearStripeIntent(this.pedidoId).subscribe({
-      next: (res) => {
-        this.clientSecret = res.client_secret;
-        this.paymentIntentId = res.payment_intent_id;
         this.cdr.detectChanges();
-
-        // Esperar a que el DOM tenga el cardElement
-        setTimeout(() => {
-          if (!this.cardElement) return;
-          const style = {
-            base: {
-              fontSize: '16px',
-              color: '#1f2937',
-              '::placeholder': { color: '#9ca3af' },
-            },
-          };
-          this.card = this.elements.create('card', { style });
-          this.card.mount(this.cardElement.nativeElement);
-        }, 100);
-      },
-      error: (err) => {
-        this.errorMsg = err.error?.detail || 'Error creando intent de pago';
       }
     });
   }
 
-  pagar(): void {
-    if (!this.stripe || !this.card || !this.clientSecret) return;
-    this.procesando = true;
-    this.errorMsg = '';
-
-    this.stripe.confirmCardPayment(this.clientSecret, {
-      payment_method: { card: this.card }
-    }).then((result: any) => {
-      if (result.error) {
-        this.errorMsg = result.error.message || 'Error procesando pago';
-        this.procesando = false;
-        this.cdr.detectChanges();
-      } else if (result.paymentIntent.status === 'succeeded') {
-        // Confirmar en backend
-        this.pagosService.confirmarStripePago(this.paymentIntentId).subscribe({
-          next: () => {
-            this.exitoMsg = '¡Pago exitoso!';
-            this.procesando = false;
-            this.cdr.detectChanges();
-            setTimeout(() => this.router.navigate(['/pedidos']), 2000);
-          },
-          error: () => {
-            this.errorMsg = 'Pago procesado pero error al confirmar en backend';
-            this.procesando = false;
-            this.cdr.detectChanges();
-          }
-        });
-      }
-    });
-  }
-
-  // ============================================================
-  // QR de pago
-  // ============================================================
-  cambiarMetodoPago(metodo: 'tarjeta' | 'qr'): void {
+  cambiarMetodoPago(metodo: MetodoPago): void {
     this.metodoPago = metodo;
     this.errorMsg = '';
-    if (metodo === 'qr' && !this.qrDataUrl) {
-      this.generarQr();
-    }
+    this.intentoPagar = false;
   }
 
-  async generarQr(): Promise<void> {
-    if (!this.pedido) return;
-    this.qrGenerando = true;
+  // --- Formateo / validación visual tarjeta ---
+  onNumeroInput(): void {
+    const digits = this.numeroTarjeta.replace(/\D/g, '').slice(0, 16);
+    this.numeroTarjeta = digits.replace(/(.{4})/g, '$1 ').trim();
+  }
+
+  onFechaInput(): void {
+    const digits = this.fechaExp.replace(/\D/g, '').slice(0, 4);
+    if (digits.length <= 2) this.fechaExp = digits;
+    else this.fechaExp = digits.slice(0, 2) + '/' + digits.slice(2);
+  }
+
+  onCvcInput(): void {
+    this.cvc = this.cvc.replace(/\D/g, '').slice(0, 4);
+  }
+
+  get numeroValido(): boolean {
+    return this.numeroTarjeta.replace(/\s/g, '').length === 16;
+  }
+
+  get fechaValida(): boolean {
+    if (!/^\d{2}\/\d{2}$/.test(this.fechaExp)) return false;
+    const [mm, aa] = this.fechaExp.split('/').map(Number);
+    if (mm < 1 || mm > 12) return false;
+    // validación simple: no exigir futuro estricto en simulación, solo formato/mes válido
+    return aa >= 0 && aa <= 99;
+  }
+
+  get cvcValido(): boolean {
+    return this.cvc.length >= 3 && this.cvc.length <= 4;
+  }
+
+  get tarjetaValida(): boolean {
+    return this.numeroValido && this.fechaValida && this.cvcValido;
+  }
+
+  claseInput(valido: boolean, valor: string): string {
+    const base = 'w-full rounded-xl border px-3 py-2.5 text-sm outline-none transition-all bg-white';
+    if (!this.intentoPagar && !valor) return base + ' border-ms-stone-200 focus:border-ms-amber focus:ring-2 focus:ring-ms-amber/20';
+    if (valido) return base + ' border-emerald-400 focus:ring-2 focus:ring-emerald-200';
+    return base + ' border-red-400 focus:ring-2 focus:ring-red-200';
+  }
+
+  // [Segundo Parcial] CU02 - Envío de pago simulado al backend
+  confirmarPago(): void {
+    if (!this.pedido || this.procesando) return;
     this.errorMsg = '';
-    try {
-      const data = `MenStyle|PAGO|${this.pedido.id}|${this.pedido.total.toFixed(2)}|${Date.now()}`;
-      this.qrDataUrl = await QRCode.toDataURL(data, {
-        width: 300,
-        margin: 2,
-        color: { dark: '#1f2937', light: '#ffffff' },
-      });
-    } catch (e) {
-      this.errorMsg = 'No se pudo generar el QR';
-    } finally {
-      this.qrGenerando = false;
-      this.cdr.detectChanges();
-    }
-  }
 
-  registrarPagoQr(): void {
-    if (!this.pedido) return;
-    const referencia = `QR-${Date.now()}`;
+    if (this.metodoPago === 'tarjeta') {
+      this.intentoPagar = true;
+      if (!this.tarjetaValida) {
+        this.errorMsg = 'Revisa los datos de la tarjeta.';
+        this.cdr.detectChanges();
+        return;
+      }
+    }
+
     this.procesando = true;
-    this.errorMsg = '';
+    const referencia = this.metodoPago === 'tarjeta'
+      ? `SIM-TARJETA-${Date.now()}`
+      : this.metodoPago === 'qr' ? `QR-${Date.now()}` : `EFECTIVO-${Date.now()}`;
 
     this.pagosService.registrarPago({
       pedido_id: this.pedido.id,
-      metodo: 'qr',
+      metodo: this.metodoPago,
       monto: this.pedido.total,
       referencia,
     }).subscribe({
-      next: () => {
+      next: (pago) => {
         this.procesando = false;
-        this.qrRegistrado = true;
-        this.exitoMsg = 'Pago por QR registrado. Esperando confirmación.';
+        if (this.metodoPago === 'tarjeta') {
+          this.exitoMsg = '¡Pago exitoso!';
+        } else if (this.metodoPago === 'qr') {
+          this.exitoMsg = 'Pedido registrado. Tu pago por QR quedó como Pendiente de Pago.';
+        } else {
+          this.exitoMsg = 'Pedido registrado. Tu pago en efectivo quedó como Pendiente de Pago (reservado por 24 horas).';
+        }
+        if (pago?.estado === 'aprobado' || this.pedido) {
+          if (this.pedido) this.pedido = { ...this.pedido, estado: pago?.estado === 'aprobado' ? 'pagado' : 'pendiente_pago' };
+        }
         this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/pedidos']), 2500);
       },
       error: (err) => {
         this.procesando = false;
-        this.errorMsg = err.error?.detail || 'Error registrando pago QR';
+        this.errorMsg = err?.error?.detail || 'Error al procesar el pago';
         this.cdr.detectChanges();
-      },
+      }
     });
-  }
-
-  ngOnDestroy(): void {
-    if (this.card) {
-      try { this.card.destroy(); } catch {}
-    }
   }
 }

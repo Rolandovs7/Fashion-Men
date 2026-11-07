@@ -21,6 +21,14 @@ export interface SuscripcionActual {
   estado: string;
 }
 
+/** [Segundo Parcial] CU02 - Inicio checkout simulado */
+export interface CheckoutPlanResponse {
+  checkout_url: string;
+  plan_id: number;
+  plan_nombre: string;
+  monto: number | string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,7 +52,13 @@ export class SuscripcionService {
     return this.http.get<SuscripcionActual>(`${this.apiUrl}/mi-suscripcion`, { headers: this.headers() });
   }
 
-  cambiarPlan(plan_id: number): Observable<SuscripcionActual> {
-    return this.http.put<SuscripcionActual>(`${this.apiUrl}/cambiar-plan`, { plan_id }, { headers: this.headers() });
+  /** [Segundo Parcial] CU02 - Inicia checkout (devuelve checkout_url simulado, no cambia el plan). */
+  iniciarCheckout(plan_id: number): Observable<CheckoutPlanResponse> {
+    return this.http.put<CheckoutPlanResponse>(`${this.apiUrl}/cambiar-plan`, { plan_id }, { headers: this.headers() });
+  }
+
+  /** [Segundo Parcial] CU02 - Confirma pago simulado y aplica cambio real. */
+  confirmarPago(plan_id: number, payment_status = 'success'): Observable<SuscripcionActual> {
+    return this.http.post<SuscripcionActual>(`${this.apiUrl}/confirmar-pago`, { plan_id, payment_status }, { headers: this.headers() });
   }
 }

@@ -29,3 +29,17 @@ class SuscripcionActualRead(BaseModel):
 
 class CambiarPlanRequest(BaseModel):
     plan_id: int = Field(..., gt=0)
+
+
+class CheckoutPlanResponse(BaseModel):
+    """[Segundo Parcial] CU02 - Respuesta de inicio de checkout (simulado)."""
+    checkout_url: str
+    plan_id: int
+    plan_nombre: str
+    monto: Decimal
+
+
+class ConfirmarPagoRequest(BaseModel):
+    """[Segundo Parcial] CU02 - Confirmación de pago (simulación Stripe Billing)."""
+    plan_id: int = Field(..., gt=0)
+    payment_status: str = Field(..., min_length=1)  # ej: 'success'

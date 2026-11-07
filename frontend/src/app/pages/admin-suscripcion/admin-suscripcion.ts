@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { SuscripcionService, Plan, SuscripcionActual } from '../../core/services/suscripcion.service';
 import { ToastService } from '../../shared/ui/toast/toast.service';
@@ -15,6 +16,7 @@ export class AdminSuscripcion implements OnInit {
   private suscripcionService = inject(SuscripcionService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   cargando = true;
   cambiando = false;
@@ -52,18 +54,25 @@ export class AdminSuscripcion implements OnInit {
     return `$${n.toFixed(n % 1 === 0 ? 0 : 2)}/mes`;
   }
 
+  /** [Segundo Parcial] CU02 - Inicia checkout simulado antes de cambiar el plan */
   cambiarPlan(plan: Plan): void {
     if (this.esPlanActual(plan) || this.cambiando) return;
     this.cambiando = true;
-    this.suscripcionService.cambiarPlan(plan.id).subscribe({
-      next: (s) => {
-        this.miSuscripcion = s;
-        this.toast.exito(`Plan actualizado a "${s.plan.nombre}" correctamente.`);
+    this.suscripcionService.iniciarCheckout(plan.id).subscribe({
+      next: (res) => {
         this.cambiando = false;
         this.cdr.detectChanges();
+        this.router.navigate(['/admin/checkout'], {
+          queryParams: {
+            plan_id: res.plan_id,
+            plan_nombre: res.plan_nombre,
+            monto: res.monto,
+            checkout_url: res.checkout_url,
+          },
+        });
       },
       error: (e) => {
-        const msg = e?.error?.detail || 'No se pudo cambiar el plan.';
+        const msg = e?.error?.detail || 'No se pudo iniciar el cambio de plan.';
         this.toast.error(msg);
         this.cambiando = false;
         this.cdr.detectChanges();

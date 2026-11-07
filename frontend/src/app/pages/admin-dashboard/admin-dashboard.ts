@@ -19,6 +19,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { LoaderComponent } from '../../shared/ui/loader/loader';
 import { AlertComponent } from '../../shared/ui/alert/alert';
+import { SuscripcionService } from '../../core/services/suscripcion.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -35,12 +36,16 @@ import { AlertComponent } from '../../shared/ui/alert/alert';
 export class AdminDashboard implements OnInit {
   private http = inject(HttpClient);
   private cdr = inject(ChangeDetectorRef);
+  private suscripcionService = inject(SuscripcionService);
 
   private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/reportes';
   private iaUrl = 'https://menstyle-api-n77g.onrender.com/api/ia';
 
   cargando = true;
   error = '';
+
+  // Restricción por plan: IA/ML solo si el plan lo permite (p.ej. Profesional)
+  permiteIA = false;
 
   kpis: any = null;
   ventasMes: any[] = [];
@@ -53,6 +58,7 @@ export class AdminDashboard implements OnInit {
   };
   barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
   };
 
   pieChartType: ChartType = 'pie';
@@ -62,6 +68,7 @@ export class AdminDashboard implements OnInit {
   };
   pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
   };
 
   // [Segundo Parcial] CU24 - Predicciones ML
@@ -74,11 +81,23 @@ export class AdminDashboard implements OnInit {
   };
   predChartOptions: ChartConfiguration['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
   };
 
   ngOnInit(): void {
     this.cargar();
-    this.cargarPredicciones();
+    this.suscripcionService.obtenerMiSuscripcion().subscribe({
+      next: (s) => {
+        const plan = s?.plan;
+        this.permiteIA = plan?.permite_ia === true || plan?.nombre === 'Profesional';
+        if (this.permiteIA) this.cargarPredicciones();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.permiteIA = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private headers(): HttpHeaders {

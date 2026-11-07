@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { SuscripcionService, Plan, SuscripcionActual } from '../../core/services/suscripcion.service';
 import { ToastService } from '../../shared/ui/toast/toast.service';
@@ -9,20 +9,29 @@ import { LoaderComponent, AlertComponent, BadgeComponent } from '../../shared/ui
 @Component({
   selector: 'app-admin-suscripcion',
   standalone: true,
-  imports: [CommonModule, AdminShellComponent, LoaderComponent, AlertComponent, BadgeComponent],
+  imports: [CommonModule, FormsModule, AdminShellComponent, LoaderComponent, AlertComponent, BadgeComponent],
   templateUrl: './admin-suscripcion.html'
 })
 export class AdminSuscripcion implements OnInit {
   private suscripcionService = inject(SuscripcionService);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
-  private router = inject(Router);
 
   cargando = true;
   cambiando = false;
   error = '';
   miSuscripcion: SuscripcionActual | null = null;
   planes: Plan[] = [];
+
+  // Modal de pago (simulado)
+  modalAbierto = false;
+  planSeleccionado: Plan | null = null;
+  procesandoPago = false;
+  errorPago = '';
+  titular = '';
+  numeroTarjeta = '';
+  fechaExp = '';
+  cvc = '';
 
   ngOnInit(): void {
     this.cargar();
@@ -54,27 +63,46 @@ export class AdminSuscripcion implements OnInit {
     return `$${n.toFixed(n % 1 === 0 ? 0 : 2)}/mes`;
   }
 
-  /** [Segundo Parcial] CU02 - Inicia checkout simulado antes de cambiar el plan */
+  /** Abre modal elegante para confirmar cambio de plan */
   cambiarPlan(plan: Plan): void {
-    if (this.esPlanActual(plan) || this.cambiando) return;
-    this.cambiando = true;
-    this.suscripcionService.iniciarCheckout(plan.id).subscribe({
-      next: (res) => {
-        this.cambiando = false;
-        this.cdr.detectChanges();
-        this.router.navigate(['/admin/checkout'], {
-          queryParams: {
-            plan_id: res.plan_id,
-            plan_nombre: res.plan_nombre,
-            monto: res.monto,
-            checkout_url: res.checkout_url,
-          },
-        });
+    if (this.esPlanActual(plan) || this.procesandoPago) return;
+    this.planSeleccionado = plan;
+    this.errorPago = '';
+    this.titular = '';
+    this.numeroTarjeta = '';
+    this.fechaExp = '';
+    this.cvc = '';
+    this.modalAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  cerrarModal(): void {
+    if (this.procesandoPago) return;
+    this.modalAbierto = false;
+    this.planSeleccionado = null;
+    this.errorPago = '';
+  }
+
+  pagar(): void {
+    if (!this.planSeleccionado || this.procesandoPago) return;
+    if (!this.titular.trim() || !this.numeroTarjeta.trim() || !this.fechaExp.trim() || !this.cvc.trim()) {
+      this.errorPago = 'Completa todos los datos de la tarjeta.';
+      return;
+    }
+    this.errorPago = '';
+    this.procesandoPago = true;
+    this.suscripcionService.confirmarPago(this.planSeleccionado.id, 'success').subscribe({
+      next: (s) => {
+        this.toast.exito(`Plan actualizado a "${s.plan?.nombre || this.planSeleccionado?.nombre}" correctamente.`);
+        this.procesandoPago = false;
+        this.modalAbierto = false;
+        this.planSeleccionado = null;
+        this.cargar();
       },
       error: (e) => {
-        const msg = e?.error?.detail || 'No se pudo iniciar el cambio de plan.';
-        this.toast.error(msg);
-        this.cambiando = false;
+        this.errorPago = e?.error?.detail || 'No se pudo confirmar el pago.';
+        this.toast.error(this.errorPago);
+        this.procesandoPago = false;
         this.cdr.detectChanges();
       }
     });

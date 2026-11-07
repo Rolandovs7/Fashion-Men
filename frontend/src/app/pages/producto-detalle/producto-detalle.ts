@@ -9,6 +9,7 @@ import { CarritoService } from '../../core/services/carrito.service';
 import { DescuentosService, Descuento } from '../../core/services/descuentos.service';
 import { IaService, ProductoSugerido } from '../../core/services/ia.service';
 import { AuthService } from '../../core/services/auth.service';
+import { OfflineDbService } from '../../core/services/offline-db.service';
 import { HeaderComponent } from '../../shared/header/header';
 import {
   ButtonComponent,
@@ -57,7 +58,7 @@ export class ProductoDetalle implements OnInit {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
-  private offlineDb: any = inject(require('../../core/services/offline-db.service').OfflineDbService);
+  private offlineDb = inject(OfflineDbService);
 
   producto: Producto | null = null;
   categoria: Categoria | null = null;

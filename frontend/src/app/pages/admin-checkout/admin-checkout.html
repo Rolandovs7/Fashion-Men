@@ -1,9 +1,5 @@
 <app-admin-shell titulo="Checkout de Suscripción">
   <div class="max-w-2xl mx-auto px-4 py-8">
-    <div class="mb-4 text-sm text-ms-slate">
-      <span class="font-semibold">[CU02]</span> Simulación de pasarela de pago (Stripe Billing). El plan se actualiza solo tras confirmar el pago.
-    </div>
-
     <app-alert *ngIf="error" tipo="error" [mensaje]="error"></app-alert>
 
     <div *ngIf="planId" class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -11,7 +7,6 @@
         <p class="text-xs uppercase tracking-widest text-gray-300">Resumen de pago</p>
         <h2 class="text-2xl font-bold mt-1">Plan {{ planNombre }}</h2>
         <p class="text-3xl font-extrabold mt-2">${{ monto }}<span class="text-base font-medium text-gray-300">/mes</span></p>
-        <p class="text-xs text-gray-400 mt-2 break-all" *ngIf="checkoutUrl">Sesión: {{ checkoutUrl }}</p>
       </div>
 
       <form (ngSubmit)="pagar()" class="p-6 space-y-4">

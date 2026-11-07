@@ -16,8 +16,7 @@ def registrar_pago(
     datos: PagoCrear
 ) -> Pago:
     # [Segundo Parcial] CU02/CU19 - Checkout tienda:
-    # tarjeta = simulación de aprobación (aprobado/pagado)
-    # qr/efectivo = registro pendiente (pendiente/pendiente_pago), no "Pagado"
+    # tarjeta, qr y efectivo = pago confirmado (aprobado/pagado) inmediatamente
     pedido = db.query(Pedido).filter(
         Pedido.id == datos.pedido_id,
         Pedido.usuario_id == usuario_id
@@ -63,20 +62,13 @@ def registrar_pago(
         )
 
     try:
+        # [Segundo Parcial] CU02 - Venta/pago confirmado: tarjeta, qr y efectivo quedan pagados inmediatamente
         ahora = datetime.now(timezone.utc)
-        if metodo_normalizado == "tarjeta":
-            estado_pago = "aprobado"
-            fecha_pago = ahora
-            estado_pedido = "pagado"
-            titulo_notif = "Pago Aprobado"
-            mensaje_notif = f"Se ha procesado exitosamente tu pago por ${round(float(datos.monto), 2):.2f} para el pedido #{pedido.id}."
-        else:
-            estado_pago = "pendiente"
-            fecha_pago = None
-            estado_pedido = "pendiente_pago"
-            etiqueta = "QR" if metodo_normalizado == "qr" else "efectivo"
-            titulo_notif = "Pago pendiente"
-            mensaje_notif = f"Tu pedido #{pedido.id} quedó en estado Pendiente de Pago ({etiqueta}) por ${round(float(datos.monto), 2):.2f}."
+        estado_pago = "aprobado"
+        fecha_pago = ahora
+        estado_pedido = "pagado"
+        titulo_notif = "Pago Aprobado"
+        mensaje_notif = f"Se ha procesado exitosamente tu pago ({metodo_normalizado}) por ${round(float(datos.monto), 2):.2f} para el pedido #{pedido.id}."
 
         nuevo_pago = Pago(
             pedido_id=datos.pedido_id,

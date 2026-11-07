@@ -1,3 +1,7 @@
+/**
+ * [Segundo Parcial] CU15 - Instalar PWA
+ * [Segundo Parcial] CU16 - Consultar catálogo local
+ */
 import {
   Component,
   OnInit,
@@ -75,6 +79,7 @@ export class Catalogo implements OnInit {
   cargandoVariantes = false;
   error = '';
   filtrosAbiertos = false;
+  isOffline = false;
 
   tallas: Talla[] = [];
   colores: Color[] = [];
@@ -91,6 +96,9 @@ export class Catalogo implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.isOffline = !navigator.onLine;
+    window.addEventListener('online', () => { this.isOffline = false; this.cdr.detectChanges(); });
+    window.addEventListener('offline', () => { this.isOffline = true; this.cdr.detectChanges(); });
     this.cargarDatos();
     this.cargarRecomendaciones();
     this.cargarCatalogoTallasYColores();
@@ -99,6 +107,7 @@ export class Catalogo implements OnInit {
   cargarDatos(): void {
     this.cargando = true;
     this.error = '';
+    this.isOffline = !navigator.onLine;
 
     this.categoriasService.listar(true).subscribe({
       next: (categorias) => {
@@ -110,15 +119,19 @@ export class Catalogo implements OnInit {
 
     this.productosService.listar().subscribe({
       next: (productos) => {
-        this.productos = productos.filter(p => p.activo).sort((a, b) => a.id - b.id);
+        this.productos = (productos || []).filter(p => p.activo).sort((a, b) => a.id - b.id);
         this.idsNuevos = new Set(
           [...this.productos].sort((a, b) => b.id - a.id).slice(0, 6).map(p => p.id)
         );
         this.cargando = false;
+        if (!navigator.onLine) {
+          this.isOffline = true;
+        }
         this.cdr.detectChanges();
       },
       error: () => {
-        this.error = 'No se pudo cargar el catálogo. Intenta nuevamente más tarde.';
+        this.isOffline = true;
+        this.error = 'Estás viendo información guardada. Puede estar desactualizada.';
         this.cargando = false;
         this.cdr.detectChanges();
       }

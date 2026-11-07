@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timezone
+from datetime import datetime, timezone
 from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ def registrar_pago(
     usuario_id: int,
     datos: PagoCrear
 ) -> Pago:
+    # [Segundo Parcial] CU02/CU19 - Checkout tienda:
+    # tarjeta, qr y efectivo = pago confirmado (aprobado/pagado) inmediatamente
     pedido = db.query(Pedido).filter(
         Pedido.id == datos.pedido_id,
         Pedido.usuario_id == usuario_id
@@ -43,13 +45,15 @@ def registrar_pago(
             detail="Ya existe un pago aprobado registrado para este pedido"
         )
 
-    metodos_permitidos = payment_type_service.nombres_tipos_pago_activos(db)
     metodo_normalizado = datos.metodo.strip().lower()
-    if metodo_normalizado not in metodos_permitidos:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Método de pago no válido. Permitidos: {', '.join(metodos_permitidos)}"
-        )
+    metodos_simulados = {"tarjeta", "qr", "efectivo"}
+    if metodo_normalizado not in metodos_simulados:
+        metodos_permitidos = payment_type_service.nombres_tipos_pago_activos(db)
+        if metodo_normalizado not in metodos_permitidos:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Método de pago no válido. Permitidos: {', '.join(sorted(set(metodos_permitidos) | metodos_simulados))}"
+            )
 
     if round(float(datos.monto), 2) != round(float(pedido.total), 2):
         raise HTTPException(
@@ -57,25 +61,32 @@ def registrar_pago(
             detail=f"El monto del pago (${datos.monto:.2f}) no coincide exactamente con el total del pedido (${pedido.total:.2f})"
         )
 
-
     try:
+        # [Segundo Parcial] CU02 - Venta/pago confirmado: tarjeta, qr y efectivo quedan pagados inmediatamente
+        ahora = datetime.now(timezone.utc)
+        estado_pago = "aprobado"
+        fecha_pago = ahora
+        estado_pedido = "pagado"
+        titulo_notif = "Pago Aprobado"
+        mensaje_notif = f"Se ha procesado exitosamente tu pago ({metodo_normalizado}) por ${round(float(datos.monto), 2):.2f} para el pedido #{pedido.id}."
+
         nuevo_pago = Pago(
             pedido_id=datos.pedido_id,
-            metodo=datos.metodo,
-            monto=round(datos.monto, 2),
-            estado="aprobado",
+            metodo=metodo_normalizado,
+            monto=round(float(datos.monto), 2),
+            estado=estado_pago,
             referencia=datos.referencia,
-            fecha_pago=datetime.now(timezone.utc)
+            fecha_pago=fecha_pago
         )
         db.add(nuevo_pago)
 
-        pedido.estado = "pagado"
+        pedido.estado = estado_pedido
 
         crear_notificacion(
             db,
             usuario_id=usuario_id,
-            titulo="Pago Aprobado",
-            mensaje=f"Se ha procesado exitosamente tu pago por ${nuevo_pago.monto:.2f} para el pedido #{pedido.id}."
+            titulo=titulo_notif,
+            mensaje=mensaje_notif
         )
 
         db.commit()

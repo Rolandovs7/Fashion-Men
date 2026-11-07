@@ -12,7 +12,7 @@ import { NotificacionesService } from '../../core/services/notificaciones.servic
   templateUrl: './header.html'
 })
 export class HeaderComponent implements OnInit {
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private carritoService = inject(CarritoService);
   private notifService = inject(NotificacionesService);
   private router = inject(Router);
@@ -39,7 +39,7 @@ export class HeaderComponent implements OnInit {
   }
 
   esAdministrador(): boolean {
-    return this.usuario?.rol === 'administrador';
+    return this.usuario?.rol === 'administrador' || this.usuario?.rol === 'superadmin';
   }
 
   toggleMenu(): void {

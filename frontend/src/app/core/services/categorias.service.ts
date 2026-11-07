@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 export interface Categoria {
   id: number;
@@ -21,6 +22,7 @@ export interface CategoriaCrear {
 export class CategoriasService {
   private http = inject(HttpClient);
   private apiUrl = 'https://menstyle-api-n77g.onrender.com/api/categorias';
+  private cacheKey = 'menstyle_cache_categorias';
 
   private headers(): HttpHeaders {
     return new HttpHeaders({
@@ -29,8 +31,28 @@ export class CategoriasService {
   }
 
   listar(soloActivos = true): Observable<Categoria[]> {
+    if (!navigator.onLine) {
+      try {
+        const cached = localStorage.getItem(this.cacheKey);
+        if (cached) {
+          const data = JSON.parse(cached) as Categoria[];
+          return of(soloActivos ? data.filter(d => d.activo) : data);
+        }
+      } catch {
+        // ignore
+      }
+      return of([]);
+    }
     return this.http.get<Categoria[]>(
       `${this.apiUrl}?solo_activos=${soloActivos}`
+    ).pipe(
+      tap((data) => {
+        try {
+          localStorage.setItem(this.cacheKey, JSON.stringify(data));
+        } catch {
+          // ignore
+        }
+      })
     );
   }
 

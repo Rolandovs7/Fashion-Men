@@ -1,3 +1,8 @@
+/**
+ * [Segundo Parcial] CU22 - Exportación de reportes
+ * [Segundo Parcial] CU25 - Dashboard analítico
+ * [Segundo Parcial] RNF02 - Aislamiento por empresa
+ */
 import {
   Component, OnInit, AfterViewInit, OnDestroy,
   inject, ChangeDetectorRef, ViewChild, ElementRef,
@@ -5,6 +10,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import {
   ReportsService,
@@ -127,6 +135,99 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
     this.reportsService.ventasPorSucursal().subscribe({
       next: (d) => { this.ventasSucursal = d; listo(); }, error: fallo,
     });
+  }
+
+  exportarExcel(): void {
+    try {
+      const datos = this.productosTop.map((p: any) => ({
+        'Fecha de Venta': p.fecha || '',
+        Sucursal: p.sucursal || '',
+        Cliente: p.cliente || '',
+        'Método de Pago': p.metodo_pago || '',
+        Producto: p.nombre || p.producto || '',
+        'Cantidad Vendida': p.cantidad || p.total_vendido || 0,
+        'Ingresos (Bs)': Number(p.ingresos || 0).toFixed(2),
+      }));
+      let totalIngresos = 0;
+      let totalPrendas = 0;
+      for (const p of this.productosTop as any[]) {
+        totalIngresos += Number(p.ingresos || 0);
+        totalPrendas += Number(p.cantidad || p.total_vendido || 0);
+      }
+      datos.push({
+        'Fecha de Venta': '',
+        Sucursal: '',
+        Cliente: '',
+        'Método de Pago': '',
+        Producto: 'TOTAL GENERAL',
+        'Cantidad Vendidas': totalPrendas,
+        'Ingresos (Bs)': totalIngresos.toFixed(2),
+      } as any);
+      const ws = XLSX.utils.json_to_sheet(datos);
+      const colWidths = [
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 28 },
+        { wch: 16 },
+        { wch: 40 },
+        { wch: 18 },
+        { wch: 18 },
+      ];
+      ws['!cols'] = colWidths;
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Reporte Ventas');
+      XLSX.writeFile(wb, 'reporte_menstyle_ventas.xlsx');
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  exportarPDF(): void {
+    try {
+      const doc = new jsPDF({ orientation: 'landscape' });
+      const fecha = new Date().toLocaleString();
+      doc.setFontSize(16);
+      doc.text('MenStyle - Reporte de Ventas', 14, 16);
+      doc.setFontSize(9);
+      doc.text(`Fecha de emisión: ${fecha}`, 14, 22);
+      doc.text('Empresa: MenStyle', 14, 27);
+
+      const rows = this.productosTop.map((p: any) => [
+        p.fecha || '',
+        p.sucursal || '',
+        p.cliente || '',
+        p.metodo_pago || '',
+        p.nombre || p.producto || '',
+        String(p.cantidad || p.total_vendido || 0),
+        Number(p.ingresos || 0).toFixed(2),
+      ]);
+      let totalIngresos = 0;
+      let totalPrendas = 0;
+      for (const p of this.productosTop as any[]) {
+        totalIngresos += Number(p.ingresos || 0);
+        totalPrendas += Number(p.cantidad || p.total_vendido || 0);
+      }
+      rows.push(['', '', '', '', 'TOTAL GENERAL', String(totalPrendas), totalIngresos.toFixed(2)]);
+
+      autoTable(doc, {
+        head: [['Fecha', 'Sucursal', 'Cliente', 'Método Pago', 'Producto', 'Cantidad', 'Ingresos (Bs)']],
+        body: rows,
+        startY: 32,
+        styles: { fontSize: 7, cellPadding: 2 },
+        headStyles: { fillColor: [10, 10, 10], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 245, 245] },
+        didParseCell: (data: any) => {
+          if (data.row.index === rows.length - 1 && data.section === 'body') {
+            data.cell.styles.fillColor = [217, 119, 6];
+            data.cell.styles.textColor = [255, 255, 255];
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+      });
+      doc.save('reporte_menstyle_ventas.pdf');
+    } catch (e) {
+      // ignore
+    }
   }
 
   private renderizarGraficos(): void {

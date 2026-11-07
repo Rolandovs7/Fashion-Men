@@ -9,6 +9,7 @@ import { CarritoService } from '../../core/services/carrito.service';
 import { DescuentosService, Descuento } from '../../core/services/descuentos.service';
 import { IaService, ProductoSugerido } from '../../core/services/ia.service';
 import { AuthService } from '../../core/services/auth.service';
+import { OfflineDbService } from '../../core/services/offline-db.service';
 import { HeaderComponent } from '../../shared/header/header';
 import {
   ButtonComponent,
@@ -57,6 +58,7 @@ export class ProductoDetalle implements OnInit {
   private authService = inject(AuthService);
   private toastService = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private offlineDb = inject(OfflineDbService);
 
   producto: Producto | null = null;
   categoria: Categoria | null = null;
@@ -372,10 +374,32 @@ export class ProductoDetalle implements OnInit {
     });
   }
 
-  reservar(): void {
+  async reservar(): Promise<void> {
     if (!this.varianteActual) {
       this.toastService.aviso('Primero elegí talla y color.');
       return;
+    }
+    if (!navigator.onLine) {
+      try {
+        await this.offlineDb.guardarOperacionPendiente({
+          tipo: 'reserva',
+          productos: [{
+            variante_id: this.varianteActual.id,
+            cantidad: 1,
+            precio_unitario: this.precioConDescuento,
+            precio: this.precioConDescuento
+          }],
+          monto: this.precioConDescuento,
+          datosExtra: {
+            producto_id: this.producto?.id
+          }
+        });
+        this.toastService.exito('No hay conexión. La venta se guardó localmente y se enviará al recuperar internet.');
+        return;
+      } catch (e) {
+        this.toastService.error('No se pudo guardar la reserva offline.');
+        return;
+      }
     }
     this.toastService.info('Las reservas se gestionan desde tu cuenta.');
     this.router.navigate(['/reservas']);

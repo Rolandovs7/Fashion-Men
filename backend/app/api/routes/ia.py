@@ -10,7 +10,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import obtener_db, obtener_usuario_actual
+from app.core.dependencies import obtener_db, obtener_usuario_actual, requerir_suscripcion_vigente
 from app.models.user import Usuario
 from app.services.ia_service import IAService
 from app.schemas.ia import (
@@ -28,7 +28,8 @@ router = APIRouter(tags=["Inteligencia Artificial"])
 def recomendar_prendas(
     req: RecomendacionRequest,
     db: Session = Depends(obtener_db),
-    usuario: Usuario = Depends(obtener_usuario_actual)
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
 ):
     """
     CU31 - Recibir Recomendaciones (IA)
@@ -69,3 +70,48 @@ def productos_tendencia(
     """
     service = IAService(db)
     return service.productos_tendencia(limite)
+
+# ============================================================
+# [Segundo Parcial] CU23 - Reportes Generativos (Text-to-SQL)
+# [Segundo Parcial] RN-IA-01 - Seguridad SQL
+# ============================================================
+from app.schemas.ia import ConsultarIARequest, ConsultarIAResponse, PrediccionesResponse
+from app.core.dependencies import get_current_empresa_id
+
+
+@router.post("/consultar", response_model=ConsultarIAResponse)
+def consultar_ia_natural(
+    req: ConsultarIARequest,
+    db: Session = Depends(obtener_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
+):
+    """
+    CU23 - Reportes Generativos (Text-to-SQL con Gemini)
+    RN-IA-01 - Solo SELECT, sin comandos destructivos, filtro empresa_id obligatorio
+    """
+    service = IAService(db)
+    try:
+        resultado = service.consultar_sql_natural(req.pregunta, empresa_id)
+        return resultado
+    except ValueError as e:
+        return {"sql": "", "columnas": [], "resultados": [], "mensaje": str(e)}
+
+
+# ============================================================
+# [Segundo Parcial] CU24 - Machine Learning (Predicciones)
+# ============================================================
+@router.get("/predicciones", response_model=PrediccionesResponse)
+def obtener_predicciones(
+    db: Session = Depends(obtener_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    empresa_id: int = Depends(get_current_empresa_id),
+    _suscripcion=Depends(requerir_suscripcion_vigente),
+):
+    """
+    CU24 - Machine Learning (Modelo Predictivo)
+    Devuelve datos históricos y predicción de ventas próximo mes
+    """
+    service = IAService(db)
+    return service.predecir_ventas(empresa_id)

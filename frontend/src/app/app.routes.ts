@@ -13,10 +13,16 @@ import { Checkout } from './pages/checkout/checkout';
 import { ReservasPage } from './pages/reservas/reservas';
 import { AdminCatalogo } from './pages/admin-catalogo/admin-catalogo';
 import { AdminOperaciones } from './pages/admin-operaciones/admin-operaciones';
+import { OperacionesPendientes } from './pages/operaciones-pendientes/operaciones-pendientes';
 import { PuntoVenta } from './pages/punto-venta/punto-venta';
 import { AdminConfiguracion } from './pages/admin-configuracion/admin-configuracion';
 import { AdminInventario } from './pages/admin-inventario/admin-inventario';
 import { AdminReportes } from './pages/admin-reportes/admin-reportes';
+import { AdminAsistenteIa } from './pages/admin-asistente-ia/admin-asistente-ia';
+import { AdminSuscripcion } from './pages/admin-suscripcion/admin-suscripcion';
+import { AdminEmpresas } from './pages/admin-empresas/admin-empresas';
+import { AdminCheckout } from './pages/admin-checkout/admin-checkout';
+import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { authGuard, adminGuard } from './core/guards/auth.guard';
 import { ForgotPassword } from './pages/forgot-password/forgot-password';
 import { ResetPassword } from './pages/reset-password/reset-password';
@@ -108,6 +114,11 @@ export const routes: Routes = [
     canActivate: [adminGuard]
   },
   {
+    path: 'admin/operaciones-pendientes',
+    component: OperacionesPendientes,
+    canActivate: [adminGuard]
+  },
+  {
     path: 'admin/punto-venta',
     component: PuntoVenta,
     canActivate: [adminGuard]
@@ -125,6 +136,31 @@ export const routes: Routes = [
   {
     path: 'admin/reportes',
     component: AdminReportes,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/dashboard',
+    component: AdminDashboard,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/asistente-ia',
+    component: AdminAsistenteIa,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/suscripcion',
+    component: AdminSuscripcion,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/checkout',
+    component: AdminCheckout,
+    canActivate: [adminGuard]
+  },
+  {
+    path: 'admin/empresas',
+    component: AdminEmpresas,
     canActivate: [adminGuard]
   },
   {

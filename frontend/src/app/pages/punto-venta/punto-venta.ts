@@ -1,3 +1,6 @@
+/**
+ * [Segundo Parcial] CU17 - Registrar venta offline
+ */
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +14,7 @@ import { TiposPagoService, TipoPago } from '../../core/services/tipos-pago.servi
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
 import { ReciboComponent } from '../../shared/recibo/recibo';
 import { ToastService } from '../../shared/ui/toast/toast.service';
+import { OfflineDbService } from '../../core/services/offline-db.service';
 import {
   ButtonComponent,
   InputComponent,
@@ -47,6 +51,7 @@ export class PuntoVenta implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
   private cdr = inject(ChangeDetectorRef);
+  private offlineDb = inject(OfflineDbService);
 
   clientes: Usuario[] = [];
   sucursales: Sucursal[] = [];
@@ -80,22 +85,108 @@ export class PuntoVenta implements OnInit {
       }
     });
 
-    this.usuariosService.listar().subscribe({
-      next: (usuarios) => {
-        this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
-        this.cargando = false;
-        this.cdr.detectChanges();
-      },
-      error: () => { this.cargando = false; }
-    });
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cachedClientes = localStorage.getItem('menstyle_cache_clientes');
+        if (cachedClientes) {
+          const usuarios = JSON.parse(cachedClientes) as Usuario[];
+          this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        const cachedSuc = localStorage.getItem('menstyle_cache_sucursales');
+        if (cachedSuc) {
+          this.sucursales = JSON.parse(cachedSuc) as Sucursal[];
+        }
+      } catch {
+        // ignore
+      }
+      this.cargando = false;
+      this.cdr.detectChanges();
+    } else {
+      this.usuariosService.listar().subscribe({
+        next: (usuarios) => {
+          this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+          try {
+            localStorage.setItem('menstyle_cache_clientes', JSON.stringify(usuarios));
+          } catch {
+            // ignore
+          }
+          this.cargando = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          try {
+            const cachedClientes = localStorage.getItem('menstyle_cache_clientes');
+            if (cachedClientes) {
+              const usuarios = JSON.parse(cachedClientes) as Usuario[];
+              this.clientes = usuarios.filter(u => u.rol === 'cliente' && u.activo);
+            }
+          } catch {
+            // ignore
+          }
+          this.cargando = false;
+        }
+      });
 
-    this.sucursalesService.listar(true).subscribe({
-      next: (s) => { this.sucursales = s; this.cdr.detectChanges(); }
-    });
+      this.sucursalesService.listar(true).subscribe({
+        next: (s) => {
+          this.sucursales = s;
+          try {
+            localStorage.setItem('menstyle_cache_sucursales', JSON.stringify(s));
+          } catch {
+            // ignore
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          try {
+            const cachedSuc = localStorage.getItem('menstyle_cache_sucursales');
+            if (cachedSuc) {
+              this.sucursales = JSON.parse(cachedSuc) as Sucursal[];
+            }
+          } catch {
+            // ignore
+          }
+        }
+      });
+    }
 
     this.productosService.listar().subscribe({
-      next: (p) => { this.productos = p.filter(prod => prod.activo); this.cdr.detectChanges(); }
+      next: (p) => {
+        this.productos = p.filter(prod => prod.activo);
+        this.cdr.detectChanges();
+        this.precargarVariantes();
+      }
     });
+  }
+
+  private precargarVariantes(): void {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      return;
+    }
+    for (const prod of this.productos) {
+      const cacheKey = `menstyle_cache_variantes_${prod.id}`;
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          continue;
+        }
+      } catch {
+        // ignore
+      }
+      this.variantesService.listarPorProducto(prod.id).subscribe({
+        next: (variantes) => {
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(variantes.filter(v => v.stock_disponible > 0)));
+          } catch {
+            // ignore
+          }
+        }
+      });
+    }
   }
 
   cargarVariantes(): void {
@@ -105,9 +196,32 @@ export class PuntoVenta implements OnInit {
       return;
     }
 
+    const cacheKey = `menstyle_cache_variantes_${this.productoSeleccionadoId}`;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      try {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const variantes = JSON.parse(cached) as Variante[];
+          this.variantesDisponibles = variantes.filter(v => v.stock_disponible > 0);
+          this.cdr.detectChanges();
+          return;
+        }
+      } catch {
+        // ignore
+      }
+      this.variantesDisponibles = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.variantesService.listarPorProducto(this.productoSeleccionadoId).subscribe({
       next: (variantes) => {
         this.variantesDisponibles = variantes.filter(v => v.stock_disponible > 0);
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(this.variantesDisponibles));
+        } catch {
+          // ignore
+        }
         this.cdr.detectChanges();
       }
     });
@@ -146,7 +260,7 @@ export class PuntoVenta implements OnInit {
     return this.itemsVenta.reduce((acc, i) => acc + i.producto.precio * i.cantidad, 0);
   }
 
-  registrarVenta(): void {
+  async registrarVenta(): Promise<void> {
     if (!this.clienteId) {
       this.error = 'Selecciona el cliente que realiza la compra.';
       return;
@@ -165,6 +279,43 @@ export class PuntoVenta implements OnInit {
       cantidad: i.cantidad
     }));
 
+    const guardarOffline = async () => {
+      try {
+        await this.offlineDb.guardarOperacionPendiente({
+          tipo: 'venta',
+          productos: this.itemsVenta.map(i => ({
+            variante_id: i.variante.id,
+            cantidad: i.cantidad,
+            precio_unitario: i.producto.precio,
+            precio: i.producto.precio
+          })),
+          monto: this.total,
+          datosExtra: {
+            cliente_id: this.clienteId,
+            sucursal_id: this.sucursalId,
+            metodo_pago: this.metodoPago
+          }
+        });
+        this.itemsVenta = [];
+        this.procesando = false;
+        this.mensaje = 'No hay conexión. La venta se guardó localmente y se enviará al recuperar internet.';
+        this.toast.exito(this.mensaje);
+        this.error = '';
+        this.cdr.detectChanges();
+        return true;
+      } catch (e) {
+        this.error = 'No se pudo guardar la venta offline.';
+        this.toast.error(this.error);
+        this.cdr.detectChanges();
+        return false;
+      }
+    };
+
+    if (!navigator.onLine) {
+      await guardarOffline();
+      return;
+    }
+
     this.procesando = true;
     this.error = '';
 
@@ -180,10 +331,13 @@ export class PuntoVenta implements OnInit {
         this.pedidoParaComprobante = pedido;
         this.cdr.detectChanges();
       },
-      error: (error) => {
+      error: async (error) => {
         this.procesando = false;
-        this.error = error.error?.detail || 'No se pudo registrar la venta.';
-        this.toast.error(this.error);
+        await guardarOffline();
+        if (!this.mensaje) {
+          this.error = error.error?.detail || 'No se pudo registrar la venta.';
+          this.toast.error(this.error);
+        }
         this.cdr.detectChanges();
       }
     });

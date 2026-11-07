@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 
 export interface Usuario {
   id: number;
@@ -60,6 +60,19 @@ export class AuthService {
   }
 
   obtenerUsuarioActual(): Observable<Usuario> {
+    if (typeof navigator !== 'undefined' && !navigator.onLine && this.getToken()) {
+      const cached = (() => {
+        try {
+          const raw = localStorage.getItem('menstyle_usuario_actual');
+          return raw ? JSON.parse(raw) : null;
+        } catch {
+          return null;
+        }
+      })();
+      if (cached) {
+        return of(cached);
+      }
+    }
     const token = this.getToken();
 
     const headers = new HttpHeaders({
@@ -69,6 +82,14 @@ export class AuthService {
     return this.http.get<Usuario>(
       `${this.apiUrl}/me`,
       { headers }
+    ).pipe(
+      tap((usuario) => {
+        try {
+          localStorage.setItem('menstyle_usuario_actual', JSON.stringify(usuario));
+        } catch {
+          // ignore
+        }
+      })
     );
   }
 
@@ -77,6 +98,9 @@ export class AuthService {
   }
 
   estaAutenticado(): boolean {
+    if (typeof navigator !== 'undefined' && !navigator.onLine && this.getToken()) {
+      return true;
+    }
     return !!this.getToken();
   }
 

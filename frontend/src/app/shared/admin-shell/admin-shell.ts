@@ -8,11 +8,13 @@ interface EnlaceAdmin {
   ruta: string;
   etiqueta: string;
   icono: string;
+  soloSuperAdmin?: boolean;
 }
 
 interface GrupoAdmin {
   titulo: string;
   enlaces: EnlaceAdmin[];
+  soloSuperAdmin?: boolean;
 }
 
 @Component({
@@ -44,12 +46,15 @@ export class AdminShellComponent implements OnInit {
       enlaces: [
         { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta' },
         { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas' },
+        { ruta: '/admin/operaciones-pendientes', etiqueta: 'Operaciones Pendientes', icono: 'offline' },
       ]
     },
     {
       titulo: 'Reportes',
       enlaces: [
+        { ruta: '/admin/dashboard', etiqueta: 'Dashboard', icono: 'reportes' },
         { ruta: '/admin/reportes', etiqueta: 'Estadísticas', icono: 'reportes' },
+        { ruta: '/admin/asistente-ia', etiqueta: 'Asistente IA', icono: 'ia' },
       ]
     },
     {
@@ -57,16 +62,30 @@ export class AdminShellComponent implements OnInit {
       enlaces: [
         { ruta: '/usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
         { ruta: '/permisos', etiqueta: 'Permisos', icono: 'permisos' },
+        { ruta: '/admin/suscripcion', etiqueta: 'Mi Suscripción', icono: 'suscripcion' },
         { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config' },
+      ]
+    },
+    {
+      titulo: 'Plataforma',
+      soloSuperAdmin: true,
+      enlaces: [
+        { ruta: '/admin/empresas', etiqueta: 'Empresas', icono: 'empresas', soloSuperAdmin: true },
       ]
     }
   ];
 
   ngOnInit(): void {
-    this.authService.obtenerUsuarioActual().subscribe({
-      next: (usuario) => (this.usuario = usuario),
-      error: () => {}
-    });
+    try {
+      if (this.authService.estaAutenticado()) {
+        this.authService.obtenerUsuarioActual().subscribe({
+          next: (usuario) => (this.usuario = usuario),
+          error: () => {}
+        });
+      }
+    } catch {
+      // ignore
+    }
   }
 
   irATienda(): void {
@@ -90,5 +109,26 @@ export class AdminShellComponent implements OnInit {
     const nombre = this.usuario?.nombre ?? '';
     const apellido = this.usuario?.apellido ?? '';
     return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase() || 'U';
+  }
+
+  esSuperAdmin(): boolean {
+    return this.usuario?.rol === 'superadmin';
+  }
+
+  puedeVerGrupo(grupo: GrupoAdmin): boolean {
+    return !grupo.soloSuperAdmin || this.esSuperAdmin();
+  }
+
+  puedeVerEnlace(enlace: EnlaceAdmin): boolean {
+    return !enlace.soloSuperAdmin || this.esSuperAdmin();
+  }
+
+  etiquetaRol(): string {
+    const rol = this.usuario?.rol;
+    if (rol === 'superadmin') return 'SuperAdmin';
+    if (rol === 'administrador') return 'Administrador';
+    if (rol === 'vendedor') return 'Vendedor';
+    if (rol === 'cliente') return 'Cliente';
+    return rol ? rol.charAt(0).toUpperCase() + rol.slice(1) : '';
   }
 }

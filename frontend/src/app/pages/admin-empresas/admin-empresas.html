@@ -1,0 +1,35 @@
+<app-admin-shell titulo="Empresas (SuperAdmin)">
+  <div class="max-w-3xl mx-auto px-4 py-6">
+    <app-alert *ngIf="rol && !esSuperAdmin()" tipo="error" mensaje="Acceso restringido a superadministradores."></app-alert>
+
+    <form *ngIf="esSuperAdmin()" (ngSubmit)="guardar()" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
+      <h2 class="text-xl font-bold text-gray-900">Registrar nueva empresa</h2>
+      <app-alert *ngIf="error" tipo="error" [mensaje]="error"></app-alert>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Nombre de la empresa *</label>
+        <input [(ngModel)]="form.nombre_empresa" name="nombre_empresa" required class="w-full border border-gray-300 rounded-xl px-3 py-2" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Plan inicial *</label>
+        <select [(ngModel)]="form.plan_id" name="plan_id" required class="w-full border border-gray-300 rounded-xl px-3 py-2">
+          <option *ngFor="let p of planes" [ngValue]="p.id">{{ p.nombre }} (${{ p.precio_mensual }}/mes)</option>
+        </select>
+      </div>
+
+      <hr class="my-2" />
+      <p class="text-sm text-gray-600 font-semibold">Administrador inicial (opcional)</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input [(ngModel)]="form.admin_nombre" name="admin_nombre" placeholder="Nombre" class="border border-gray-300 rounded-xl px-3 py-2" />
+        <input [(ngModel)]="form.admin_apellido" name="admin_apellido" placeholder="Apellido" class="border border-gray-300 rounded-xl px-3 py-2" />
+        <input [(ngModel)]="form.admin_email" name="admin_email" type="email" placeholder="Email" class="border border-gray-300 rounded-xl px-3 py-2" />
+        <input [(ngModel)]="form.admin_password" name="admin_password" type="password" placeholder="Contraseña" class="border border-gray-300 rounded-xl px-3 py-2" />
+      </div>
+
+      <button type="submit" [disabled]="guardando" class="w-full py-2.5 px-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 transition disabled:opacity-60">
+        {{ guardando ? 'Guardando...' : 'Crear empresa y asignar plan' }}
+      </button>
+    </form>
+  </div>
+</app-admin-shell>

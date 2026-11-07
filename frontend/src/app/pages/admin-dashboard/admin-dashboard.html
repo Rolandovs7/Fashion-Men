@@ -1,0 +1,82 @@
+<app-admin-shell titulo="Dashboard Analítico">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full bg-ms-alabaster">
+    <nav class="flex items-center gap-2 text-xs font-medium text-ms-slate mb-8">
+      <span>Administración</span>
+      <span class="text-ms-outline">/</span>
+      <span class="text-ms-ink">Dashboard</span>
+    </nav>
+
+    <div class="mb-8">
+      <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Analítica</p>
+      <h1 class="mt-2 font-display text-4xl lg:text-5xl tracking-[-0.02em] text-ms-ink">Dashboard</h1>
+      <p class="mt-2 text-sm text-ms-slate">Métricas consolidadas por empresa.</p>
+    </div>
+
+    @if (error) {
+      <app-alert tipo="error" titulo="Error" [mensaje]="error"></app-alert>
+    }
+
+    @if (cargando) {
+      <div class="py-20">
+        <app-loader size="md" texto="Cargando dashboard..." [centrado]="true"></app-loader>
+      </div>
+    } @else {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <p class="text-xs text-ms-slate uppercase tracking-widest">Ventas totales</p>
+          <p class="mt-2 text-2xl font-display text-ms-ink">Bs {{ kpis.total_ventas | number:'1.2-2' }}</p>
+        </div>
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <p class="text-xs text-ms-slate uppercase tracking-widest">Pedidos</p>
+          <p class="mt-2 text-2xl font-display text-ms-ink">{{ kpis.total_pedidos }}</p>
+        </div>
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <p class="text-xs text-ms-slate uppercase tracking-widest">Productos</p>
+          <p class="mt-2 text-2xl font-display text-ms-ink">{{ kpis.total_productos }}</p>
+        </div>
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <p class="text-xs text-ms-slate uppercase tracking-widest">Bajo stock</p>
+          <p class="mt-2 text-2xl font-display text-ms-ink">{{ kpis.productos_bajo_stock }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <h2 class="text-lg font-display text-ms-ink mb-4">Ventas por mes</h2>
+          <div class="relative h-64 w-full">
+            <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="barChartType"></canvas>
+          </div>
+        </div>
+        <div class="bg-ms-white rounded-2xl border border-ms-stone-200 shadow-card p-5">
+          <h2 class="text-lg font-display text-ms-ink mb-4">Ventas por sucursal</h2>
+          <div class="relative h-64 w-full max-w-md mx-auto">
+            <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="pieChartType"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- [Segundo Parcial] CU24 - Machine Learning Predicciones (solo si el plan permite IA) -->
+      @if (permiteIA) {
+        <section class="mt-10 mb-10">
+          <div class="rounded-2xl border border-ms-stone-200 bg-white shadow-[0_30px_60px_-40px_rgba(10,10,10,0.8)]">
+            <div class="flex flex-wrap items-center justify-between gap-4 border-b border-ms-stone-200 px-6 py-5">
+              <div>
+                <p class="text-[11px] uppercase tracking-[0.25em] text-ms-amber font-bold">Machine Learning</p>
+                <h2 class="mt-1 font-display text-2xl tracking-[-0.01em] text-ms-ink">Predicción de Ventas - Regresión Lineal (CU24)</h2>
+                <p class="mt-1 text-sm text-ms-slate">Ventas pasadas y proyección para el próximo mes.</p>
+              </div>
+            </div>
+            <div class="px-6 py-5">
+              <div class="relative h-80 w-full">
+                <canvas baseChart [data]="predChartData" [type]="predChartType" [options]="predChartOptions"></canvas>
+              </div>
+              @if (predicciones?.mensaje) {
+                <div class="mt-4 text-sm text-ms-slate">{{ predicciones.mensaje }}</div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    }
+  </div>
+</app-admin-shell>

@@ -64,3 +64,8 @@ watchfiles==1.2.0
 websockets==14.2
 slowapi==0.1.9
 google-genai==1.16.1
+google-genai
+scikit-learn
+pandas
+numpy
+groq

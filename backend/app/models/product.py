@@ -3,8 +3,8 @@
 [Segundo Parcial] CU27 - Gestionar listas de precios
 [Segundo Parcial] RF01 - Aislamiento Multitenant
 """
-from sqlalchemy import String, Text, Boolean, Numeric, ForeignKey, Integer, Float
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Text, Boolean, Numeric, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -102,3 +102,5 @@ class Producto(Base):
         default=True,
         nullable=False
     )
+
+    empresa = relationship("Empresa")

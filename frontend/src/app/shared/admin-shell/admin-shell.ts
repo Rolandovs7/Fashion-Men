@@ -122,4 +122,13 @@ export class AdminShellComponent implements OnInit {
   puedeVerEnlace(enlace: EnlaceAdmin): boolean {
     return !enlace.soloSuperAdmin || this.esSuperAdmin();
   }
+
+  etiquetaRol(): string {
+    const rol = this.usuario?.rol;
+    if (rol === 'superadmin') return 'SuperAdmin';
+    if (rol === 'administrador') return 'Administrador';
+    if (rol === 'vendedor') return 'Vendedor';
+    if (rol === 'cliente') return 'Cliente';
+    return rol ? rol.charAt(0).toUpperCase() + rol.slice(1) : '';
+  }
 }

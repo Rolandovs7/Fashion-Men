@@ -62,14 +62,14 @@ def obtener_usuario_actual(
 
 
 def requerir_rol(rol_requerido: str):
-    """Dependencia para requerir un rol específico"""
+    """Dependencia para requerir un rol específico. Superadmin siempre tiene acceso."""
     def _requerir_rol(usuario_actual: Usuario = Depends(obtener_usuario_actual)):
-        if usuario_actual.rol != rol_requerido:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tienes permisos para realizar esta acción"
-            )
-        return usuario_actual
+        if usuario_actual.rol == "superadmin" or usuario_actual.rol == rol_requerido:
+            return usuario_actual
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para realizar esta acción"
+        )
     return _requerir_rol
 
 
@@ -77,9 +77,12 @@ def get_current_empresa_id(usuario_actual: Usuario = Depends(obtener_usuario_act
     """
     [Segundo Parcial] CU03 - Aislamiento
     [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
-    Extraer el empresa_id del usuario autenticado desde el contexto del token/usuario
+    Extraer el empresa_id del usuario autenticado desde el contexto del token/usuario.
+    Superadmin sin empresa asignada usa empresa_id=1 (MenStyle) por defecto para demo.
     """
     if usuario_actual.empresa_id is None:
+        if usuario_actual.rol == "superadmin":
+            return 1
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Usuario sin empresa asignada"

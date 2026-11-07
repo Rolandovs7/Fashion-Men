@@ -248,7 +248,7 @@
           <div class="hidden sm:flex items-center gap-2.5">
             <div class="text-right leading-tight">
               <p class="text-xs font-bold text-ms-ink">{{ usuario.nombre }} {{ usuario.apellido }}</p>
-              <p class="text-[10px] text-ms-slate font-medium">Administrador</p>
+              <p class="text-[10px] text-ms-slate font-medium">{{ etiquetaRol() }}</p>
             </div>
             <div class="w-9 h-9 rounded-full bg-ms-amber/15 text-ms-amber flex items-center justify-center text-sm font-black">
               {{ inicialesUsuario() }}

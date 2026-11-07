@@ -175,16 +175,8 @@ export class Checkout implements OnInit {
     }).subscribe({
       next: (pago) => {
         this.procesando = false;
-        if (this.metodoPago === 'tarjeta') {
-          this.exitoMsg = '¡Pago exitoso!';
-        } else if (this.metodoPago === 'qr') {
-          this.exitoMsg = 'Pedido registrado. Tu pago por QR quedó como Pendiente de Pago.';
-        } else {
-          this.exitoMsg = 'Pedido registrado. Tu pago en efectivo quedó como Pendiente de Pago (reservado por 24 horas).';
-        }
-        if (pago?.estado === 'aprobado' || this.pedido) {
-          if (this.pedido) this.pedido = { ...this.pedido, estado: pago?.estado === 'aprobado' ? 'pagado' : 'pendiente_pago' };
-        }
+        this.exitoMsg = '¡Pago exitoso! Tu pedido ha sido procesado.';
+        if (this.pedido) this.pedido = { ...this.pedido, estado: 'pagado' };
         this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/pedidos']), 2500);
       },

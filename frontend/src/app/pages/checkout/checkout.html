@@ -188,9 +188,8 @@
                   <p class="text-xs text-ms-slate">Pedido #{{ pedido.id }}</p>
                 </div>
                 <app-button variant="primario" [block]="true" size="lg" [loading]="procesando" [disabled]="procesando" (click)="confirmarPago()">
-                  @if (!procesando) { Confirmar }
+                  @if (!procesando) { Confirmar pago }
                 </app-button>
-                <p class="text-xs text-ms-slate text-center">El pedido quedará en estado <strong>Pendiente de Pago</strong> hasta su verificación.</p>
               </div>
             }
 
@@ -201,12 +200,11 @@
                   <svg class="w-8 h-8 text-ms-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                 </div>
                 <h2 class="text-sm font-bold uppercase tracking-[0.15em] text-ms-ink">Pago en efectivo</h2>
-                <p class="text-sm text-ms-slate max-w-md">Acercate a pagar a la sucursal más cercana. Tu pedido quedará reservado por 24 horas.</p>
+                <p class="text-sm text-ms-slate max-w-md">Acercate a pagar a la sucursal más cercana para completar tu compra.</p>
                 <p class="text-lg font-bold text-ms-ink">Total a pagar: {{ pedido.total.toFixed(2) }} Bs</p>
                 <app-button variant="primario" [block]="true" size="lg" [loading]="procesando" [disabled]="procesando" (click)="confirmarPago()">
-                  @if (!procesando) { Confirmar pedido }
+                  @if (!procesando) { Confirmar pago }
                 </app-button>
-                <p class="text-xs text-ms-slate">El pedido quedará en estado <strong>Pendiente de Pago</strong>.</p>
               </div>
             }
           </div>

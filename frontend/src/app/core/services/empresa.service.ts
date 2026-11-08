@@ -21,6 +21,14 @@ export interface EmpresaCrearResponse {
   mensaje: string;
 }
 
+export interface EmpresaListado {
+  id: number;
+  nombre: string;
+  fecha_registro?: string | null;
+  plan_actual?: string | null;
+  activo?: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EmpresaService {
   private http = inject(HttpClient);
@@ -32,6 +40,10 @@ export class EmpresaService {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     });
+  }
+
+  listarEmpresas(): Observable<EmpresaListado[]> {
+    return this.http.get<EmpresaListado[]>(this.apiUrl, { headers: this.headers() });
   }
 
   crearEmpresa(datos: EmpresaCrearRequest): Observable<EmpresaCrearResponse> {

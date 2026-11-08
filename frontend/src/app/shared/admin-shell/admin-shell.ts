@@ -9,12 +9,14 @@ interface EnlaceAdmin {
   etiqueta: string;
   icono: string;
   soloSuperAdmin?: boolean;
+  soloTienda?: boolean; // ocultar para superadmin (menús operativos de tienda)
 }
 
 interface GrupoAdmin {
   titulo: string;
   enlaces: EnlaceAdmin[];
   soloSuperAdmin?: boolean;
+  soloTienda?: boolean; // ocultar para superadmin
 }
 
 @Component({
@@ -35,42 +37,52 @@ export class AdminShellComponent implements OnInit {
 
   grupos: GrupoAdmin[] = [
     {
-      titulo: 'Catálogo',
+      titulo: 'Plataforma',
+      soloSuperAdmin: true,
       enlaces: [
-        { ruta: '/admin/catalogo', etiqueta: 'Catálogo', icono: 'catalogo' },
-        { ruta: '/admin/inventario', etiqueta: 'Inventario', icono: 'inventario' },
+        { ruta: '/admin/empresas', etiqueta: 'Empresas (Tenants)', icono: 'empresas', soloSuperAdmin: true },
+        { ruta: '/admin/dashboard', etiqueta: 'Dashboard Global', icono: 'reportes', soloSuperAdmin: true },
+      ]
+    },
+    {
+      titulo: 'Cuenta',
+      enlaces: [
+        { ruta: '/admin/suscripcion', etiqueta: 'Mi Suscripción', icono: 'suscripcion' },
+      ]
+    },
+    {
+      titulo: 'Catálogo',
+      soloTienda: true,
+      enlaces: [
+        { ruta: '/admin/catalogo', etiqueta: 'Catálogo', icono: 'catalogo', soloTienda: true },
+        { ruta: '/admin/inventario', etiqueta: 'Inventario', icono: 'inventario', soloTienda: true },
       ]
     },
     {
       titulo: 'Ventas',
+      soloTienda: true,
       enlaces: [
-        { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta' },
-        { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas' },
-        { ruta: '/admin/operaciones-pendientes', etiqueta: 'Operaciones Pendientes', icono: 'offline' },
+        { ruta: '/admin/punto-venta', etiqueta: 'Punto de Venta', icono: 'venta', soloTienda: true },
+        { ruta: '/admin/operaciones', etiqueta: 'Pedidos y Reservas', icono: 'reservas', soloTienda: true },
+        { ruta: '/admin/operaciones-pendientes', etiqueta: 'Operaciones Pendientes', icono: 'offline', soloTienda: true },
       ]
     },
     {
       titulo: 'Reportes',
+      soloTienda: true,
       enlaces: [
-        { ruta: '/admin/dashboard', etiqueta: 'Dashboard', icono: 'reportes' },
-        { ruta: '/admin/reportes', etiqueta: 'Estadísticas', icono: 'reportes' },
-        { ruta: '/admin/asistente-ia', etiqueta: 'Asistente IA', icono: 'ia' },
+        { ruta: '/admin/dashboard', etiqueta: 'Dashboard', icono: 'reportes', soloTienda: true },
+        { ruta: '/admin/reportes', etiqueta: 'Estadísticas', icono: 'reportes', soloTienda: true },
+        { ruta: '/admin/asistente-ia', etiqueta: 'Asistente IA', icono: 'ia', soloTienda: true },
       ]
     },
     {
       titulo: 'Configuración',
+      soloTienda: true,
       enlaces: [
-        { ruta: '/usuarios', etiqueta: 'Usuarios', icono: 'usuarios' },
-        { ruta: '/permisos', etiqueta: 'Permisos', icono: 'permisos' },
-        { ruta: '/admin/suscripcion', etiqueta: 'Mi Suscripción', icono: 'suscripcion' },
-        { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config' },
-      ]
-    },
-    {
-      titulo: 'Plataforma',
-      soloSuperAdmin: true,
-      enlaces: [
-        { ruta: '/admin/empresas', etiqueta: 'Empresas', icono: 'empresas', soloSuperAdmin: true },
+        { ruta: '/usuarios', etiqueta: 'Usuarios', icono: 'usuarios', soloTienda: true },
+        { ruta: '/permisos', etiqueta: 'Permisos', icono: 'permisos', soloTienda: true },
+        { ruta: '/admin/configuracion', etiqueta: 'Roles y Tipos de Pago', icono: 'config', soloTienda: true },
       ]
     }
   ];
@@ -116,11 +128,15 @@ export class AdminShellComponent implements OnInit {
   }
 
   puedeVerGrupo(grupo: GrupoAdmin): boolean {
-    return !grupo.soloSuperAdmin || this.esSuperAdmin();
+    if (grupo.soloSuperAdmin && !this.esSuperAdmin()) return false;
+    if (grupo.soloTienda && this.esSuperAdmin()) return false;
+    return true;
   }
 
   puedeVerEnlace(enlace: EnlaceAdmin): boolean {
-    return !enlace.soloSuperAdmin || this.esSuperAdmin();
+    if (enlace.soloSuperAdmin && !this.esSuperAdmin()) return false;
+    if (enlace.soloTienda && this.esSuperAdmin()) return false;
+    return true;
   }
 
   etiquetaRol(): string {

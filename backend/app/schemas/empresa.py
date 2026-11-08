@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, EmailStr, Field
 
 
@@ -20,3 +22,12 @@ class EmpresaCrearResponse(BaseModel):
     suscripcion_id: int
     admin_usuario_id: int | None = None
     mensaje: str
+
+
+class EmpresaListadoRead(BaseModel):
+    """Listado de tenants para SuperAdmin."""
+    id: int
+    nombre: str
+    fecha_registro: datetime | None = None
+    plan_actual: str | None = None
+    activo: bool = True

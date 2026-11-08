@@ -42,7 +42,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _destacados = prods.take(8).toList();
         _cargando = false;
       });
-    } catch (_) {
+    } catch (e) {
+      // ignore: avoid_print
+      print('[HomeScreen] Error cargando destacados: $e');
       if (!mounted) return;
       setState(() => _cargando = false);
     }

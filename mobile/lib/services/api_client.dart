@@ -1,15 +1,19 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'auth_service.dart';
+import '../core/app_navigator.dart';
 import '../core/config.dart';
 import '../core/sesion.dart';
+import '../screens/login_page.dart';
 
 /// Configuración central de acceso a la API de MenStyle.
 /// Todas las peticiones autenticadas deben usar [jsonHeaders]/[authHeaders]
 /// o los helpers [get]/[post]/[put]/[delete] para inyectar el JWT.
 class ApiClient {
+  static bool _redirigiendoLogin = false;
   /// URL del backend. Por defecto apunta a producción (Render).
   /// Para desarrollo local, usa --dart-define=API_URL=http://localhost:8000/api
   static const String baseUrl = AppConfig.apiUrl;
@@ -55,7 +59,25 @@ class ApiClient {
 
   static Future<Never> manejarErrorAuth() async {
     await AuthService.instance.limpiarSesion();
+    _redirigirALogin();
     throw SesionExpiradaException();
+  }
+
+  static void _redirigirALogin() {
+    if (_redirigiendoLogin) return;
+    final nav = AppNavigator.key.currentState;
+    if (nav == null) return;
+    _redirigiendoLogin = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+          (route) => false,
+        );
+      } finally {
+        _redirigiendoLogin = false;
+      }
+    });
   }
 
   static String mensajeHttp(http.Response response, {String fallback = 'Error en la petición'}) {

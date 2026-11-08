@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/app_navigator.dart';
 import 'core/theme.dart';
 import 'screens/admin_main_shell.dart';
 import 'screens/login_page.dart';
@@ -22,6 +23,7 @@ class MenStyleApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'MenStyle',
+          navigatorKey: AppNavigator.key,
           themeMode: modo,
           theme: AppTheme.temaClaro,
           darkTheme: AppTheme.temaOscuro,

@@ -23,7 +23,8 @@ class _ItemCarritoVista {
 }
 
 class CarritoPage extends StatefulWidget {
-  const CarritoPage({super.key});
+  final bool embedded;
+  const CarritoPage({super.key, this.embedded = false});
 
   @override
   State<CarritoPage> createState() => _CarritoPageState();
@@ -262,7 +263,7 @@ class _CarritoPageState extends State<CarritoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCarrito,
-      appBar: AppBar(title: const Text('Tu carrito')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('Tu carrito')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : sesionExpirada

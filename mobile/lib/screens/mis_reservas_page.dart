@@ -9,7 +9,8 @@ import '../services/sucursales_service.dart';
 import '../widgets/sesion_expirada_view.dart';
 
 class MisReservasPage extends StatefulWidget {
-  const MisReservasPage({super.key});
+  final bool embedded;
+  const MisReservasPage({super.key, this.embedded = false});
 
   @override
   State<MisReservasPage> createState() => _MisReservasPageState();
@@ -134,7 +135,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoReservas,
-      appBar: AppBar(title: const Text('Mis reservas')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('Mis reservas')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : sesionExpirada

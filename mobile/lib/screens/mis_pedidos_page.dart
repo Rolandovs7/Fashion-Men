@@ -6,11 +6,14 @@ import '../services/pedidos_service.dart';
 import '../services/auth_service.dart';
 import '../services/tipos_pago_service.dart';
 import '../services/stripe_service.dart';
+import '../core/sesion.dart';
 import '../core/theme.dart';
+import 'login_page.dart';
 import 'pago_qr_page.dart';
 
 class MisPedidosPage extends StatefulWidget {
-  const MisPedidosPage({super.key});
+  final bool embedded;
+  const MisPedidosPage({super.key, this.embedded = false});
 
   @override
   State<MisPedidosPage> createState() => _MisPedidosPageState();
@@ -49,11 +52,13 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   }
 
   Future<void> _cargar() async {
-    if (AuthService.instance.token == null) {
-      setState(() {
-        cargando = false;
-        error = 'Inicia sesión para ver tus pedidos.';
-      });
+    if ((AuthService.instance.token ?? '').trim().isEmpty) {
+      await AuthService.instance.limpiarSesion();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
       return;
     }
 
@@ -64,13 +69,24 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
 
     try {
       final resultado = await pedidosService.listarMisPedidos();
+      if (!mounted) return;
       setState(() {
         pedidos = resultado;
         cargando = false;
       });
-    } catch (e) {
+    } on SesionExpiradaException {
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudieron cargar tus pedidos.';
+        cargando = false;
+        error = '';
+      });
+      // ApiClient ya redirige globalmente al Login.
+    } catch (e) {
+      // ignore: avoid_print
+      print('[MisPedidosPage] Error: $e');
+      if (!mounted) return;
+      setState(() {
+        error = e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -272,7 +288,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoPedidos,
-      appBar: AppBar(title: const Text('Mis pedidos')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('Mis pedidos')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(

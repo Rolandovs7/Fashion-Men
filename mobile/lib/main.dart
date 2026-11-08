@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme.dart';
-import 'screens/admin_catalogo_page.dart';
+import 'screens/admin_main_shell.dart';
 import 'screens/login_page.dart';
 import 'screens/main_shell.dart';
 import 'services/auth_service.dart';
@@ -52,7 +52,7 @@ class _AuthGateState extends State<_AuthGate> {
     if (ok && AuthService.instance.token != null) {
       final usuario = AuthService.instance.usuarioActual ?? <String, dynamic>{};
       final Widget destino = AuthService.instance.tieneAccesoAdmin
-          ? const AdminCatalogoPage()
+          ? AdminMainShell(usuario: usuario)
           : MainShell(usuario: usuario);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => destino),

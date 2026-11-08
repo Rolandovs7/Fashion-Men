@@ -17,7 +17,8 @@ import '../widgets/sesion_expirada_view.dart';
 // Flutter — sí existe en Angular (ver ReciboComponent).
 // ============================================================
 class AdminOperacionesPage extends StatefulWidget {
-  const AdminOperacionesPage({super.key});
+  final bool embedded;
+  const AdminOperacionesPage({super.key, this.embedded = false});
 
   @override
   State<AdminOperacionesPage> createState() => _AdminOperacionesPageState();
@@ -109,6 +110,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
       length: 2,
       child: AdminScaffold(
         titulo: 'Pedidos y Reservas',
+        embedded: widget.embedded,
         bottom: TabBar(
           tabs: [
             Tab(text: 'Pedidos (${pedidos.length})'),

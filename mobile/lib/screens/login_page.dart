@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
 import '../services/auth_service.dart';
+import 'admin_main_shell.dart';
 import 'main_shell.dart';
-import 'admin_catalogo_page.dart';
 import 'registro_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -39,9 +39,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      if (authService.esAdministrador) {
+      if (authService.tieneAccesoAdmin) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const AdminCatalogoPage()),
+          MaterialPageRoute(builder: (_) => AdminMainShell(usuario: usuario)),
         );
       } else {
         Navigator.of(context).pushReplacement(

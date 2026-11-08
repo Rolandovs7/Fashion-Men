@@ -29,7 +29,8 @@ import '../shared/admin_shell.dart';
 // CU28 Colecciones     | RF23 | api/routes/collections.py    | crear/desactivar (sin editar; backend sí soporta PUT)
 // ============================================================
 class AdminCatalogoPage extends StatefulWidget {
-  const AdminCatalogoPage({super.key});
+  final bool embedded;
+  const AdminCatalogoPage({super.key, this.embedded = false});
 
   @override
   State<AdminCatalogoPage> createState() => _AdminCatalogoPageState();
@@ -129,6 +130,7 @@ class _AdminCatalogoPageState extends State<AdminCatalogoPage> {
       length: 12,
       child: AdminScaffold(
         titulo: 'Gestión de Catálogo',
+        embedded: widget.embedded,
         bottom: const TabBar(
           isScrollable: true,
           tabs: [

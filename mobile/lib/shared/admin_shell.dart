@@ -23,6 +23,8 @@ import '../screens/main_shell.dart';
 /// Uso: envolver el contenido de cada pantalla admin con
 /// `AdminScaffold(titulo: '...', body: ...)` en vez de que cada
 /// pantalla arme su propio Scaffold + Drawer por separado.
+/// `embedded: true` se usa cuando la pantalla vive dentro de un shell
+/// con barra de navegación inferior (sin drawer/appbar duplicados).
 /// ============================================================
 class AdminScaffold extends StatelessWidget {
   final String titulo;
@@ -30,6 +32,7 @@ class AdminScaffold extends StatelessWidget {
   final List<Widget>? acciones;
   final Widget? floatingActionButton;
   final PreferredSizeWidget? bottom;
+  final bool embedded;
 
   const AdminScaffold({
     super.key,
@@ -38,10 +41,25 @@ class AdminScaffold extends StatelessWidget {
     this.acciones,
     this.floatingActionButton,
     this.bottom,
+    this.embedded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (embedded) {
+      return Scaffold(
+        appBar: bottom == null
+            ? null
+            : AppBar(
+                automaticallyImplyLeading: false,
+                toolbarHeight: 0,
+                elevation: 0,
+                bottom: bottom,
+              ),
+        floatingActionButton: floatingActionButton,
+        body: body,
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(titulo),

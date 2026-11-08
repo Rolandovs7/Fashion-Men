@@ -5,6 +5,7 @@ import 'admin_dashboard_page.dart';
 import 'admin_empresas_page.dart';
 import 'admin_inventario_page.dart';
 import 'admin_operaciones_page.dart';
+import 'admin_suscripcion_page.dart';
 import 'home_screen.dart';
 import 'perfil_page.dart';
 
@@ -41,6 +42,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
       const AdminInventarioPage(embedded: true),
       const AdminOperacionesPage(embedded: true),
       if (_esSuperAdmin) const AdminEmpresasPage(embedded: true),
+      const AdminSuscripcionPage(embedded: true),
       PerfilPage(usuario: widget.usuario),
     ];
 
@@ -76,6 +78,11 @@ class _AdminMainShellState extends State<AdminMainShell> {
           selectedIcon: Icon(Icons.apartment),
           label: 'Empresas',
         ),
+      const NavigationDestination(
+        icon: Icon(Icons.workspace_premium_outlined),
+        selectedIcon: Icon(Icons.workspace_premium),
+        label: 'Suscripción',
+      ),
       const NavigationDestination(
         icon: Icon(Icons.person_outline),
         selectedIcon: Icon(Icons.person),

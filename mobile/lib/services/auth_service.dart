@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config.dart';
 
@@ -12,10 +13,13 @@ import '../core/config.dart';
 // SERVICIO: services/auth_service.dart
 // PANTALLA: screens/login_page.dart, screens/registro_page.dart
 // BACKEND: POST /api/auth/login, POST /api/auth/registro, GET /api/auth/me
-// El token y el usuario actual viven en memoria (singleton); logout()
-// los pone en null. No hay endpoint de logout (JWT sin blacklist).
+// Token y usuario se persisten en SharedPreferences para mantener sesión.
+// logout()/limpiarSesion() eliminan credenciales locales.
 // ============================================================
 class AuthService {
+  static const _kToken = 'auth_token';
+  static const _kUsuario = 'auth_usuario';
+
   static final AuthService instance = AuthService._internal();
 
   factory AuthService() {
@@ -46,13 +50,13 @@ class AuthService {
     }
 
     final data = jsonDecode(response.body);
-
     token = data['access_token'];
 
     if (token == null) {
       throw Exception('El servidor no devolvió el token');
     }
 
+    await _guardarSesion();
     return token!;
   }
 
@@ -92,6 +96,11 @@ class AuthService {
       },
     );
 
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      await limpiarSesion();
+      throw Exception('Sesión expirada');
+    }
+
     if (response.statusCode != 200) {
       throw Exception(
         _extraerError(response.body, 'No se pudo obtener el usuario actual'),
@@ -99,14 +108,58 @@ class AuthService {
     }
 
     usuarioActual = jsonDecode(response.body);
+    await _guardarSesion();
     return usuarioActual!;
   }
 
   bool get esAdministrador => usuarioActual?['rol'] == 'administrador';
 
-  void logout() {
+  bool get tieneAccesoAdmin {
+    if (usuarioActual == null) return false;
+    return (usuarioActual!['rol'] ?? 'cliente') != 'cliente';
+  }
+
+  Future<bool> restaurarSesion() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final t = prefs.getString(_kToken);
+      if (t == null || t.isEmpty) return false;
+      token = t;
+      final raw = prefs.getString(_kUsuario);
+      if (raw != null && raw.isNotEmpty) {
+        usuarioActual = jsonDecode(raw) as Map<String, dynamic>;
+      }
+      try {
+        await obtenerUsuarioActual();
+      } catch (_) {
+        // Mantener token local si falla por red; 401/403 ya limpian.
+      }
+      return token != null;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> _guardarSesion() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (token != null) {
+      await prefs.setString(_kToken, token!);
+    }
+    if (usuarioActual != null) {
+      await prefs.setString(_kUsuario, jsonEncode(usuarioActual));
+    }
+  }
+
+  Future<void> limpiarSesion() async {
     token = null;
     usuarioActual = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kToken);
+    await prefs.remove(_kUsuario);
+  }
+
+  Future<void> logout() async {
+    await limpiarSesion();
   }
 
   String _extraerError(String body, String mensajePorDefecto) {

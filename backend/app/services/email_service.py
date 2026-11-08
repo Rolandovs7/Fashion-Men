@@ -188,7 +188,7 @@ def _plantilla_html(titulo: str, contenido_html: str) -> str:
 
 def enviar_correo_bienvenida(email: str, nombre_empresa: str, plan: str) -> bool:
     """
-    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU26
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU28
     Notificaciones Transaccionales: Envío de correo real vía Brevo API.
     Se dispara al registrar una empresa o confirmar un pago de suscripción.
     """
@@ -212,7 +212,7 @@ def enviar_correo_bienvenida(email: str, nombre_empresa: str, plan: str) -> bool
 
 def enviar_correo_pago(email: str, nombre_empresa: str, plan: str, monto) -> bool:
     """
-    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU26
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU28
     Notificaciones Transaccionales: Envío de correo real vía Brevo API.
     Se dispara al registrar una empresa o confirmar un pago de suscripción.
     """

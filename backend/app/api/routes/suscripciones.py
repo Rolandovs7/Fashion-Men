@@ -121,7 +121,7 @@ def iniciar_checkout_cambiar_plan(
     No modifica la suscripción hasta confirmar el pago.
     """
     """
-    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU27
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU29
     Validación de límites de suscripción: Impide que una empresa baje a un plan 
     inferior si su cantidad actual de sucursales excede el límite del nuevo plan.
     """

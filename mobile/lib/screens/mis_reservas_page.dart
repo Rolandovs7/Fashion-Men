@@ -68,6 +68,8 @@ class _MisReservasPageState extends State<MisReservasPage> {
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[MisReservasPage] Error cargando reservas: $e');
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;

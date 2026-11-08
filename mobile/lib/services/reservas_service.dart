@@ -78,7 +78,10 @@ class ReservasService {
       await ApiClient.manejarErrorAuth();
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_extraerError(response.body));
+            final msg = _extraerError(response.body);
+      // ignore: avoid_print
+      print('[ReservasService] HTTP ${response.statusCode}: $msg');
+      throw Exception(msg);
     }
   }
 

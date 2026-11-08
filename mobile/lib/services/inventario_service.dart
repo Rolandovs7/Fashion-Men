@@ -49,8 +49,11 @@ class InventarioService {
     if (varianteId != null) params.add('variante_id=$varianteId');
     final query = params.isNotEmpty ? '?${params.join('&')}' : '';
 
-    final response = await http.get(Uri.parse('${ApiClient.baseUrl}/inventario$query'));
-    _verificar(response);
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/inventario$query'),
+      headers: ApiClient.authHeaders(),
+    );
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Inventario.fromJson(e)).toList();
   }
@@ -70,7 +73,7 @@ class InventarioService {
         'cantidad': cantidad,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
     return Inventario.fromJson(jsonDecode(response.body));
   }
 
@@ -85,7 +88,7 @@ class InventarioService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode(body),
     );
-    _verificar(response);
+    await _verificar(response);
     return Inventario.fromJson(jsonDecode(response.body));
   }
 
@@ -94,12 +97,18 @@ class InventarioService {
       Uri.parse('${ApiClient.baseUrl}/inventario/$id'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_extraerError(response.body));
+      final msg = _extraerError(response.body);
+      // ignore: avoid_print
+      print('[InventarioService] HTTP ${response.statusCode}: $msg');
+      throw Exception(msg);
     }
   }
 

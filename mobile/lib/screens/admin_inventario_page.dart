@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../core/sesion.dart';
 import '../models/models.dart';
+import '../services/catalogo_service.dart';
 import '../services/inventario_service.dart';
 import '../services/sucursales_service.dart';
-import '../services/catalogo_service.dart';
 import '../shared/admin_shell.dart';
+import '../widgets/sesion_expirada_view.dart';
 
 // ============================================================
 // CU15 - Pantalla de Gestión de Inventario
@@ -51,6 +53,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
   bool guardando = false;
   String error = '';
   String mensaje = '';
+  bool sesionExpirada = false;
 
   @override
   void initState() {
@@ -63,6 +66,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
       final sucursalesResultado = await sucursalesService.listar();
       final productosResultado = await catalogoService.listarProductos();
 
+      if (!mounted) return;
       setState(() {
         sucursales = sucursalesResultado;
         productos = productosResultado.where((p) => p.activo).toList();
@@ -75,8 +79,12 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
         setState(() => cargando = false);
       }
     } catch (e) {
+      // ignore: avoid_print
+      print('[AdminInventarioPage] Error inicial: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar la información inicial.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -89,14 +97,19 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     setState(() {
       cargando = true;
       error = '';
+      sesionExpirada = false;
     });
 
     try {
       final inventarios = await inventarioService.listar(sucursalId: sucursalSeleccionadaId);
       await _resolverFilas(inventarios);
     } catch (e) {
+      // ignore: avoid_print
+      print('[AdminInventarioPage] Error inventario: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar el inventario de esta sucursal.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -227,13 +240,15 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
   Widget build(BuildContext context) {
     return AdminScaffold(
       titulo: 'Inventario',
-      body: RefreshIndicator(
-        onRefresh: _cargarInventario,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
-            if (error.isNotEmpty) _banner(error, Colors.red),
+      body: sesionExpirada
+          ? SesionExpiradaView(onReintentar: _cargarInicial)
+          : RefreshIndicator(
+              onRefresh: _cargarInventario,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
+                  if (error.isNotEmpty) _banner(error, Colors.red),
 
             Card(
               child: Padding(

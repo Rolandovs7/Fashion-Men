@@ -11,12 +11,9 @@ class SucursalesService {
   Future<List<Sucursal>> listar({bool soloActivos = true}) async {
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/sucursales?solo_activos=$soloActivos'),
+      headers: ApiClient.authHeaders(),
     );
-
-    if (response.statusCode != 200) {
-      throw Exception('No se pudieron cargar las sucursales');
-    }
-
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Sucursal.fromJson(e)).toList();
   }
@@ -75,7 +72,10 @@ class SucursalesService {
       await ApiClient.manejarErrorAuth();
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_extraerError(response.body));
+            final msg = _extraerError(response.body);
+      // ignore: avoid_print
+      print('[SucursalesService] HTTP ${response.statusCode}: $msg');
+      throw Exception(msg);
     }
   }
 

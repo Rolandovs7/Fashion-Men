@@ -3,15 +3,18 @@ import 'package:flutter/material.dart';
 import '../core/config.dart';
 import '../core/sesion.dart';
 import '../core/theme.dart';
+import '../db/database_helper.dart';
 import 'chat_page.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
 import '../widgets/sesion_expirada_view.dart';
 import 'producto_detalle_page.dart';
 
 class CatalogoPage extends StatefulWidget {
-  const CatalogoPage({super.key});
+  final int? categoriaInicialId;
+  const CatalogoPage({super.key, this.categoriaInicialId});
 
   @override
   State<CatalogoPage> createState() => _CatalogoPageState();
@@ -35,6 +38,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
   @override
   void initState() {
     super.initState();
+    categoriaSeleccionada = widget.categoriaInicialId;
     _cargar();
   }
 
@@ -51,14 +55,35 @@ class _CatalogoPageState extends State<CatalogoPage> {
         catalogoService.listarProductos(),
       ]);
 
+      final cats = resultados[0] as List<Categoria>;
+      final prods = (resultados[1] as List<Producto>).where((p) => p.activo).toList();
+      if (!mounted) return;
       setState(() {
-        categorias = resultados[0] as List<Categoria>;
-        productos = (resultados[1] as List<Producto>)
-            .where((p) => p.activo)
-            .toList();
+        categorias = cats;
+        productos = prods;
         cargando = false;
       });
+      // Cachear en SQLite para POS offline (INSERT OR REPLACE).
+      try {
+        final empresaId = AuthService.instance.usuarioActual?['empresa_id'];
+        final rows = prods
+            .map((p) => <String, dynamic>{
+                  'id': p.id,
+                  'nombre': p.nombre,
+                  'precio': p.precio,
+                  'imagen_url': p.imagenUrl,
+                  'stock': 0,
+                  'empresa_id': empresaId,
+                })
+            .toList();
+        await DatabaseHelper.instance.insertProductos(rows);
+      } catch (e) {
+        // ignore: avoid_print
+        print('[CatalogoPage] No se pudo cachear productos en SQLite: $e');
+      }
     } catch (e) {
+      // ignore: avoid_print
+      print('[CatalogoPage] Error cargando catálogo: $e');
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;

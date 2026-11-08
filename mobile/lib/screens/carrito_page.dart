@@ -102,10 +102,12 @@ class _CarritoPageState extends State<CarritoPage> {
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[CarritoPage] Error cargando carrito: $e');
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;
-        error = sesionExpirada ? '' : 'No se pudo cargar el carrito.';
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }

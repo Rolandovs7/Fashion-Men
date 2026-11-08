@@ -68,10 +68,12 @@ class _MisReservasPageState extends State<MisReservasPage> {
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[MisReservasPage] Error cargando reservas: $e');
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;
-        error = sesionExpirada ? '' : 'No se pudieron cargar tus reservas.';
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }

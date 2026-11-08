@@ -188,7 +188,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 14,
                                   crossAxisSpacing: 14,
-                                  childAspectRatio: 0.58,
+                                  childAspectRatio: 0.66,
                                 ),
                             delegate: SliverChildBuilderDelegate((
                               context,
@@ -346,46 +346,48 @@ class _TarjetaProducto extends StatelessWidget {
                       height: 1.15,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Bs ${producto.precio.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14.5,
-                      color: AppTheme.negro,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 36,
-                    child: FilledButton(
-                      onPressed: agregando ? null : onAgregar,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _amarillo,
-                        foregroundColor: AppTheme.negro,
-                        disabledBackgroundColor: _amarillo.withValues(alpha: 0.6),
-                        padding: EdgeInsets.zero,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        textStyle: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11.5,
-                          letterSpacing: 0.2,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Bs ${producto.precio.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14.5,
+                            color: AppTheme.negro,
+                          ),
                         ),
                       ),
-                      child: agregando
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppTheme.negro,
-                              ),
-                            )
-                          : const Text('Agregar al carrito'),
-                    ),
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Material(
+                          color: _amarillo,
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            onTap: agregando ? null : onAgregar,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Center(
+                              child: agregando
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppTheme.negro,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.add_shopping_cart,
+                                      size: 18,
+                                      color: AppTheme.negro,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

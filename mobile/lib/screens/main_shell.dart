@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'catalogo_page.dart';
 import 'carrito_page.dart';
+import 'home_screen.dart';
 import 'mis_pedidos_page.dart';
 import 'mis_reservas_page.dart';
 import 'notificaciones_page.dart';
@@ -23,11 +24,12 @@ class _MainShellState extends State<MainShell> {
   @override
   Widget build(BuildContext context) {
     final paginas = [
+      const HomeScreen(),
       const CatalogoPage(),
       const CarritoPage(),
       const MisPedidosPage(),
-      const MisReservasPage(),
       const PuntoVentaScreen(),
+      const MisReservasPage(),
       const NotificacionesPage(),
       PerfilPage(usuario: widget.usuario),
     ];
@@ -37,7 +39,13 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: indiceActual,
         onDestinationSelected: (i) => setState(() => indiceActual = i),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Inicio',
+          ),
           NavigationDestination(
             icon: Icon(Icons.checkroom_outlined),
             selectedIcon: Icon(Icons.checkroom),
@@ -49,14 +57,9 @@ class _MainShellState extends State<MainShell> {
             label: 'Carrito',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_edu_outlined),
-            selectedIcon: Icon(Icons.history_edu),
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
             label: 'Pedidos',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month),
-            label: 'Reservas',
           ),
           NavigationDestination(
             icon: Icon(Icons.point_of_sale_outlined),
@@ -64,13 +67,18 @@ class _MainShellState extends State<MainShell> {
             label: 'POS',
           ),
           NavigationDestination(
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Reservas',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.notifications_outlined),
             selectedIcon: Icon(Icons.notifications),
             label: 'Avisos',
           ),
           NavigationDestination(
-            icon: Icon(Icons.account_circle_outlined),
-            selectedIcon: Icon(Icons.account_circle),
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
             label: 'Perfil',
           ),
         ],

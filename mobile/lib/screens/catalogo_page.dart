@@ -14,7 +14,8 @@ import 'producto_detalle_page.dart';
 
 class CatalogoPage extends StatefulWidget {
   final int? categoriaInicialId;
-  const CatalogoPage({super.key, this.categoriaInicialId});
+  final bool embedded;
+  const CatalogoPage({super.key, this.categoriaInicialId, this.embedded = false});
 
   @override
   State<CatalogoPage> createState() => _CatalogoPageState();
@@ -150,7 +151,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
-      appBar: AppBar(title: const Text('MENSTYLE')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('MENSTYLE')),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
             Navigator.of(context)

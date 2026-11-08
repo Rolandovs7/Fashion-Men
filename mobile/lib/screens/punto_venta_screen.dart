@@ -9,7 +9,8 @@ import '../services/offline_sync_service.dart';
 /// - Permite armar una venta y presionar "Cobrar".
 /// - Guarda la operación con OfflineSyncService para sincronizar cuando haya internet.
 class PuntoVentaScreen extends StatefulWidget {
-  const PuntoVentaScreen({super.key});
+  final bool embedded;
+  const PuntoVentaScreen({super.key, this.embedded = false});
 
   @override
   State<PuntoVentaScreen> createState() => _PuntoVentaScreenState();
@@ -139,18 +140,20 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
-      appBar: AppBar(
-        title: const Text('Punto de Venta (Offline)'),
-        backgroundColor: AppTheme.negro,
-        foregroundColor: _amarillo,
-        actions: [
-          IconButton(
-            onPressed: _cargarProductos,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Recargar productos locales',
-          ),
-        ],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Punto de Venta (Offline)'),
+              backgroundColor: AppTheme.negro,
+              foregroundColor: _amarillo,
+              actions: [
+                IconButton(
+                  onPressed: _cargarProductos,
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Recargar productos locales',
+                ),
+              ],
+            ),
       body: _cargando
           ? const Center(child: CircularProgressIndicator())
           : Column(

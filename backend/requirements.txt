@@ -69,3 +69,4 @@ scikit-learn
 pandas
 numpy
 groq
+fastapi-mail

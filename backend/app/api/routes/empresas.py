@@ -12,6 +12,7 @@ from app.core.security import obtener_password_hash
 from app.models.saas import Empresa, Plan, Suscripcion
 from app.models.user import Usuario
 from app.schemas.empresa import EmpresaCrearRequest, EmpresaCrearResponse
+from app.services.email_service import enviar_correo_bienvenida
 
 router = APIRouter()
 
@@ -68,6 +69,15 @@ def crear_empresa(
         admin_usuario_id = admin.id
 
     db.commit()
+
+    # [SaaS] Correo simulado de bienvenida (a admin inicial si se proporcionó)
+    try:
+        if datos.admin_email:
+            enviar_correo_bienvenida(datos.admin_email, empresa.nombre, plan.nombre)
+    except Exception:
+        # No interrumpir el alta de empresa por un fallo en correo simulado
+        pass
+
     return EmpresaCrearResponse(
         empresa_id=empresa.id,
         empresa_nombre=empresa.nombre,

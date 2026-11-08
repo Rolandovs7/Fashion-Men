@@ -63,6 +63,17 @@ def crear_admin():
             empresa_id=None,
         )
 
+        # Superadmin adicional (plataforma)
+        asegurar_usuario(
+            db,
+            nombre="Rolando",
+            apellido="Soliz",
+            email="rolandosoliz19@gmail.com",
+            password="Soliz2026@",
+            rol="superadmin",
+            empresa_id=None,
+        )
+
         # Administrador de empresa MenStyle
         empresa_menstyle = db.query(Empresa).filter(Empresa.nombre == "MenStyle").first()
         if not empresa_menstyle:
@@ -83,6 +94,7 @@ def crear_admin():
 
         print("\nSeed admin completado.")
         print("- SuperAdmin: rolando.vsoliz@gmail.com / Rolando2026@ (rol=superadmin)")
+        print("- SuperAdmin: rolandosoliz19@gmail.com / Soliz2026@ (rol=superadmin)")
         print("- Admin MenStyle: jimenajahuira26@gmail.com / Jimena2026@ (rol=administrador)")
     finally:
         db.close()

@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../core/sesion.dart';
+import '../core/theme.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../services/reservas_service.dart';
 import '../services/sucursales_service.dart';
-import '../services/auth_service.dart';
-import '../core/theme.dart';
+import '../widgets/sesion_expirada_view.dart';
 
 class MisReservasPage extends StatefulWidget {
-  const MisReservasPage({super.key});
+  final bool embedded;
+  const MisReservasPage({super.key, this.embedded = false});
 
   @override
   State<MisReservasPage> createState() => _MisReservasPageState();
@@ -22,6 +25,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
   bool cargando = true;
   String error = '';
   String mensaje = '';
+  bool sesionExpirada = false;
 
   final etiquetas = const {
     'pendiente': 'Pendiente',
@@ -40,7 +44,8 @@ class _MisReservasPageState extends State<MisReservasPage> {
     if (AuthService.instance.token == null) {
       setState(() {
         cargando = false;
-        error = 'Inicia sesión para ver tus reservas.';
+        sesionExpirada = true;
+        error = '';
       });
       return;
     }
@@ -48,6 +53,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
     setState(() {
       cargando = true;
       error = '';
+      sesionExpirada = false;
     });
 
     try {
@@ -56,14 +62,19 @@ class _MisReservasPageState extends State<MisReservasPage> {
         sucursalesService.listar(),
       ]);
 
+      if (!mounted) return;
       setState(() {
         reservas = resultados[0] as List<Reserva>;
         sucursales = resultados[1] as List<Sucursal>;
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[MisReservasPage] Error cargando reservas: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudieron cargar tus reservas.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -124,16 +135,21 @@ class _MisReservasPageState extends State<MisReservasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoReservas,
-      appBar: AppBar(title: const Text('Mis reservas')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('Mis reservas')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _cargar,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
-                  if (error.isNotEmpty) _banner(error, Colors.red),
+          : sesionExpirada
+              ? SesionExpiradaView(
+                  mensaje: 'Inicia sesión para ver tus reservas.',
+                  onReintentar: _cargar,
+                )
+              : RefreshIndicator(
+                  onRefresh: _cargar,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
+                      if (error.isNotEmpty) _banner(error, Colors.red),
                   if (!cargando && reservas.isEmpty && error.isEmpty)
                     const Padding(
                       padding: EdgeInsets.only(top: 60),

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_empresa_id, obtener_db, obtener_usuario_actual, requerir_rol
 from app.models.branch import Sucursal
-from app.models.saas import Plan, Suscripcion
+from app.models.saas import Empresa, Plan, Suscripcion
 from app.models.user import Usuario
 from app.schemas.suscripciones import (
     PlanRead,
@@ -18,6 +18,7 @@ from app.schemas.suscripciones import (
     CheckoutPlanResponse,
     ConfirmarPagoRequest,
 )
+from app.services.email_service import enviar_correo_pago
 
 router = APIRouter()
 
@@ -119,6 +120,11 @@ def iniciar_checkout_cambiar_plan(
     Inicia checkout (Stripe simulado): valida límites y devuelve checkout_url ficticia.
     No modifica la suscripción hasta confirmar el pago.
     """
+    """
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU27
+    Validación de límites de suscripción: Impide que una empresa baje a un plan 
+    inferior si su cantidad actual de sucursales excede el límite del nuevo plan.
+    """
     _suscripcion_actual, nuevo_plan = _validar_cambio_plan(db, empresa_id, datos.plan_id)
     checkout_url = f"https://checkout.stripe.com/pay/cs_test_sim_{empresa_id}_{nuevo_plan.id}_{int(datetime.now(timezone.utc).timestamp())}"
     return CheckoutPlanResponse(
@@ -146,6 +152,17 @@ def confirmar_pago_plan(
 
     suscripcion_actual, nuevo_plan = _validar_cambio_plan(db, empresa_id, datos.plan_id)
     nueva = _aplicar_cambio_plan(db, empresa_id, suscripcion_actual, nuevo_plan)
+
+    # [SaaS] Correo simulado de confirmación de pago/cambio de plan
+    try:
+        empresa = db.query(Empresa).filter(Empresa.id == empresa_id).first()
+        nombre_empresa = empresa.nombre if empresa else f"Empresa #{empresa_id}"
+        destinatario = getattr(_admin, "email", None)
+        if destinatario:
+            enviar_correo_pago(destinatario, nombre_empresa, nuevo_plan.nombre, nuevo_plan.precio_mensual)
+    except Exception:
+        # No interrumpir la confirmación de pago por un fallo en correo simulado
+        pass
 
     return SuscripcionActualRead(
         id=nueva.id,

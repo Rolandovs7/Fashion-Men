@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../core/sesion.dart';
+import '../core/theme.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
-import '../services/sucursales_service.dart';
 import '../services/pedidos_service.dart';
 import '../services/reservas_service.dart';
-import '../services/auth_service.dart';
-import '../core/theme.dart';
+import '../services/sucursales_service.dart';
+import '../widgets/sesion_expirada_view.dart';
 
 class _ItemCarritoVista {
   final DetalleCarrito detalle;
@@ -21,7 +23,8 @@ class _ItemCarritoVista {
 }
 
 class CarritoPage extends StatefulWidget {
-  const CarritoPage({super.key});
+  final bool embedded;
+  const CarritoPage({super.key, this.embedded = false});
 
   @override
   State<CarritoPage> createState() => _CarritoPageState();
@@ -41,6 +44,7 @@ class _CarritoPageState extends State<CarritoPage> {
   bool procesando = false;
   String error = '';
   String mensaje = '';
+  bool sesionExpirada = false;
 
   @override
   void initState() {
@@ -54,7 +58,8 @@ class _CarritoPageState extends State<CarritoPage> {
     if (AuthService.instance.token == null) {
       setState(() {
         cargando = false;
-        error = 'Inicia sesión para ver tu carrito.';
+        sesionExpirada = true;
+        error = '';
       });
       return;
     }
@@ -62,6 +67,7 @@ class _CarritoPageState extends State<CarritoPage> {
     setState(() {
       cargando = true;
       error = '';
+      sesionExpirada = false;
     });
 
     try {
@@ -83,7 +89,8 @@ class _CarritoPageState extends State<CarritoPage> {
               producto: producto,
             ),
           );
-        } catch (_) {
+        } catch (e) {
+          if (e is SesionExpiradaException) rethrow;
           itemsResueltos.add(_ItemCarritoVista(detalle: detalle));
         }
       }
@@ -96,8 +103,12 @@ class _CarritoPageState extends State<CarritoPage> {
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[CarritoPage] Error cargando carrito: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar el carrito.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -252,18 +263,23 @@ class _CarritoPageState extends State<CarritoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCarrito,
-      appBar: AppBar(title: const Text('Tu carrito')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('Tu carrito')),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _cargar,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (mensaje.isNotEmpty)
-                    _Banner(texto: mensaje, color: Colors.green),
-                  if (error.isNotEmpty)
-                    _Banner(texto: error, color: Colors.red),
+          : sesionExpirada
+              ? SesionExpiradaView(
+                  mensaje: 'Inicia sesión para ver tu carrito.',
+                  onReintentar: _cargar,
+                )
+              : RefreshIndicator(
+                  onRefresh: _cargar,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (mensaje.isNotEmpty)
+                        _Banner(texto: mensaje, color: Colors.green),
+                      if (error.isNotEmpty)
+                        _Banner(texto: error, color: Colors.red),
                   if (!cargando && items.isEmpty && error.isEmpty)
                     const Padding(
                       padding: EdgeInsets.only(top: 60),

@@ -13,7 +13,7 @@ class PedidosService {
       Uri.parse('${ApiClient.baseUrl}/pedidos'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Pedido.fromJson(e)).toList();
   }
@@ -24,7 +24,7 @@ class PedidosService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'sucursal_id': sucursalId}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Pedido.fromJson(jsonDecode(response.body));
   }
 
@@ -33,7 +33,7 @@ class PedidosService {
       Uri.parse('${ApiClient.baseUrl}/pedidos/$pedidoId/cancelar'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Pedido.fromJson(jsonDecode(response.body));
   }
 
@@ -53,7 +53,7 @@ class PedidosService {
         'referencia': referencia,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
   }
 
   // ----- Administración -----
@@ -63,7 +63,7 @@ class PedidosService {
       Uri.parse('${ApiClient.baseUrl}/pedidos/admin/todos$query'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Pedido.fromJson(e)).toList();
   }
@@ -74,7 +74,7 @@ class PedidosService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'nuevo_estado': nuevoEstado}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Pedido.fromJson(jsonDecode(response.body));
   }
 
@@ -94,13 +94,19 @@ class PedidosService {
         'items': items,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
     return Pedido.fromJson(jsonDecode(response.body));
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_extraerError(response.body));
+            final msg = _extraerError(response.body);
+      // ignore: avoid_print
+      print('[PedidosService] HTTP ${response.statusCode}: $msg');
+      throw Exception(msg);
     }
   }
 

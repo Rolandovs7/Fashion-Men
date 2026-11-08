@@ -11,9 +11,48 @@ from app.core.dependencies import obtener_db, requerir_rol
 from app.core.security import obtener_password_hash
 from app.models.saas import Empresa, Plan, Suscripcion
 from app.models.user import Usuario
-from app.schemas.empresa import EmpresaCrearRequest, EmpresaCrearResponse
+from app.schemas.empresa import EmpresaCrearRequest, EmpresaCrearResponse, EmpresaListadoRead
+from app.services.email_service import enviar_correo_bienvenida
 
 router = APIRouter()
+
+
+@router.get("", response_model=list[EmpresaListadoRead])
+def listar_empresas(
+    db: Session = Depends(obtener_db),
+    _superadmin: Usuario = Depends(requerir_rol("superadmin")),
+):
+    """Lista todas las empresas (tenants) con su plan actual. Solo superadmin."""
+    empresas = db.query(Empresa).order_by(Empresa.id.asc()).all()
+    resultado: list[EmpresaListadoRead] = []
+    for emp in empresas:
+        sus = (
+            db.query(Suscripcion)
+            .filter(Suscripcion.empresa_id == emp.id, Suscripcion.estado == "activo")
+            .order_by(Suscripcion.fecha_inicio.desc())
+            .first()
+        )
+        if sus is None:
+            sus = (
+                db.query(Suscripcion)
+                .filter(Suscripcion.empresa_id == emp.id)
+                .order_by(Suscripcion.fecha_inicio.desc())
+                .first()
+            )
+        plan_nombre = None
+        if sus is not None:
+            plan = db.query(Plan).filter(Plan.id == sus.plan_id).first()
+            plan_nombre = plan.nombre if plan else None
+        resultado.append(
+            EmpresaListadoRead(
+                id=emp.id,
+                nombre=emp.nombre,
+                fecha_registro=getattr(emp, "fecha_registro", None),
+                plan_actual=plan_nombre,
+                activo=bool(getattr(emp, "activo", True)),
+            )
+        )
+    return resultado
 
 
 @router.post("", response_model=EmpresaCrearResponse, status_code=status.HTTP_201_CREATED)
@@ -68,6 +107,15 @@ def crear_empresa(
         admin_usuario_id = admin.id
 
     db.commit()
+
+    # [SaaS] Correo simulado de bienvenida (a admin inicial si se proporcionó)
+    try:
+        if datos.admin_email:
+            enviar_correo_bienvenida(datos.admin_email, empresa.nombre, plan.nombre)
+    except Exception:
+        # No interrumpir el alta de empresa por un fallo en correo simulado
+        pass
+
     return EmpresaCrearResponse(
         empresa_id=empresa.id,
         empresa_nombre=empresa.nombre,

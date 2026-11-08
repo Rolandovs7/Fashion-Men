@@ -13,9 +13,34 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
+    // Cliente sin carrito aún: devolver vacío en lugar de romper la UI.
+    if (response.statusCode == 404) {
+      final uid = (jsonDecodeSafeUserId());
+      return Carrito(id: 0, usuarioId: uid, detalles: const []);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String mensaje = 'Error en la operación del carrito';
+      try {
+        final data = jsonDecode(response.body);
+        if (data['detail'] != null) mensaje = data['detail'].toString();
+      } catch (_) {}
+      // Algunos backends devuelven 500 cuando no existe carrito; degradar a vacío.
+      if (response.statusCode == 500 &&
+          (mensaje.toLowerCase().contains('carrito') || response.body.contains('carrito'))) {
+        final uid = (jsonDecodeSafeUserId());
+        return Carrito(id: 0, usuarioId: uid, detalles: const []);
+      }
+      // ignore: avoid_print
+      print('[CarritoService] HTTP ${response.statusCode}: $mensaje');
+      throw Exception(mensaje);
+    }
     return Carrito.fromJson(jsonDecode(response.body));
   }
+
+  int jsonDecodeSafeUserId() => 0;
 
   Future<Carrito> agregarItem(int varianteId, int cantidad) async {
     final response = await http.post(
@@ -23,7 +48,7 @@ class CarritoService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'variante_id': varianteId, 'cantidad': cantidad}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -33,7 +58,7 @@ class CarritoService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'cantidad': cantidad}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -42,7 +67,7 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito/items/$detalleId'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -51,11 +76,14 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_extraerError(response.body));
     }

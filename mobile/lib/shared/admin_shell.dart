@@ -9,6 +9,7 @@ import '../screens/usuarios_page.dart';
 import '../screens/permisos_page.dart';
 import '../screens/roles_page.dart';
 import '../screens/tipos_pago_page.dart';
+import '../screens/main_shell.dart';
 
 /// ============================================================
 /// AdminShell (Flutter) — equivalente al `AdminShell` de Angular.
@@ -22,6 +23,8 @@ import '../screens/tipos_pago_page.dart';
 /// Uso: envolver el contenido de cada pantalla admin con
 /// `AdminScaffold(titulo: '...', body: ...)` en vez de que cada
 /// pantalla arme su propio Scaffold + Drawer por separado.
+/// `embedded: true` se usa cuando la pantalla vive dentro de un shell
+/// con barra de navegación inferior (sin drawer/appbar duplicados).
 /// ============================================================
 class AdminScaffold extends StatelessWidget {
   final String titulo;
@@ -29,6 +32,7 @@ class AdminScaffold extends StatelessWidget {
   final List<Widget>? acciones;
   final Widget? floatingActionButton;
   final PreferredSizeWidget? bottom;
+  final bool embedded;
 
   const AdminScaffold({
     super.key,
@@ -37,10 +41,25 @@ class AdminScaffold extends StatelessWidget {
     this.acciones,
     this.floatingActionButton,
     this.bottom,
+    this.embedded = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (embedded) {
+      return Scaffold(
+        appBar: bottom == null
+            ? null
+            : AppBar(
+                automaticallyImplyLeading: false,
+                toolbarHeight: 0,
+                elevation: 0,
+                bottom: bottom,
+              ),
+        floatingActionButton: floatingActionButton,
+        body: body,
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(titulo),
@@ -102,15 +121,19 @@ class AdminDrawer extends StatelessWidget {
   }
 
   void _irATienda(BuildContext context) {
-    // La tienda (MainShell) sigue en la pila de navegación por debajo
-    // de las pantallas admin (se llega aquí desde Perfil vía push, y
-    // entre pantallas admin se usa pushReplacement) — basta con volver
-    // a la primera ruta en vez de reconstruir MainShell.
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).pop(); // cierra drawer
+    final usuario = AuthService.instance.usuarioActual ?? <String, dynamic>{};
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => MainShell(usuario: usuario, indiceInicial: 1), // Catálogo
+      ),
+      (route) => false,
+    );
   }
 
-  void _cerrarSesion(BuildContext context) {
-    AuthService.instance.logout();
+  Future<void> _cerrarSesion(BuildContext context) async {
+    await AuthService.instance.logout();
+    if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,

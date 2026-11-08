@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../core/sesion.dart';
 import '../models/models.dart';
 import '../services/pedidos_service.dart';
 import '../services/reservas_service.dart';
 import '../services/sucursales_service.dart';
 import '../shared/admin_shell.dart';
+import '../widgets/sesion_expirada_view.dart';
 
 // ============================================================
 // CU21 - Gestionar Pedido
@@ -15,7 +17,8 @@ import '../shared/admin_shell.dart';
 // Flutter — sí existe en Angular (ver ReciboComponent).
 // ============================================================
 class AdminOperacionesPage extends StatefulWidget {
-  const AdminOperacionesPage({super.key});
+  final bool embedded;
+  const AdminOperacionesPage({super.key, this.embedded = false});
 
   @override
   State<AdminOperacionesPage> createState() => _AdminOperacionesPageState();
@@ -33,6 +36,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
   bool cargando = true;
   String error = '';
   String mensaje = '';
+  bool sesionExpirada = false;
 
   final estadosPedido = const ['pendiente', 'pagado', 'procesando', 'enviado', 'entregado', 'cancelado'];
   final estadosReserva = const ['pendiente', 'confirmada', 'completada', 'cancelada'];
@@ -44,7 +48,11 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
   }
 
   Future<void> _cargar() async {
-    setState(() => cargando = true);
+    setState(() {
+      cargando = true;
+      error = '';
+      sesionExpirada = false;
+    });
     try {
       final resultados = await Future.wait([
         pedidosService.listarTodos(),
@@ -52,6 +60,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
         sucursalesService.listar(soloActivos: false),
       ]);
 
+      if (!mounted) return;
       setState(() {
         pedidos = resultados[0] as List<Pedido>;
         reservas = resultados[1] as List<Reserva>;
@@ -59,8 +68,12 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
         cargando = false;
       });
     } catch (e) {
+      // ignore: avoid_print
+      print('[AdminOperacionesPage] Error: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar la información de operaciones.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }
@@ -97,6 +110,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
       length: 2,
       child: AdminScaffold(
         titulo: 'Pedidos y Reservas',
+        embedded: widget.embedded,
         bottom: TabBar(
           tabs: [
             Tab(text: 'Pedidos (${pedidos.length})'),
@@ -105,17 +119,19 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
         ),
         body: cargando
             ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
-                  if (error.isNotEmpty) _banner(error, Colors.red),
-                  Expanded(
-                    child: TabBarView(
-                      children: [_tabPedidos(), _tabReservas()],
-                    ),
+            : sesionExpirada
+                ? SesionExpiradaView(onReintentar: _cargar)
+                : Column(
+                    children: [
+                      if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
+                      if (error.isNotEmpty) _banner(error, Colors.red),
+                      Expanded(
+                        child: TabBarView(
+                          children: [_tabPedidos(), _tabReservas()],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
       ),
     );
   }

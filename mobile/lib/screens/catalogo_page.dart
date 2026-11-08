@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
 import '../core/config.dart';
+import '../core/sesion.dart';
 import '../core/theme.dart';
+import '../db/database_helper.dart';
 import 'chat_page.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
+import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
+import '../widgets/sesion_expirada_view.dart';
 import 'producto_detalle_page.dart';
 
 class CatalogoPage extends StatefulWidget {
-  const CatalogoPage({super.key});
+  final int? categoriaInicialId;
+  final bool embedded;
+  const CatalogoPage({super.key, this.categoriaInicialId, this.embedded = false});
 
   @override
   State<CatalogoPage> createState() => _CatalogoPageState();
@@ -16,6 +23,8 @@ class CatalogoPage extends StatefulWidget {
 
 class _CatalogoPageState extends State<CatalogoPage> {
   final catalogoService = CatalogoService();
+  final carritoService = CarritoService();
+  final Set<int> _agregando = {};
 
   List<Producto> productos = [];
   List<Categoria> categorias = [];
@@ -25,10 +34,12 @@ class _CatalogoPageState extends State<CatalogoPage> {
 
   bool cargando = true;
   String error = '';
+  bool sesionExpirada = false;
 
   @override
   void initState() {
     super.initState();
+    categoriaSeleccionada = widget.categoriaInicialId;
     _cargar();
   }
 
@@ -36,6 +47,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
     setState(() {
       cargando = true;
       error = '';
+      sesionExpirada = false;
     });
 
     try {
@@ -44,16 +56,41 @@ class _CatalogoPageState extends State<CatalogoPage> {
         catalogoService.listarProductos(),
       ]);
 
+      final cats = resultados[0] as List<Categoria>;
+      final prods = (resultados[1] as List<Producto>).where((p) => p.activo).toList();
+      if (!mounted) return;
       setState(() {
-        categorias = resultados[0] as List<Categoria>;
-        productos = (resultados[1] as List<Producto>)
-            .where((p) => p.activo)
-            .toList();
+        categorias = cats;
+        productos = prods;
         cargando = false;
       });
+      // Cachear en SQLite para POS offline (INSERT OR REPLACE).
+      try {
+        final empresaId = AuthService.instance.usuarioActual?['empresa_id'];
+        final rows = prods
+            .map((p) => <String, dynamic>{
+                  'id': p.id,
+                  'nombre': p.nombre,
+                  'precio': p.precio,
+                  'imagen_url': p.imagenUrl,
+                  'stock': 0,
+                  'empresa_id': empresaId,
+                })
+            .toList();
+        await DatabaseHelper.instance.insertProductos(rows);
+      } catch (e) {
+        // ignore: avoid_print
+        print('[CatalogoPage] No se pudo cachear productos en SQLite: $e');
+      }
     } catch (e) {
+      // ignore: avoid_print
+      print('[CatalogoPage] Error cargando catálogo: $e');
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar el catálogo. Desliza para reintentar.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada
+            ? ''
+            : 'No se pudo cargar el catálogo. Desliza para reintentar.';
         cargando = false;
       });
     }
@@ -71,6 +108,40 @@ class _CatalogoPageState extends State<CatalogoPage> {
     }).toList();
   }
 
+  Future<void> _agregarAlCarrito(Producto producto) async {
+    if (_agregando.contains(producto.id)) return;
+    setState(() => _agregando.add(producto.id));
+    try {
+      final variantes = await catalogoService.listarVariantesPorProducto(producto.id);
+      final disponibles = variantes.where((v) => v.stockDisponible > 0).toList();
+      if (disponibles.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No hay variantes con stock disponible.')),
+          );
+        }
+        return;
+      }
+      await carritoService.agregarItem(disponibles.first.id, 1);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${producto.nombre} agregado al carrito'),
+            backgroundColor: AppTheme.negro,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _agregando.remove(producto.id));
+    }
+  }
+
   String _nombreCategoria(int categoriaId) {
     final cat = categorias.where((c) => c.id == categoriaId);
     return cat.isEmpty ? 'Sin categoría' : cat.first.nombre;
@@ -80,7 +151,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
-      appBar: AppBar(title: const Text('MENSTYLE')),
+      appBar: widget.embedded ? null : AppBar(title: const Text('MENSTYLE')),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
             Navigator.of(context)
@@ -92,9 +163,13 @@ class _CatalogoPageState extends State<CatalogoPage> {
         onRefresh: _cargar,
         child: cargando
             ? const Center(child: CircularProgressIndicator())
-            : error.isNotEmpty
-            ? _EstadoVacio(mensaje: error, icono: Icons.error_outline)
-            : CustomScrollView(
+            : sesionExpirada
+                ? ListView(
+                    children: [SizedBox(height: 120), SesionExpiradaView(onReintentar: _cargar)],
+                  )
+                : error.isNotEmpty
+                    ? _EstadoVacio(mensaje: error, icono: Icons.error_outline)
+                    : CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(
@@ -151,7 +226,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                   crossAxisCount: 2,
                                   mainAxisSpacing: 14,
                                   crossAxisSpacing: 14,
-                                  childAspectRatio: 0.68,
+                                  childAspectRatio: 0.66,
                                 ),
                             delegate: SliverChildBuilderDelegate((
                               context,
@@ -163,6 +238,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                 categoriaNombre: _nombreCategoria(
                                   producto.categoriaId,
                                 ),
+                                agregando: _agregando.contains(producto.id),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -172,6 +248,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
                                     ),
                                   );
                                 },
+                                onAgregar: () => _agregarAlCarrito(producto),
                               );
                             }, childCount: _productosFiltrados.length),
                           ),
@@ -194,6 +271,8 @@ class _ChipCategoria extends StatelessWidget {
     required this.onTap,
   });
 
+  static const _amarillo = Color(0xFFFFD400);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -207,14 +286,15 @@ class _ChipCategoria extends StatelessWidget {
             color: seleccionado ? AppTheme.negro : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: seleccionado ? AppTheme.negro : const Color(0xFFE0E0E0),
+              color: seleccionado ? _amarillo : const Color(0xFFE0E0E0),
+              width: seleccionado ? 1.4 : 1,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: seleccionado ? Colors.white : AppTheme.negro,
-              fontWeight: FontWeight.w600,
+              color: seleccionado ? _amarillo : AppTheme.negro,
+              fontWeight: FontWeight.w700,
               fontSize: 12.5,
               letterSpacing: 0.3,
             ),
@@ -229,74 +309,123 @@ class _TarjetaProducto extends StatelessWidget {
   final Producto producto;
   final String categoriaNombre;
   final VoidCallback onTap;
+  final VoidCallback onAgregar;
+  final bool agregando;
 
   const _TarjetaProducto({
     required this.producto,
     required this.categoriaNombre,
     required this.onTap,
+    required this.onAgregar,
+    required this.agregando,
   });
+
+  static const _amarillo = Color(0xFFFFD400);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
+    return Card(
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: Colors.black.withValues(alpha: 0.12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: _ImagenProducto(
-                rutaRelativa: producto.imagenUrl,
-                nombre: producto.nombre,
-                iconoFallback: Icons.checkroom,
-                tamanioIcono: 36,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _ImagenProducto(
+                    rutaRelativa: producto.imagenUrl,
+                    nombre: producto.nombre,
+                    iconoFallback: Icons.checkroom,
+                    tamanioIcono: 38,
+                  ),
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.negro,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        categoriaNombre.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w700,
+                          color: _amarillo,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    categoriaNombre.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.grisTexto,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
                     producto.nombre,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
                       color: AppTheme.negro,
+                      height: 1.15,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    'Bs ${producto.precio.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      color: AppTheme.negro,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Bs ${producto.precio.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14.5,
+                            color: AppTheme.negro,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 36,
+                        height: 36,
+                        child: Material(
+                          color: _amarillo,
+                          borderRadius: BorderRadius.circular(10),
+                          child: InkWell(
+                            onTap: agregando ? null : onAgregar,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Center(
+                              child: agregando
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppTheme.negro,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.add_shopping_cart,
+                                      size: 18,
+                                      color: AppTheme.negro,
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

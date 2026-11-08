@@ -13,7 +13,7 @@ class ReservasService {
       Uri.parse('${ApiClient.baseUrl}/reservas'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Reserva.fromJson(e)).toList();
   }
@@ -34,7 +34,7 @@ class ReservasService {
         'detalles': detalles,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
     return Reserva.fromJson(jsonDecode(response.body));
   }
 
@@ -43,7 +43,7 @@ class ReservasService {
       Uri.parse('${ApiClient.baseUrl}/reservas/$reservaId/cancelar'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Reserva.fromJson(jsonDecode(response.body));
   }
 
@@ -58,7 +58,7 @@ class ReservasService {
       Uri.parse('${ApiClient.baseUrl}/reservas/admin/todas$query'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     final data = jsonDecode(response.body) as List;
     return data.map((e) => Reserva.fromJson(e)).toList();
   }
@@ -69,13 +69,19 @@ class ReservasService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'nuevo_estado': nuevoEstado}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Reserva.fromJson(jsonDecode(response.body));
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception(_extraerError(response.body));
+            final msg = _extraerError(response.body);
+      // ignore: avoid_print
+      print('[ReservasService] HTTP ${response.statusCode}: $msg');
+      throw Exception(msg);
     }
   }
 

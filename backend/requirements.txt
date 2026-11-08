@@ -69,3 +69,4 @@ scikit-learn
 pandas
 numpy
 groq
+brevo-python==5.1.0

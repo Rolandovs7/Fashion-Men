@@ -4,41 +4,33 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // Controla si la app está en modo claro u oscuro. Arranca en oscuro.
-  static final ValueNotifier<ThemeMode> modoNotifier = ValueNotifier(
-    ThemeMode.dark,
-  );
-
-  static bool get esOscuro => modoNotifier.value == ThemeMode.dark;
+  // Tema forzado a claro (modo oscuro eliminado).
+  static bool get esOscuro => false;
 
   static const Color negro = Color(0xFF0D0D0D);
   static const Color carbon = Color(0xFF1C1B19);
   static const Color bronce = Color(0xFFD98A2B);
+  static const Color amarilloMarca = Color(0xFFFFD400);
   static const Color grisTexto = Color(0xFF6B6560);
   static const Color grisTextoOscuro = Color(0xFFB8B2A8);
   static const Color fondoClaro = Color(0xFFF7F3EC);
 
-  static Color get fondoCatalogo =>
-      esOscuro ? const Color(0xFF171614) : const Color(0xFFF7F3EC);
-  static Color get fondoCarrito =>
-      esOscuro ? const Color(0xFF1B1A17) : const Color(0xFFF1EAE0);
-  static Color get fondoPedidos =>
-      esOscuro ? const Color(0xFF191815) : const Color(0xFFF4EFE6);
-  static Color get fondoReservas =>
-      esOscuro ? const Color(0xFF1D1B18) : const Color(0xFFEFE8DC);
-  static Color get fondoPerfil =>
-      esOscuro ? const Color(0xFF141312) : Colors.white;
+  static Color get fondoCatalogo => const Color(0xFFF7F3EC);
+  static Color get fondoCarrito => const Color(0xFFF1EAE0);
+  static Color get fondoPedidos => const Color(0xFFF4EFE6);
+  static Color get fondoReservas => const Color(0xFFEFE8DC);
+  static Color get fondoPerfil => Colors.white;
 
   static TextStyle get fuenteTitulo => GoogleFonts.cormorantGaramond();
   static TextStyle get fuenteCuerpo => GoogleFonts.jost();
 
   static ThemeData get temaClaro => _construirTema(Brightness.light);
-  static ThemeData get temaOscuro => _construirTema(Brightness.dark);
+  static ThemeData get light => temaClaro;
 
   static ThemeData _construirTema(Brightness brillo) {
     final osc = brillo == Brightness.dark;
     final colorTexto = osc ? Colors.white : negro;
-    final colorFondo = osc ? const Color(0xFF141312) : fondoClaro;
+    final colorFondo = osc ? const Color(0xFF141312) : Colors.white;
 
     final base = ThemeData(
       useMaterial3: true,
@@ -105,20 +97,20 @@ class AppTheme {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: osc ? carbon : Colors.white,
-        indicatorColor: bronce.withValues(alpha: 0.22),
+        indicatorColor: amarilloMarca.withValues(alpha: 0.22),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final sel = states.contains(WidgetState.selected);
           return fuenteCuerpo.copyWith(
             fontSize: 10.5,
             fontWeight: sel ? FontWeight.w700 : FontWeight.w500,
             letterSpacing: 0.4,
-            color: sel ? bronce : (osc ? grisTextoOscuro : grisTexto),
+            color: sel ? amarilloMarca : (osc ? grisTextoOscuro : grisTexto),
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final sel = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: sel ? bronce : (osc ? grisTextoOscuro : grisTexto),
+            color: sel ? amarilloMarca : (osc ? grisTextoOscuro : grisTexto),
             size: sel ? 26 : 23,
           );
         }),

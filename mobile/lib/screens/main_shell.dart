@@ -6,6 +6,7 @@ import 'mis_pedidos_page.dart';
 import 'mis_reservas_page.dart';
 import 'notificaciones_page.dart';
 import 'perfil_page.dart';
+import 'punto_venta_screen.dart';
 
 class MainShell extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -26,6 +27,7 @@ class _MainShellState extends State<MainShell> {
       const CarritoPage(),
       const MisPedidosPage(),
       const MisReservasPage(),
+      const PuntoVentaScreen(),
       const NotificacionesPage(),
       PerfilPage(usuario: widget.usuario),
     ];
@@ -55,6 +57,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Reservas',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.point_of_sale_outlined),
+            selectedIcon: Icon(Icons.point_of_sale),
+            label: 'POS',
           ),
           NavigationDestination(
             icon: Icon(Icons.notifications_outlined),

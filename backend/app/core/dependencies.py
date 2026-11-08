@@ -82,7 +82,8 @@ def get_current_empresa_id(
     [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
     Resuelve empresa_id desde el usuario autenticado.
     - Superadmin: puede indicar ?empresa_id=<id> en la URL para consultar cualquier empresa.
-      Si no indica empresa_id y no tiene empresa asignada, se rechaza (debe especificar).
+      Si no indica empresa_id y no tiene empresa asignada, usa MenStyle (empresa_id=1)
+      como fallback para no bloquear dashboards/vistas globales.
     - Otros roles: usan su empresa_id; no pueden suplantar otra empresa.
     """
     # Solo superadmin puede seleccionar empresa por query param
@@ -93,10 +94,9 @@ def get_current_empresa_id(
         return usuario_actual.empresa_id
 
     if usuario_actual.rol == "superadmin":
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Indique el parámetro empresa_id en la URL para operar como superadmin.",
-        )
+        # Fallback seguro (MenStyle) para no bloquear vistas globales/dashboard;
+        # puede especificar ?empresa_id=<id> para consultar otra empresa.
+        return 1
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

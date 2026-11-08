@@ -4,12 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   AppTheme._();
 
-  // Controla si la app está en modo claro u oscuro. Arranca en oscuro.
-  static final ValueNotifier<ThemeMode> modoNotifier = ValueNotifier(
-    ThemeMode.dark,
-  );
-
-  static bool get esOscuro => modoNotifier.value == ThemeMode.dark;
+  // Tema forzado a claro (modo oscuro eliminado).
+  static bool get esOscuro => false;
 
   static const Color negro = Color(0xFF0D0D0D);
   static const Color carbon = Color(0xFF1C1B19);
@@ -19,27 +15,22 @@ class AppTheme {
   static const Color grisTextoOscuro = Color(0xFFB8B2A8);
   static const Color fondoClaro = Color(0xFFF7F3EC);
 
-  static Color get fondoCatalogo =>
-      esOscuro ? const Color(0xFF171614) : const Color(0xFFF7F3EC);
-  static Color get fondoCarrito =>
-      esOscuro ? const Color(0xFF1B1A17) : const Color(0xFFF1EAE0);
-  static Color get fondoPedidos =>
-      esOscuro ? const Color(0xFF191815) : const Color(0xFFF4EFE6);
-  static Color get fondoReservas =>
-      esOscuro ? const Color(0xFF1D1B18) : const Color(0xFFEFE8DC);
-  static Color get fondoPerfil =>
-      esOscuro ? const Color(0xFF141312) : Colors.white;
+  static Color get fondoCatalogo => const Color(0xFFF7F3EC);
+  static Color get fondoCarrito => const Color(0xFFF1EAE0);
+  static Color get fondoPedidos => const Color(0xFFF4EFE6);
+  static Color get fondoReservas => const Color(0xFFEFE8DC);
+  static Color get fondoPerfil => Colors.white;
 
   static TextStyle get fuenteTitulo => GoogleFonts.cormorantGaramond();
   static TextStyle get fuenteCuerpo => GoogleFonts.jost();
 
   static ThemeData get temaClaro => _construirTema(Brightness.light);
-  static ThemeData get temaOscuro => _construirTema(Brightness.dark);
+  static ThemeData get light => temaClaro;
 
   static ThemeData _construirTema(Brightness brillo) {
     final osc = brillo == Brightness.dark;
     final colorTexto = osc ? Colors.white : negro;
-    final colorFondo = osc ? const Color(0xFF141312) : fondoClaro;
+    final colorFondo = osc ? const Color(0xFF141312) : Colors.white;
 
     final base = ThemeData(
       useMaterial3: true,

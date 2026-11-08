@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'core/app_navigator.dart';
 import 'core/theme.dart';
@@ -9,6 +10,7 @@ import 'services/auth_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.dark);
   runApp(const MenStyleApp());
 }
 
@@ -17,19 +19,12 @@ class MenStyleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppTheme.modoNotifier,
-      builder: (context, modo, _) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          title: 'MenStyle',
-          navigatorKey: AppNavigator.key,
-          themeMode: modo,
-          theme: AppTheme.temaClaro,
-          darkTheme: AppTheme.temaOscuro,
-          home: const _AuthGate(),
-        );
-      },
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'MenStyle',
+      navigatorKey: AppNavigator.key,
+      theme: AppTheme.light,
+      home: const _AuthGate(),
     );
   }
 }

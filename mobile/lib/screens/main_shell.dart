@@ -5,7 +5,6 @@ import 'carrito_page.dart';
 import 'home_screen.dart';
 import 'mis_pedidos_page.dart';
 import 'mis_reservas_page.dart';
-import 'notificaciones_page.dart';
 import 'perfil_page.dart';
 import 'punto_venta_screen.dart';
 
@@ -25,19 +24,19 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
-    indiceActual = widget.indiceInicial.clamp(0, 7);
+    indiceActual = widget.indiceInicial.clamp(0, 6);
   }
 
   @override
   Widget build(BuildContext context) {
+    // Menú cliente: Inicio, Catálogo, Carrito, Pedidos, Reservas, POS, Perfil
     final paginas = [
       const HomeScreen(),
       const CatalogoPage(),
       const CarritoPage(),
       const MisPedidosPage(),
-      const PuntoVentaScreen(),
       const MisReservasPage(),
-      const NotificacionesPage(),
+      const PuntoVentaScreen(),
       PerfilPage(usuario: widget.usuario),
     ];
 
@@ -69,19 +68,14 @@ class _MainShellState extends State<MainShell> {
             label: 'Pedidos',
           ),
           NavigationDestination(
-            icon: Icon(Icons.point_of_sale_outlined),
-            selectedIcon: Icon(Icons.point_of_sale),
-            label: 'POS',
-          ),
-          NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: 'Reservas',
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications),
-            label: 'Avisos',
+            icon: Icon(Icons.point_of_sale_outlined),
+            selectedIcon: Icon(Icons.point_of_sale),
+            label: 'POS',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

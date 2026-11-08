@@ -28,7 +28,8 @@ class _FilaInventario {
 }
 
 class AdminInventarioPage extends StatefulWidget {
-  const AdminInventarioPage({super.key});
+  final bool embedded;
+  const AdminInventarioPage({super.key, this.embedded = false});
 
   @override
   State<AdminInventarioPage> createState() => _AdminInventarioPageState();
@@ -240,6 +241,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
   Widget build(BuildContext context) {
     return AdminScaffold(
       titulo: 'Inventario',
+      embedded: widget.embedded,
       body: sesionExpirada
           ? SesionExpiradaView(onReintentar: _cargarInicial)
           : RefreshIndicator(

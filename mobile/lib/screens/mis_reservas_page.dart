@@ -73,7 +73,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;
-        error = sesionExpirada ? '' : 'No se pudieron cargar tus reservas.';
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }

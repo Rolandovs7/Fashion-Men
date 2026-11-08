@@ -13,7 +13,8 @@ import '../widgets/sesion_expirada_view.dart';
 import 'producto_detalle_page.dart';
 
 class CatalogoPage extends StatefulWidget {
-  const CatalogoPage({super.key});
+  final int? categoriaInicialId;
+  const CatalogoPage({super.key, this.categoriaInicialId});
 
   @override
   State<CatalogoPage> createState() => _CatalogoPageState();
@@ -37,6 +38,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
   @override
   void initState() {
     super.initState();
+    categoriaSeleccionada = widget.categoriaInicialId;
     _cargar();
   }
 

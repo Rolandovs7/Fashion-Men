@@ -4,6 +4,7 @@ import '../core/config.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
+import 'catalogo_page.dart';
 import 'producto_detalle_page.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -76,20 +77,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (_, _) => const SizedBox(width: 10),
                       itemBuilder: (context, i) {
                         final c = _categorias[i];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppTheme.negro,
+                        return Material(
+                          color: AppTheme.negro,
+                          borderRadius: BorderRadius.circular(22),
+                          child: InkWell(
                             borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: _amarillo.withValues(alpha: 0.5)),
-                          ),
-                          child: Center(
-                            child: Text(
-                              c.nombre,
-                              style: const TextStyle(
-                                color: _amarillo,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 12.5,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => CatalogoPage(categoriaInicialId: c.id),
+                              ),
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(22),
+                                border: Border.all(color: _amarillo.withValues(alpha: 0.5)),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  c.nombre,
+                                  style: const TextStyle(
+                                    color: _amarillo,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 12.5,
+                                  ),
+                                ),
                               ),
                             ),
                           ),

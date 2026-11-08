@@ -107,7 +107,7 @@ class _CarritoPageState extends State<CarritoPage> {
       if (!mounted) return;
       setState(() {
         sesionExpirada = e is SesionExpiradaException;
-        error = sesionExpirada ? '' : 'No se pudo cargar el carrito.';
+        error = sesionExpirada ? '' : e.toString().replaceFirst('Exception: ', '');
         cargando = false;
       });
     }

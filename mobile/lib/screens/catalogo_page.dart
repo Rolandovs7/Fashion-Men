@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/config.dart';
+import '../core/sesion.dart';
 import '../core/theme.dart';
 import 'chat_page.dart';
 import '../models/models.dart';
 import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
+import '../widgets/sesion_expirada_view.dart';
 import 'producto_detalle_page.dart';
 
 class CatalogoPage extends StatefulWidget {
@@ -28,6 +30,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
 
   bool cargando = true;
   String error = '';
+  bool sesionExpirada = false;
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _CatalogoPageState extends State<CatalogoPage> {
     setState(() {
       cargando = true;
       error = '';
+      sesionExpirada = false;
     });
 
     try {
@@ -55,8 +59,12 @@ class _CatalogoPageState extends State<CatalogoPage> {
         cargando = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        error = 'No se pudo cargar el catálogo. Desliza para reintentar.';
+        sesionExpirada = e is SesionExpiradaException;
+        error = sesionExpirada
+            ? ''
+            : 'No se pudo cargar el catálogo. Desliza para reintentar.';
         cargando = false;
       });
     }
@@ -129,9 +137,13 @@ class _CatalogoPageState extends State<CatalogoPage> {
         onRefresh: _cargar,
         child: cargando
             ? const Center(child: CircularProgressIndicator())
-            : error.isNotEmpty
-            ? _EstadoVacio(mensaje: error, icono: Icons.error_outline)
-            : CustomScrollView(
+            : sesionExpirada
+                ? ListView(
+                    children: [SizedBox(height: 120), SesionExpiradaView(onReintentar: _cargar)],
+                  )
+                : error.isNotEmpty
+                    ? _EstadoVacio(mensaje: error, icono: Icons.error_outline)
+                    : CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(
                     child: Padding(

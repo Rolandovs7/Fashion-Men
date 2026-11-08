@@ -1,5 +1,10 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 import 'auth_service.dart';
 import '../core/config.dart';
+import '../core/sesion.dart';
 
 /// Configuración central de acceso a la API de MenStyle.
 class ApiClient {
@@ -27,5 +32,29 @@ class ApiClient {
       headers['Authorization'] = 'Bearer $token';
     }
     return headers;
+  }
+
+  static bool esErrorAuth(http.Response response) =>
+      response.statusCode == 401 || response.statusCode == 403;
+
+  static Future<Never> manejarErrorAuth() async {
+    await AuthService.instance.limpiarSesion();
+    throw SesionExpiradaException();
+  }
+
+  static Future<void> verificarRespuesta(http.Response response) async {
+    if (esErrorAuth(response)) {
+      await manejarErrorAuth();
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      String mensaje = 'Error en la petición';
+      try {
+        final data = jsonDecode(response.body);
+        if (data is Map && data['detail'] != null) {
+          mensaje = data['detail'].toString();
+        }
+      } catch (_) {}
+      throw Exception(mensaje);
+    }
   }
 }

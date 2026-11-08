@@ -11,15 +11,22 @@ import 'punto_venta_screen.dart';
 
 class MainShell extends StatefulWidget {
   final Map<String, dynamic> usuario;
+  final int indiceInicial;
 
-  const MainShell({super.key, required this.usuario});
+  const MainShell({super.key, required this.usuario, this.indiceInicial = 0});
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int indiceActual = 0;
+  late int indiceActual;
+
+  @override
+  void initState() {
+    super.initState();
+    indiceActual = widget.indiceInicial.clamp(0, 7);
+  }
 
   @override
   Widget build(BuildContext context) {

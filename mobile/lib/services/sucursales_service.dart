@@ -37,7 +37,7 @@ class SucursalesService {
         'telefono': telefono,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
     return Sucursal.fromJson(jsonDecode(response.body));
   }
 
@@ -46,7 +46,7 @@ class SucursalesService {
       Uri.parse('${ApiClient.baseUrl}/sucursales/$id'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
   }
 
   Future<Sucursal> actualizar({
@@ -66,11 +66,14 @@ class SucursalesService {
         'telefono': telefono,
       }),
     );
-    _verificar(response);
+    await _verificar(response);
     return Sucursal.fromJson(jsonDecode(response.body));
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_extraerError(response.body));
     }

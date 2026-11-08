@@ -13,7 +13,7 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -23,7 +23,7 @@ class CarritoService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'variante_id': varianteId, 'cantidad': cantidad}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -33,7 +33,7 @@ class CarritoService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'cantidad': cantidad}),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -42,7 +42,7 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito/items/$detalleId'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
@@ -51,11 +51,14 @@ class CarritoService {
       Uri.parse('${ApiClient.baseUrl}/carrito'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return Carrito.fromJson(jsonDecode(response.body));
   }
 
-  void _verificar(http.Response response) {
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_extraerError(response.body));
     }

@@ -9,6 +9,7 @@ import '../screens/usuarios_page.dart';
 import '../screens/permisos_page.dart';
 import '../screens/roles_page.dart';
 import '../screens/tipos_pago_page.dart';
+import '../screens/main_shell.dart';
 
 /// ============================================================
 /// AdminShell (Flutter) — equivalente al `AdminShell` de Angular.
@@ -102,15 +103,19 @@ class AdminDrawer extends StatelessWidget {
   }
 
   void _irATienda(BuildContext context) {
-    // La tienda (MainShell) sigue en la pila de navegación por debajo
-    // de las pantallas admin (se llega aquí desde Perfil vía push, y
-    // entre pantallas admin se usa pushReplacement) — basta con volver
-    // a la primera ruta en vez de reconstruir MainShell.
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.of(context).pop(); // cierra drawer
+    final usuario = AuthService.instance.usuarioActual ?? <String, dynamic>{};
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => MainShell(usuario: usuario, indiceInicial: 1), // Catálogo
+      ),
+      (route) => false,
+    );
   }
 
-  void _cerrarSesion(BuildContext context) {
-    AuthService.instance.logout();
+  Future<void> _cerrarSesion(BuildContext context) async {
+    await AuthService.instance.logout();
+    if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,

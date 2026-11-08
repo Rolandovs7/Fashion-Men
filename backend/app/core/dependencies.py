@@ -5,7 +5,7 @@ Consumido por: Frontend (Admin/Cliente)
 """
 from datetime import datetime, timezone
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from sqlalchemy.orm import Session
@@ -73,21 +73,35 @@ def requerir_rol(rol_requerido: str):
     return _requerir_rol
 
 
-def get_current_empresa_id(usuario_actual: Usuario = Depends(obtener_usuario_actual)) -> int:
+def get_current_empresa_id(
+    empresa_id_q: int | None = Query(default=None, alias="empresa_id"),
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+) -> int:
     """
     [Segundo Parcial] CU03 - Aislamiento
     [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
-    Extraer el empresa_id del usuario autenticado desde el contexto del token/usuario.
-    Superadmin sin empresa asignada usa empresa_id=1 (MenStyle) por defecto para demo.
+    Resuelve empresa_id desde el usuario autenticado.
+    - Superadmin: puede indicar ?empresa_id=<id> en la URL para consultar cualquier empresa.
+      Si no indica empresa_id y no tiene empresa asignada, se rechaza (debe especificar).
+    - Otros roles: usan su empresa_id; no pueden suplantar otra empresa.
     """
-    if usuario_actual.empresa_id is None:
-        if usuario_actual.rol == "superadmin":
-            return 1
+    # Solo superadmin puede seleccionar empresa por query param
+    if usuario_actual.rol == "superadmin" and empresa_id_q is not None:
+        return empresa_id_q
+
+    if usuario_actual.empresa_id is not None:
+        return usuario_actual.empresa_id
+
+    if usuario_actual.rol == "superadmin":
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Usuario sin empresa asignada"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Indique el parámetro empresa_id en la URL para operar como superadmin.",
         )
-    return usuario_actual.empresa_id
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Usuario sin empresa asignada",
+    )
 
 
 def requerir_suscripcion_vigente(

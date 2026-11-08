@@ -69,4 +69,4 @@ scikit-learn
 pandas
 numpy
 groq
-fastapi-mail
+brevo-python==5.1.0

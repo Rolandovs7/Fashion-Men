@@ -187,7 +187,11 @@ def _plantilla_html(titulo: str, contenido_html: str) -> str:
 
 
 def enviar_correo_bienvenida(email: str, nombre_empresa: str, plan: str) -> bool:
-    """[SaaS] Envía correo de bienvenida al registrar una empresa (Brevo API)."""
+    """
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU26
+    Notificaciones Transaccionales: Envío de correo real vía Brevo API.
+    Se dispara al registrar una empresa o confirmar un pago de suscripción.
+    """
     try:
         if not email:
             logger.warning("enviar_correo_bienvenida: email vacío, se omite.")
@@ -207,7 +211,11 @@ def enviar_correo_bienvenida(email: str, nombre_empresa: str, plan: str) -> bool
 
 
 def enviar_correo_pago(email: str, nombre_empresa: str, plan: str, monto) -> bool:
-    """[SaaS/CU02] Envía confirmación de pago/cambio de plan (Brevo API)."""
+    """
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU26
+    Notificaciones Transaccionales: Envío de correo real vía Brevo API.
+    Se dispara al registrar una empresa o confirmar un pago de suscripción.
+    """
     try:
         if not email:
             logger.warning("enviar_correo_pago: email vacío, se omite.")

@@ -120,6 +120,11 @@ def iniciar_checkout_cambiar_plan(
     Inicia checkout (Stripe simulado): valida límites y devuelve checkout_url ficticia.
     No modifica la suscripción hasta confirmar el pago.
     """
+    """
+    [Segundo Parcial] NUEVA FUNCIONALIDAD - CU27
+    Validación de límites de suscripción: Impide que una empresa baje a un plan 
+    inferior si su cantidad actual de sucursales excede el límite del nuevo plan.
+    """
     _suscripcion_actual, nuevo_plan = _validar_cambio_plan(db, empresa_id, datos.plan_id)
     checkout_url = f"https://checkout.stripe.com/pay/cs_test_sim_{empresa_id}_{nuevo_plan.id}_{int(datetime.now(timezone.utc).timestamp())}"
     return CheckoutPlanResponse(

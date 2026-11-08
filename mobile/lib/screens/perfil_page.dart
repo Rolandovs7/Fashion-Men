@@ -76,30 +76,6 @@ class PerfilPage extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          Card(
-            child: ValueListenableBuilder<ThemeMode>(
-              valueListenable: AppTheme.modoNotifier,
-              builder: (context, modo, _) {
-                final esOscuro = modo == ThemeMode.dark;
-                return SwitchListTile(
-                  secondary: Icon(
-                    esOscuro
-                        ? Icons.dark_mode_outlined
-                        : Icons.light_mode_outlined,
-                  ),
-                  title: const Text('Modo oscuro'),
-                  subtitle: Text(esOscuro ? 'Activado' : 'Desactivado'),
-                  value: esOscuro,
-                  onChanged: (activar) {
-                    AppTheme.modoNotifier.value = activar
-                        ? ThemeMode.dark
-                        : ThemeMode.light;
-                  },
-                );
-              },
-            ),
-          ),
           if (_tieneAccesoAdmin) ...[
             const SizedBox(height: 24),
             SizedBox(

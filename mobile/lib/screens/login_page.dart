@@ -85,236 +85,140 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // [Rediseño lote fix] Fondo con degradado + Card centrada.
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppTheme.negro, AppTheme.carbon],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: _cardFormulario(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Tarjeta blanca centrada con el formulario de acceso.
+  Widget _cardFormulario() {
+    return Card(
+      elevation: 6,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [_heroSuperior(), _formularioInferior(context)],
-        ),
-      ),
-    );
-  }
-
-  // Sección oscura de arriba, con el logo y la frase editorial.
-  Widget _heroSuperior() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(28, 64, 28, 48),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppTheme.negro, AppTheme.carbon],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppTheme.bronce,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'M',
-                  style: AppTheme.fuenteTitulo.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
-                ),
+          children: [
+            _logo(),
+            const SizedBox(height: 28),
+            Text(
+              'BIENVENIDO DE NUEVO',
+              textAlign: TextAlign.center,
+              style: AppTheme.fuenteCuerpo.copyWith(
+                color: AppTheme.bronce,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 3,
               ),
-              const SizedBox(width: 12),
-              Text(
-                'MENSTYLE.',
-                style: AppTheme.fuenteTitulo.copyWith(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 3,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'SASTRERÍA · ESTILO · DISTINCIÓN',
-            style: AppTheme.fuenteCuerpo.copyWith(
-              color: AppTheme.bronce,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 4,
             ),
-          ),
-          const SizedBox(height: 12),
-          RichText(
-            text: TextSpan(
+            const SizedBox(height: 8),
+            Text(
+              'Ingresa a tu cuenta',
+              textAlign: TextAlign.center,
               style: AppTheme.fuenteTitulo.copyWith(
-                fontSize: 30,
-                fontWeight: FontWeight.w400,
-                height: 1.2,
-                color: Colors.white,
+                fontSize: 26,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.negro,
               ),
-              children: [
-                const TextSpan(text: 'El arte de vestir\n'),
-                TextSpan(
-                  text: 'sereno.',
-                  style: TextStyle(
-                    color: AppTheme.bronce,
-                    fontStyle: FontStyle.italic,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Accede para continuar con tu compra.',
+              textAlign: TextAlign.center,
+              style: AppTheme.fuenteCuerpo.copyWith(
+                color: AppTheme.grisTexto,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 26),
+
+            TextField(
+              controller: emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                hintText: 'tu@correo.com',
+                prefixIcon: Icon(Icons.mail_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: passwordController,
+              obscureText: ocultarPassword,
+              decoration: InputDecoration(
+                hintText: '••••••••••••',
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  tooltip: ocultarPassword ? 'Mostrar contraseña' : 'Ocultar contraseña',
+                  onPressed: () => setState(() => ocultarPassword = !ocultarPassword),
+                  icon: Icon(
+                    ocultarPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: AppTheme.grisTexto,
+                    size: 20,
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'Moda masculina atemporal, curada para quienes valoran '
-            'la calma y la precisión en cada detalle.',
-            style: AppTheme.fuenteCuerpo.copyWith(
-              color: AppTheme.grisTextoOscuro,
-              fontSize: 13,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Tarjeta blanca de abajo, con el formulario.
-  Widget _formularioInferior(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(28, 40, 28, 40),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      transform: Matrix4.translationValues(0, -20, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Inicio',
-                style: AppTheme.fuenteCuerpo.copyWith(
-                  color: AppTheme.grisTexto,
-                  fontSize: 13,
-                ),
               ),
-              const Text(' / ', style: TextStyle(color: Colors.black38)),
-              Text(
-                'Ingresar',
-                style: AppTheme.fuenteCuerpo.copyWith(
-                  color: AppTheme.negro,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+            ),
+
+            if (error.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'BIENVENIDO DE NUEVO',
-            style: AppTheme.fuenteCuerpo.copyWith(
-              color: AppTheme.bronce,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ingresa a tu cuenta',
-            style: AppTheme.fuenteTitulo.copyWith(
-              fontSize: 26,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.negro,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Accede para continuar con tu compra.',
-            style: AppTheme.fuenteCuerpo.copyWith(
-              color: AppTheme.grisTexto,
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          _etiqueta('CORREO ELECTRÓNICO', requerido: true),
-          const SizedBox(height: 8),
-          TextField(
-            controller: emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: 'tu@correo.com'),
-          ),
-          const SizedBox(height: 20),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _etiqueta('CONTRASEÑA'),
-              GestureDetector(
-                onTap: () => setState(() => ocultarPassword = !ocultarPassword),
                 child: Row(
                   children: [
-                    Icon(
-                      ocultarPassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                      size: 16,
-                      color: AppTheme.grisTexto,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      ocultarPassword ? 'Mostrar' : 'Ocultar',
-                      style: AppTheme.fuenteCuerpo.copyWith(
-                        color: AppTheme.grisTexto,
-                        fontSize: 13,
+                    const Icon(Icons.error_outline, size: 18, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        error,
+                        style: const TextStyle(color: Colors.red, fontSize: 12.5),
                       ),
                     ),
                   ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: passwordController,
-            obscureText: ocultarPassword,
-            decoration: const InputDecoration(hintText: '••••••••••••'),
-          ),
 
-          if (error.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            Text(
-              error,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
+            const SizedBox(height: 22),
+            SizedBox(
+              height: 54,
+              child: FilledButton(
+                onPressed: cargando ? null : iniciarSesion,
+                child: Text(cargando ? 'CARGANDO...' : 'INGRESAR'),
+              ),
             ),
-          ],
-
-          const SizedBox(height: 24),
-          SizedBox(
-            height: 52,
-            child: FilledButton(
-              onPressed: cargando ? null : iniciarSesion,
-              child: Text(cargando ? 'CARGANDO...' : 'INGRESAR'),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: TextButton(
+            const SizedBox(height: 10),
+            TextButton(
               onPressed: cargando
                   ? null
                   : () => Navigator.of(context).push(
@@ -322,31 +226,54 @@ class _LoginPageState extends State<LoginPage> {
                     ),
               child: const Text('¿No tienes cuenta? Regístrate'),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _etiqueta(String texto, {bool requerido = false}) {
-    return RichText(
-      text: TextSpan(
-        text: texto,
-        style: AppTheme.fuenteCuerpo.copyWith(
-          color: AppTheme.negro,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1,
+  // Logo de la marca dentro de la card.
+  Widget _logo() {
+    return Column(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppTheme.negro,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            'M',
+            style: AppTheme.fuenteTitulo.copyWith(
+              color: AppTheme.amarilloMarca,
+              fontWeight: FontWeight.w800,
+              fontSize: 26,
+            ),
+          ),
         ),
-        children: requerido
-            ? const [
-                TextSpan(
-                  text: ' *',
-                  style: TextStyle(color: Colors.red),
-                ),
-              ]
-            : [],
-      ),
+        const SizedBox(height: 10),
+        Text(
+          'MENSTYLE.',
+          style: AppTheme.fuenteTitulo.copyWith(
+            color: AppTheme.negro,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 3,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          'SASTRERÍA · ESTILO · DISTINCIÓN',
+          style: AppTheme.fuenteCuerpo.copyWith(
+            color: AppTheme.bronce,
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 3,
+          ),
+        ),
+      ],
     );
   }
 }

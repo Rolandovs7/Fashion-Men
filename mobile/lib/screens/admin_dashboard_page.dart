@@ -7,16 +7,21 @@ import 'package:http/http.dart' as http;
 import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../widgets/sesion_expirada_view.dart';
 
 /// Dashboard ejecutivo para Administrador/SuperAdmin.
-/// Consume GET /api/reportes/dashboard (DashboardResponse) y
-/// GET /api/reportes/ventas-por-mes (VentaMesResponse[]).
+/// Consume GET /api/reportes/dashboard (DashboardResponse),
+/// GET /api/reportes/ventas-por-mes (VentaMesResponse[]) y
+/// - SuperAdmin: GET /api/reportes/ventas-por-empresa (VentaEmpresaResponse[])
+/// - Admin:      GET /api/reportes/ventas-por-sucursal (VentaSucursalResponse[])
 ///
 /// [Rediseño 2.5] Gráficos con fl_chart:
 /// - Ventas por mes (barras).
 /// - Predicción de Ventas (CU24): línea con ventas pasadas y
 ///   proyección a 3 meses (regresión lineal sobre la serie real).
+/// - [Lote fix] Gráfico de torta: SuperAdmin ve "Ventas por Empresa"
+///   y Admin ve "Ventas por Sucursal".
 class AdminDashboardPage extends StatefulWidget {
   final bool embedded;
   const AdminDashboardPage({super.key, this.embedded = false});
@@ -34,6 +39,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   /// Serie mensual: [{mes: '2026-01', total: 1234.5, cantidad_pedidos: 4}]
   List<Map<String, dynamic>> _serie = const [];
 
+  /// Datos del gráfico de torta:
+  /// - SuperAdmin: [{empresa_id, empresa, total_ventas, cantidad_pedidos}]
+  /// - Admin: [{sucursal_id, sucursal, ciudad, total_ventas, cantidad_vendida}]
+  List<Map<String, dynamic>> _torta = const [];
+
+  /// Rol del usuario actual (define la vista del gráfico de torta).
+  String get _rol => (AuthService.instance.usuarioActual?['rol'] ?? '').toString();
+  bool get _esSuperAdmin => _rol == 'superadmin';
+
   @override
   void initState() {
     super.initState();
@@ -47,15 +61,25 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       _sesionExpirada = false;
     });
     try {
+      // [Lote fix] El gráfico de torta depende del rol:
+      // SuperAdmin → Ventas por Empresa; Admin → Ventas por Sucursal.
+      final peticionTorta = _esSuperAdmin
+          ? http.get(ApiClient.uri('/reportes/ventas-por-empresa'), headers: ApiClient.authHeaders())
+          : http.get(ApiClient.uri('/reportes/ventas-por-sucursal'), headers: ApiClient.authHeaders());
+
       final results = await Future.wait([
         http.get(ApiClient.uri('/reportes/dashboard'), headers: ApiClient.authHeaders()),
         http.get(ApiClient.uri('/reportes/ventas-por-mes?meses=12'), headers: ApiClient.authHeaders()),
+        peticionTorta,
       ]);
       final res = results[0];
       final resSerie = results[1];
+      final resTorta = results[2];
 
-      if (ApiClient.esErrorAuth(res) || ApiClient.esErrorAuth(resSerie)) {
-        await ApiClient.manejarErrorAuth();
+      for (final r in results) {
+        if (ApiClient.esErrorAuth(r)) {
+          await ApiClient.manejarErrorAuth();
+        }
       }
 
       if (res.statusCode < 200 || res.statusCode >= 300) {
@@ -75,11 +99,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         }
       }
 
+      List<Map<String, dynamic>> torta = const [];
+      if (resTorta.statusCode >= 200 && resTorta.statusCode < 300) {
+        final decodedTorta = jsonDecode(resTorta.body);
+        if (decodedTorta is List) {
+          torta = decodedTorta
+              .map<Map<String, dynamic>>((e) => (e as Map).cast<String, dynamic>())
+              .toList();
+        }
+      } else {
+        // La torta no bloquea el resto del dashboard.
+        // ignore: avoid_print
+        print('[AdminDashboardPage] torta: ${ApiClient.mensajeHttp(resTorta)}');
+      }
+
       final decoded = jsonDecode(res.body);
       if (!mounted) return;
       setState(() {
         _data = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
         _serie = serie;
+        _torta = torta;
         _cargando = false;
       });
     } on SesionExpiradaException {
@@ -189,7 +228,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Widget _buildContent() {
     if (_cargando) return const Center(child: CircularProgressIndicator());
-    if (_sesionExpirada) return SesionExpiradaView(onReintentar: _cargar);
+    // [Lote fix] El 401 de /reportes NO expulsa al Login: mensaje inline
+    // con botón Reintentar (ver ApiClient.manejarErrorAuth).
+    if (_sesionExpirada) {
+      return SesionExpiradaView(
+        mensaje: 'Tu sesión expiró. Reintentá',
+        onReintentar: _cargar,
+      );
+    }
     if (_error.isNotEmpty) {
       return Center(
         child: Padding(
@@ -265,6 +311,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             subtitulo: 'Últimos 12 meses (Bs)',
             icono: Icons.bar_chart_rounded,
             hijo: _graficoBarras(),
+          ),
+          const SizedBox(height: 16),
+
+          // ---- Gráfico: torta (SuperAdmin → Empresa / Admin → Sucursal) ----
+          _cardGrafico(
+            titulo: _esSuperAdmin ? 'Ventas por Empresa' : 'Ventas por Sucursal',
+            subtitulo: _esSuperAdmin
+                ? 'Participación de cada empresa (Bs)'
+                : 'Participación de cada sucursal (Bs)',
+            icono: Icons.pie_chart_outline_rounded,
+            hijo: _graficoTorta(),
           ),
           const SizedBox(height: 16),
 
@@ -359,7 +416,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final double maxY = (maxTotal * 1.25).clamp(10, double.infinity).toDouble();
 
     return SizedBox(
-      height: 220,
+      height: 240,
       child: BarChart(
         BarChartData(
           alignment: BarChartAlignment.spaceAround,
@@ -377,7 +434,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
           titlesData: FlTitlesData(
             show: true,
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            // [Lote fix] Labels con el valor de cada barra arriba del gráfico.
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 20,
+                interval: 1,
+                getTitlesWidget: (value, meta) {
+                  final i = value.toInt();
+                  if (i < 0 || i >= _serie.length) return const SizedBox.shrink();
+                  final total = ((_serie[i]['total'] as num?)?.toDouble() ?? 0);
+                  return SideTitleWidget(
+                    meta: meta,
+                    child: Text(
+                      _fmtCorto(total),
+                      style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.negro),
+                    ),
+                  );
+                },
+              ),
+            ),
             rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
@@ -419,13 +495,106 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   BarChartRodData(
                     toY: ((_serie[i]['total'] as num?)?.toDouble() ?? 0),
                     color: AppTheme.negro,
-                    width: 14,
+                    // [Lote fix] Barras más grandes y legibles.
+                    width: 22,
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                   ),
                 ],
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ------------------ Torta: ventas por empresa/sucursal ------------------
+  static const List<Color> _coloresTorta = [
+    AppTheme.negro,
+    AppTheme.amarilloMarca,
+    AppTheme.bronce,
+    Colors.blueGrey,
+    Colors.teal,
+    Colors.deepPurple,
+  ];
+
+  Widget _graficoTorta() {
+    // Se descartan los valores en 0 para no ensuciar el gráfico.
+    final datos = _torta
+        .where((e) => ((e['total_ventas'] as num?)?.toDouble() ?? 0) > 0)
+        .toList();
+    if (datos.isEmpty) return _vacioGrafico('Sin ventas registradas aún.');
+
+    final totalGeneral = datos.fold<double>(
+      0,
+      (s, e) => s + ((e['total_ventas'] as num?)?.toDouble() ?? 0),
+    );
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 220,
+          child: PieChart(
+            PieChartData(
+              sectionsSpace: 2,
+              centerSpaceRadius: 44,
+              sections: [
+                for (var i = 0; i < datos.length; i++)
+                  () {
+                    final total = ((datos[i]['total_ventas'] as num?)?.toDouble() ?? 0);
+                    final color = _coloresTorta[i % _coloresTorta.length];
+                    final porcentaje = totalGeneral > 0 ? total / totalGeneral * 100 : 0.0;
+                    return PieChartSectionData(
+                      value: total,
+                      color: color,
+                      radius: 34,
+                      title: '${porcentaje.toStringAsFixed(0)}%',
+                      titleStyle: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: color == AppTheme.amarilloMarca ? AppTheme.negro : Colors.white,
+                      ),
+                    );
+                  }(),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        for (var i = 0; i < datos.length; i++)
+          _filaLeyendaTorta(
+            datos[i],
+            totalGeneral,
+            _coloresTorta[i % _coloresTorta.length],
+          ),
+      ],
+    );
+  }
+
+  /// Etiqueta de una porción: nombre de empresa (SuperAdmin) o sucursal (Admin).
+  String _nombreTorta(Map<String, dynamic> d) {
+    if (_esSuperAdmin) return (d['empresa'] ?? 'Empresa').toString();
+    final sucursal = (d['sucursal'] ?? 'Sucursal').toString();
+    final ciudad = (d['ciudad'] ?? '').toString();
+    return ciudad.isEmpty ? sucursal : '$sucursal ($ciudad)';
+  }
+
+  Widget _filaLeyendaTorta(Map<String, dynamic> d, double totalGeneral, Color color) {
+    final total = ((d['total_ventas'] as num?)?.toDouble() ?? 0);
+    final porcentaje = totalGeneral > 0 ? total / totalGeneral * 100 : 0.0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(_nombreTorta(d), style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+          ),
+          Text(
+            'Bs ${total.toStringAsFixed(2)} · ${porcentaje.toStringAsFixed(1)}%',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+          ),
+        ],
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'admin_empresas_page.dart';
 import 'admin_inventario_page.dart';
 import 'admin_operaciones_page.dart';
 import 'admin_suscripcion_page.dart';
+import 'asistente_ia_page.dart';
 import 'main_shell.dart';
 
 class _EntradaMenu {
@@ -26,9 +27,10 @@ class _GrupoMenu {
 /// Shell administrativo con Drawer (menú hamburguesa) y opciones filtradas por rol.
 /// [Rediseño 2.2] Menú agrupado con separadores y "Cerrar sesión" en rojo al final.
 /// [Rediseño 2.9] El menú de operaciones se llama "Pedidos y Reservas".
-/// - SuperAdmin: Dashboard, Empresas, Mi Suscripción.
+/// [CU23] "Asistente IA" disponible para admin y superadmin.
+/// - SuperAdmin: Dashboard, Asistente IA, Empresas, Mi Suscripción.
 /// - Administrador: Dashboard, Catálogo, Inventario, Pedidos y Reservas,
-///   Mi Suscripción + Ir a la Tienda.
+///   Asistente IA, Mi Suscripción + Ir a la Tienda.
 class AdminMainShell extends StatefulWidget {
   final Map<String, dynamic> usuario;
   final int indiceInicial;
@@ -56,6 +58,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
       return const [
         _GrupoMenu('GENERAL', [
           _EntradaMenu('Dashboard', Icons.dashboard_outlined, AdminDashboardPage(embedded: true)),
+          _EntradaMenu('Asistente IA', Icons.smart_toy_outlined, AsistenteIaPage(embedded: true)),
         ]),
         _GrupoMenu('SAAS', [
           _EntradaMenu('Empresas', Icons.apartment_outlined, AdminEmpresasPage(embedded: true)),
@@ -71,6 +74,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
         _EntradaMenu('Catálogo', Icons.checkroom_outlined, AdminCatalogoPage(embedded: true)),
         _EntradaMenu('Inventario', Icons.inventory_2_outlined, AdminInventarioPage(embedded: true)),
         _EntradaMenu('Pedidos y Reservas', Icons.receipt_long_outlined, AdminOperacionesPage(embedded: true)),
+        _EntradaMenu('Asistente IA', Icons.smart_toy_outlined, AsistenteIaPage(embedded: true)),
       ]),
       _GrupoMenu('SAAS', [
         _EntradaMenu('Mi Suscripción', Icons.workspace_premium_outlined, AdminSuscripcionPage(embedded: true)),

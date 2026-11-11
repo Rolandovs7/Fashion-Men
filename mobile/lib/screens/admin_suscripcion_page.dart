@@ -297,16 +297,16 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
           _seccionHistorial(),
           const SizedBox(height: 20),
           const Text('Planes disponibles', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           if (_planes.isEmpty)
             const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('No hay planes disponibles.')))
           else
-            ..._planes.map((p) {
-              final plan = p as Map? ?? const {};
-              final id = (plan['id'] as num?)?.toInt();
-              final esActual = id != null && id == _planActualId;
-              return _cardPlan(plan.cast<String, dynamic>(), esActual: esActual);
-            }),
+            for (var i = 0; i < _planes.length; i++)
+              _cardPlan(
+                (_planes[i] as Map? ?? const {}).cast<String, dynamic>(),
+                esActual: (_planes[i] as Map? ?? const {})['id'] == _planActualId,
+                esRecomendado: i == _indiceRecomendado,
+              ),
         ],
       ),
     );
@@ -484,49 +484,144 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
   }
 
   // ---------------- Planes disponibles ----------------
-  Widget _cardPlan(Map<String, dynamic> plan, {required bool esActual}) {
+
+  /// Índice del plan marcado como "Recomendado": el que contiene
+  /// "pro" en el nombre (p. ej. Profesional) o, si no hay, el
+  /// intermedio por precio.
+  int? get _indiceRecomendado {
+    if (_planes.isEmpty) return null;
+    for (var i = 0; i < _planes.length; i++) {
+      final nombre = (((_planes[i] as Map)['nombre']) ?? '').toString().toLowerCase();
+      if (nombre.contains('pro')) return i;
+    }
+    if (_planes.length >= 3) {
+      final indices = List.generate(_planes.length, (i) => i);
+      double precioDe(dynamic p) => (((p as Map)['precio_mensual']) as num?)?.toDouble() ?? 0;
+      indices.sort((a, b) => precioDe(_planes[a]).compareTo(precioDe(_planes[b])));
+      return indices[indices.length ~/ 2];
+    }
+    return null;
+  }
+
+  /// [Rediseño lote fix] Card de plan con borde, badge "Recomendado",
+  /// precio grande, features con check y botón "Elegir plan".
+  Widget _cardPlan(Map<String, dynamic> plan, {required bool esActual, required bool esRecomendado}) {
     final nombre = (plan['nombre'] ?? 'Plan').toString();
     final precio = _fmtPrecio(plan['precio_mensual']);
     final maxSuc = plan['max_sucursales'] ?? '-';
-    final ia = plan['permite_ia'] == true ? 'Sí' : 'No';
+    final permiteIa = plan['permite_ia'] == true;
+    final permiteOffline = plan['permite_offline'] == true;
     final desc = (plan['descripcion'] ?? '').toString();
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Card(
+          elevation: 0,
+          margin: const EdgeInsets.only(bottom: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: esRecomendado ? AppTheme.amarilloMarca : Colors.grey.shade300,
+              width: esRecomendado ? 2 : 1,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(nombre, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                Text(nombre, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                if (desc.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(desc, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                ],
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(precio, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+                    const SizedBox(width: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Text('/mes', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    ),
+                  ],
                 ),
-                Text(precio, style: const TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                _featurePlan('Hasta $maxSuc sucursales', activo: true),
+                _featurePlan('Asistente IA', activo: permiteIa),
+                _featurePlan('Modo offline', activo: permiteOffline),
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: esActual
+                      ? OutlinedButton.icon(
+                          onPressed: null,
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('Plan actual'),
+                        )
+                      : FilledButton(
+                          onPressed: () => _abrirModalPago(plan),
+                          style: esRecomendado
+                              ? FilledButton.styleFrom(
+                                  backgroundColor: AppTheme.negro,
+                                  foregroundColor: AppTheme.amarilloMarca,
+                                )
+                              : null,
+                          child: const Text('Elegir plan'),
+                        ),
+                ),
               ],
             ),
-            if (desc.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              Text(desc, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
-            ],
-            const SizedBox(height: 6),
-            Text('Sucursales máx.: $maxSuc · IA: $ia', style: const TextStyle(fontSize: 12)),
-            const SizedBox(height: 10),
-            SizedBox(
-              width: double.infinity,
-              child: esActual
-                  ? OutlinedButton.icon(
-                      onPressed: null,
-                      icon: const Icon(Icons.check_circle_outline),
-                      label: const Text('Plan actual'),
-                    )
-                  : FilledButton(
-                      onPressed: () => _abrirModalPago(plan),
-                      child: const Text('Cambiar a este Plan'),
-                    ),
-            ),
-          ],
+          ),
         ),
+        if (esRecomendado)
+          Positioned(
+            top: -10,
+            right: 14,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.amarilloMarca,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppTheme.negro, width: 1),
+              ),
+              child: const Text(
+                'Recomendado',
+                style: TextStyle(color: AppTheme.negro, fontWeight: FontWeight.w800, fontSize: 10.5),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Feature de un plan con ícono de check (verde) o tachado (gris).
+  Widget _featurePlan(String texto, {required bool activo}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(
+            activo ? Icons.check_circle : Icons.cancel_outlined,
+            size: 18,
+            color: activo ? Colors.green.shade700 : Colors.grey.shade400,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                fontSize: 13,
+                color: activo ? Colors.black87 : Colors.grey.shade500,
+                fontWeight: FontWeight.w600,
+                decoration: activo ? TextDecoration.none : TextDecoration.lineThrough,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

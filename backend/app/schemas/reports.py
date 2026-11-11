@@ -59,3 +59,11 @@ class VentaSucursalResponse(BaseModel):
     ciudad: str
     total_ventas: float
     cantidad_vendida: int
+
+
+class VentaEmpresaResponse(BaseModel):
+    """Ventas agrupadas por empresa (vista SuperAdmin)."""
+    empresa_id: int
+    empresa: str
+    total_ventas: float
+    cantidad_pedidos: int

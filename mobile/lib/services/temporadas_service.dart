@@ -11,6 +11,7 @@ class TemporadasService {
   Future<List<Temporada>> listar({bool soloActivos = false}) async {
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/temporadas?solo_activos=$soloActivos'),
+      headers: ApiClient.authHeaders(),
     );
     _verificar(response);
     final data = jsonDecode(response.body) as List;

@@ -20,6 +20,7 @@ from app.models.branch import Sucursal
 from app.models.inventory import Inventario
 from app.models.payment import Pago
 from app.models.user import Usuario
+from app.models.saas import Empresa
 
 
 _CACHE = {}
@@ -305,6 +306,43 @@ class ReportService:
                 "ciudad": r.ciudad,
                 "total_ventas": float(r.total_ventas or 0),
                 "cantidad_vendida": int(r.cantidad_vendida or 0),
+            }
+            for r in resultados
+        ]
+
+    # ========================================================
+    # Ventas por empresa (CU29/CU30 - vista SuperAdmin)
+    # ========================================================
+    def ventas_por_empresa(self) -> List[dict]:
+        """
+        Ventas agrupadas por empresa (todas las empresas del SaaS).
+        Solo para SuperAdmin: alimenta el gráfico de torta
+        "Ventas por Empresa" del Dashboard.
+        Incluye empresas sin ventas (total 0) para el comparativo completo.
+        """
+        resultados = (
+            self.db.query(
+                Empresa.id.label("empresa_id"),
+                Empresa.nombre.label("empresa"),
+                func.coalesce(func.sum(Pedido.total), 0).label("total_ventas"),
+                func.count(Pedido.id).label("cantidad_pedidos"),
+            )
+            .outerjoin(
+                Pedido,
+                (Pedido.empresa_id == Empresa.id) & (Pedido.estado != "cancelado"),
+            )
+            .filter(Empresa.activo == True)
+            .group_by(Empresa.id, Empresa.nombre)
+            .order_by(desc("total_ventas"))
+            .all()
+        )
+
+        return [
+            {
+                "empresa_id": r.empresa_id,
+                "empresa": r.empresa,
+                "total_ventas": float(r.total_ventas or 0),
+                "cantidad_pedidos": int(r.cantidad_pedidos or 0),
             }
             for r in resultados
         ]

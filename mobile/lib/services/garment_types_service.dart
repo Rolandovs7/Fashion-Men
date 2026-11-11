@@ -35,6 +35,7 @@ class GarmentTypesService {
   Future<List<TipoPrenda>> listar({bool soloActivos = false}) async {
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/tipos-prenda?solo_activos=$soloActivos'),
+      headers: ApiClient.authHeaders(),
     );
     _verificar(response);
     final data = jsonDecode(response.body) as List;

@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../shared/menu_drawer.dart';
 import '../screens/admin_catalogo_page.dart';
 import '../screens/admin_inventario_page.dart';
+import '../screens/asistente_ia_page.dart';
 import '../screens/punto_venta_page.dart';
 import '../screens/admin_operaciones_page.dart';
 import '../screens/usuarios_page.dart';
@@ -138,6 +139,8 @@ class AdminDrawer extends StatelessWidget {
         ? ''
         : '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'.trim();
     final rol = usuario == null ? '' : (usuario['rol'] ?? '').toString();
+    // [CU23] El Asistente IA solo aparece para admin y superadmin.
+    final rolAdmin = rol == 'administrador' || rol == 'superadmin';
 
     return Drawer(
       backgroundColor: Colors.white,
@@ -158,6 +161,16 @@ class AdminDrawer extends StatelessWidget {
                         dense: true,
                         onTap: () => _navegar(context, enlace.builder),
                       ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                  ],
+                  if (rolAdmin) ...[
+                    DrawerSeccion('INTELIGENCIA ARTIFICIAL'),
+                    ListTile(
+                      leading: const Icon(Icons.smart_toy_outlined),
+                      title: const Text('Asistente IA', style: TextStyle(fontWeight: FontWeight.w600)),
+                      dense: true,
+                      onTap: () => _navegar(context, (_) => const AsistenteIaPage()),
+                    ),
                     const Divider(height: 1, indent: 16, endIndent: 16),
                   ],
                 ],

@@ -24,6 +24,7 @@ from app.schemas.reports import (
     VentaMetodoPagoResponse,
     InventarioBajoResponse,
     VentaSucursalResponse,
+    VentaEmpresaResponse,
 )
 
 router = APIRouter(tags=["Reportes"])
@@ -131,3 +132,19 @@ def ventas_por_sucursal(
     """
     service = ReportService(db)
     return service.ventas_por_sucursal(empresa_id)
+
+
+@router.get("/ventas-por-empresa", response_model=List[VentaEmpresaResponse])
+def ventas_por_empresa(
+    db: Session = Depends(obtener_db),
+    usuario=Depends(requerir_rol("superadmin")),
+):
+    """
+    CU29 - Visualizar Dashboard (SuperAdmin)
+    CU30 - Generar Reportes
+    RF24 - Ventas agrupadas por empresa (todas las empresas del SaaS).
+    Alimenta el gráfico de torta "Ventas por Empresa" del Dashboard
+    del SuperAdmin (MenStyle vs Avenor vs ...). Solo SuperAdmin.
+    """
+    service = ReportService(db)
+    return service.ventas_por_empresa()

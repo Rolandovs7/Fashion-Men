@@ -34,6 +34,7 @@ class RolesService {
   Future<List<Rol>> listar({bool soloActivos = true}) async {
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/roles?solo_activos=$soloActivos'),
+      headers: ApiClient.authHeaders(),
     );
     _verificar(response);
     final data = jsonDecode(response.body) as List;

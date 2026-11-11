@@ -84,6 +84,7 @@ def registro_usuario(
         nombre=datos.nombre,
         apellido=datos.apellido,
         email=datos.email,
+        telefono=datos.telefono,
         password_hash=obtener_password_hash(datos.password),
         rol="cliente",
         activo=True,

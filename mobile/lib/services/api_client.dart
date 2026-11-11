@@ -98,12 +98,25 @@ class ApiClient {
   }
 
   /// Endpoints cuyo 401 NO debe cerrar sesión ni expulsar al Login:
-  /// pagos (`/api/pagos/*`) y dashboard/reportes (`/api/reportes/*`).
+  /// pagos/confirmaciones (`/pagos`, `/payment`, `/confirmar`) y
+  /// dashboard/reportes (`/reportes`).
   /// La pantalla que los consume captura [SesionExpiradaException] y
   /// muestra el mensaje inline "Tu sesión expiró. Reintentá".
   static bool _esEndpointSinRedireccion(http.Response? response) {
     final path = (response?.request?.url.path ?? '').toLowerCase();
-    return path.contains('/pagos') || path.contains('/reportes');
+    return path.contains('/pagos') ||
+        path.contains('/payment') ||
+        path.contains('/confirmar') ||
+        path.contains('/reportes');
+  }
+
+  /// [Fix auth] Reinicia el estado estático del interceptor tras un
+  /// logout/login. Evita que una redirección en curso o una respuesta
+  /// 401 rezagada del usuario anterior afecten a la sesión nueva.
+  static void reiniciarEstado() {
+    _redirigiendoLogin = false;
+    _suprimirRedireccion = false;
+    _respuestaAuthPendiente = null;
   }
 
   /// Indica si la petición que falló usaba el token actualmente vigente.

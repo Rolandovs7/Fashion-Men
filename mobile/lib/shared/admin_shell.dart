@@ -7,6 +7,7 @@ import '../screens/admin_inventario_page.dart';
 import '../screens/asistente_ia_page.dart';
 import '../screens/punto_venta_page.dart';
 import '../screens/admin_operaciones_page.dart';
+import '../screens/admin_usuarios_page.dart';
 import '../screens/usuarios_page.dart';
 import '../screens/permisos_page.dart';
 import '../screens/roles_page.dart';
@@ -107,6 +108,7 @@ class AdminDrawer extends StatelessWidget {
       _EnlaceAdmin('Pedidos y Reservas', Icons.receipt_long_outlined, (_) => const AdminOperacionesPage()),
     ]),
     _GrupoAdmin('CONFIGURACIÓN', [
+      _EnlaceAdmin('Usuarios de la Empresa', Icons.people_alt_outlined, (_) => const AdminUsuariosPage()),
       _EnlaceAdmin('Usuarios', Icons.people_outline, (_) => const UsuariosPage()),
       _EnlaceAdmin('Permisos', Icons.lock_outline, (_) => const PermisosPage()),
       _EnlaceAdmin('Roles', Icons.badge_outlined, (_) => const RolesPage()),
@@ -139,6 +141,7 @@ class AdminDrawer extends StatelessWidget {
         ? ''
         : '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'.trim();
     final rol = usuario == null ? '' : (usuario['rol'] ?? '').toString();
+    final email = usuario == null ? '' : (usuario['email'] ?? '').toString();
     // [CU23] El Asistente IA solo aparece para admin y superadmin.
     final rolAdmin = rol == 'administrador' || rol == 'superadmin';
 
@@ -147,7 +150,11 @@ class AdminDrawer extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            DrawerEncabezado(nombre: nombre, rolEtiqueta: rolEtiquetaDe(rol)),
+            DrawerEncabezado(
+              nombre: nombre,
+              rolEtiqueta: rolEtiquetaDe(rol),
+              email: email,
+            ),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,

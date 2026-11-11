@@ -18,6 +18,22 @@ class UsuariosService {
     return data.map((e) => Usuario.fromJson(e)).toList();
   }
 
+  /// [CU04] Usuarios/clientes de una empresa (panel admin).
+  /// GET /api/empresas/{empresaId}/usuarios — superadmin cualquiera,
+  /// administrador solo la suya.
+  Future<List<Usuario>> listarPorEmpresa(int empresaId) async {
+    final response = await http.get(
+      Uri.parse('${ApiClient.baseUrl}/empresas/$empresaId/usuarios'),
+      headers: ApiClient.authHeaders(),
+    );
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
+    _verificar(response);
+    final data = jsonDecode(response.body) as List;
+    return data.map((e) => Usuario.fromJson(e)).toList();
+  }
+
   Future<Usuario> crear({
     required String nombre,
     required String apellido,
@@ -45,6 +61,7 @@ class UsuariosService {
     required String nombre,
     required String apellido,
     required String email,
+    String? telefono,
     required bool activo,
     required String rol,
   }) async {
@@ -55,6 +72,7 @@ class UsuariosService {
         'nombre': nombre,
         'apellido': apellido,
         'email': email,
+        'telefono': telefono,
         'activo': activo,
         'rol': rol,
       }),

@@ -35,6 +35,16 @@ class DetallePedidoRespuesta(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ClienteResumen(BaseModel):
+    """Datos mínimos del cliente para tablas de administración."""
+    id: int
+    nombre: str
+    apellido: str
+    email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class PedidoRespuesta(BaseModel):
     id: int
     usuario_id: int
@@ -43,5 +53,6 @@ class PedidoRespuesta(BaseModel):
     estado: str
     total: float
     detalles: List[DetallePedidoRespuesta] = []
+    cliente: Optional[ClienteResumen] = None
 
     model_config = ConfigDict(from_attributes=True)

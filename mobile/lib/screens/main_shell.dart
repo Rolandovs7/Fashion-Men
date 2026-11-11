@@ -81,6 +81,7 @@ class _MainShellState extends State<MainShell> {
     final idx = _indice.clamp(0, plano.length - 1);
     final titulo = plano[idx].titulo;
     final nombre = '${widget.usuario['nombre'] ?? ''} ${widget.usuario['apellido'] ?? ''}'.trim();
+    final email = (widget.usuario['email'] ?? '').toString();
 
     return Scaffold(
       appBar: AppBar(title: Text(titulo)),
@@ -90,7 +91,11 @@ class _MainShellState extends State<MainShell> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DrawerEncabezado(nombre: nombre, rolEtiqueta: rolEtiquetaDe(_rol)),
+              DrawerEncabezado(
+                nombre: nombre,
+                rolEtiqueta: rolEtiquetaDe(_rol),
+                email: email,
+              ),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,

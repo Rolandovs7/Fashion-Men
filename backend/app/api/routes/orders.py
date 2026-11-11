@@ -5,7 +5,7 @@
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import obtener_db, obtener_usuario_actual, requerir_rol, get_current_empresa_id
 from app.models.branch import Sucursal
@@ -92,7 +92,11 @@ def listar_todos_los_pedidos(
     Listar todos los pedidos de la empresa (solo administradores)
     """
     from app.models.order import Pedido
-    query = db.query(Pedido).filter(Pedido.empresa_id == empresa_id)
+    query = (
+        db.query(Pedido)
+        .options(joinedload(Pedido.cliente))
+        .filter(Pedido.empresa_id == empresa_id)
+    )
     if estado:
         query = query.filter(Pedido.estado == estado)
     return query.all()

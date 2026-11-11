@@ -49,6 +49,11 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
   String mensaje = '';
   bool sesionExpirada = false;
 
+  // [Paginación] 15 filas por página en ambas tablas.
+  static const int _porPagina = 15;
+  int _paginaPedidos = 1;
+  int _paginaReservas = 1;
+
   final estadosPedido = const ['pendiente', 'pagado', 'procesando', 'enviado', 'entregado', 'cancelado'];
   final estadosReserva = const ['pendiente', 'confirmada', 'completada', 'cancelada'];
 
@@ -88,6 +93,12 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
         reservas = resultados[1] as List<Reserva>;
         sucursales = resultados[2] as List<Sucursal>;
         usuarios = mapaUsuarios;
+        _paginaPedidos = _paginaPedidos
+            .clamp(1, _totalPaginas(pedidos.length))
+            .toInt();
+        _paginaReservas = _paginaReservas
+            .clamp(1, _totalPaginas(reservas.length))
+            .toInt();
         cargando = false;
       });
     } catch (e) {
@@ -112,6 +123,17 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
     if (u == null) return 'Usuario #$id';
     return '${u.nombre} ${u.apellido}'.trim();
   }
+
+  /// Prefiere el cliente embebido en el pedido/reserva (backend con
+  /// `joinedload`) y cae al mapa de `/api/usuarios` si no viene.
+  String _nombreClienteDe(ClienteResumen? cliente, int usuarioId) {
+    final nombre = cliente?.nombreCompleto ?? '';
+    if (nombre.isNotEmpty) return nombre;
+    return _nombreCliente(usuarioId);
+  }
+
+  int _totalPaginas(int totalFilas) =>
+      totalFilas <= 0 ? 1 : ((totalFilas - 1) ~/ _porPagina) + 1;
 
   String _fechaCorta(String fecha) {
     if (fecha.length >= 10) return fecha.substring(0, 10);
@@ -196,7 +218,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
       context: context,
       builder: (dialogContext) => _DialogoComprobante(
         pedido: pedido,
-        cliente: _nombreCliente(pedido.usuarioId),
+        cliente: _nombreClienteDe(pedido.cliente, pedido.usuarioId),
         pagos: pagos,
       ),
     );
@@ -252,72 +274,97 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
       return const Center(child: Text('No hay pedidos registrados.', style: TextStyle(color: Colors.grey)));
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Card(
-          elevation: 0,
-          margin: const EdgeInsets.all(16),
-          clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-          child: DataTable(
-            headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
-            dataTextStyle: const TextStyle(fontSize: 12.5),
-            columnSpacing: 20,
-            columns: const [
-              DataColumn(label: Text('ID'), numeric: true),
-              DataColumn(label: Text('Cliente')),
-              DataColumn(label: Text('Fecha')),
-              DataColumn(label: Text('Total'), numeric: true),
-              DataColumn(label: Text('Estado')),
-              DataColumn(label: Text('Acción')),
-            ],
-            rows: pedidos.map((pedido) {
-              final finalizado = pedido.estado == 'cancelado' || pedido.estado == 'entregado';
-              return DataRow(cells: [
-                DataCell(Text('#${pedido.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
-                DataCell(
-                  SizedBox(
-                    width: 160,
-                    child: Text(_nombreCliente(pedido.usuarioId), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ),
+    final totalPaginas = _totalPaginas(pedidos.length);
+    final pagina = _paginaPedidos.clamp(1, totalPaginas).toInt();
+    final inicio = (pagina - 1) * _porPagina;
+    final visibles = pedidos.skip(inicio).take(_porPagina).toList();
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Card(
+                elevation: 0,
+                margin: const EdgeInsets.all(16),
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.grey.shade300),
                 ),
-                DataCell(Text(_fechaCorta(pedido.fechaPedido))),
-                DataCell(Text('Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700))),
-                DataCell(_chipEstado(pedido.estado, _colorEstadoPedido(pedido.estado))),
-                DataCell(
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!finalizado)
-                        PopupMenuButton<String>(
-                          tooltip: 'Cambiar estado',
-                          icon: const Icon(Icons.published_with_changes_outlined, size: 20),
-                          onSelected: (v) => _cambiarEstadoPedido(pedido, v),
-                          itemBuilder: (_) => estadosPedido
-                              .where((e) => e != pedido.estado)
-                              .map((e) => PopupMenuItem(value: e, child: Text(e)))
-                              .toList(),
-                        )
-                      else
-                        const Icon(Icons.lock_outline, size: 16, color: Colors.grey),
-                      IconButton(
-                        icon: const Icon(Icons.receipt_long_outlined, size: 20, color: AppTheme.bronce),
-                        tooltip: 'Ver comprobante',
-                        onPressed: () => _verComprobante(pedido),
+                child: DataTable(
+                  headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
+                  dataTextStyle: const TextStyle(fontSize: 12.5),
+                  columnSpacing: 20,
+                  columns: const [
+                    DataColumn(label: Text('ID'), numeric: true),
+                    DataColumn(label: Text('Cliente')),
+                    DataColumn(label: Text('Fecha')),
+                    DataColumn(label: Text('Total'), numeric: true),
+                    DataColumn(label: Text('Estado')),
+                    DataColumn(label: Text('Acción')),
+                  ],
+                  rows: visibles.map((pedido) {
+                    final finalizado = pedido.estado == 'cancelado' || pedido.estado == 'entregado';
+                    return DataRow(cells: [
+                      DataCell(Text('#${pedido.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                      DataCell(
+                        SizedBox(
+                          width: 160,
+                          child: Text(
+                            _nombreClienteDe(pedido.cliente, pedido.usuarioId),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
+                      DataCell(Text(_fechaCorta(pedido.fechaPedido))),
+                      DataCell(Text('Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                      DataCell(_chipEstado(pedido.estado, _colorEstadoPedido(pedido.estado))),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!finalizado)
+                              PopupMenuButton<String>(
+                                tooltip: 'Cambiar estado',
+                                icon: const Icon(Icons.published_with_changes_outlined, size: 20),
+                                onSelected: (v) => _cambiarEstadoPedido(pedido, v),
+                                itemBuilder: (_) => estadosPedido
+                                    .where((e) => e != pedido.estado)
+                                    .map((e) => PopupMenuItem(value: e, child: Text(e)))
+                                    .toList(),
+                              )
+                            else
+                              const Icon(Icons.lock_outline, size: 16, color: Colors.grey),
+                            IconButton(
+                              icon: const Icon(Icons.receipt_long_outlined, size: 20, color: AppTheme.bronce),
+                              tooltip: 'Ver comprobante',
+                              onPressed: () => _verComprobante(pedido),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ]);
+                  }).toList(),
                 ),
-              ]);
-            }).toList(),
+              ),
+            ),
           ),
         ),
-      ),
+        _paginador(
+          pagina: pagina,
+          totalPaginas: totalPaginas,
+          onAnterior: pagina > 1
+              ? () => setState(() => _paginaPedidos = pagina - 1)
+              : null,
+          onSiguiente: pagina < totalPaginas
+              ? () => setState(() => _paginaPedidos = pagina + 1)
+              : null,
+        ),
+      ],
     );
   }
 
@@ -327,60 +374,123 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
       return const Center(child: Text('No hay reservas registradas.', style: TextStyle(color: Colors.grey)));
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Card(
-          elevation: 0,
-          margin: const EdgeInsets.all(16),
-          clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-          child: DataTable(
-            headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
-            dataTextStyle: const TextStyle(fontSize: 12.5),
-            columnSpacing: 20,
-            columns: const [
-              DataColumn(label: Text('ID'), numeric: true),
-              DataColumn(label: Text('Cliente')),
-              DataColumn(label: Text('Sucursal')),
-              DataColumn(label: Text('Fecha')),
-              DataColumn(label: Text('Estado')),
-              DataColumn(label: Text('Acción')),
-            ],
-            rows: reservas.map((reserva) {
-              final finalizada = reserva.estado == 'cancelada' || reserva.estado == 'completada';
-              return DataRow(cells: [
-                DataCell(Text('#${reserva.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
-                DataCell(
-                  SizedBox(
-                    width: 160,
-                    child: Text(_nombreCliente(reserva.usuarioId), maxLines: 1, overflow: TextOverflow.ellipsis),
-                  ),
+    final totalPaginas = _totalPaginas(reservas.length);
+    final pagina = _paginaReservas.clamp(1, totalPaginas).toInt();
+    final inicio = (pagina - 1) * _porPagina;
+    final visibles = reservas.skip(inicio).take(_porPagina).toList();
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Card(
+                elevation: 0,
+                margin: const EdgeInsets.all(16),
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: BorderSide(color: Colors.grey.shade300),
                 ),
-                DataCell(Text(_nombreSucursal(reserva.sucursalId))),
-                DataCell(Text(_fechaCorta(reserva.fechaReserva))),
-                DataCell(_chipEstado(reserva.estado, _colorEstadoReserva(reserva.estado))),
-                DataCell(
-                  finalizada
-                      ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey)
-                      : PopupMenuButton<String>(
-                          tooltip: 'Cambiar estado',
-                          icon: const Icon(Icons.published_with_changes_outlined, size: 20),
-                          onSelected: (v) => _cambiarEstadoReserva(reserva, v),
-                          itemBuilder: (_) => estadosReserva
-                              .where((e) => e != reserva.estado)
-                              .map((e) => PopupMenuItem(value: e, child: Text(e)))
-                              .toList(),
+                child: DataTable(
+                  headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
+                  dataTextStyle: const TextStyle(fontSize: 12.5),
+                  columnSpacing: 20,
+                  columns: const [
+                    DataColumn(label: Text('ID'), numeric: true),
+                    DataColumn(label: Text('Cliente')),
+                    DataColumn(label: Text('Sucursal')),
+                    DataColumn(label: Text('Fecha')),
+                    DataColumn(label: Text('Estado')),
+                    DataColumn(label: Text('Acción')),
+                  ],
+                  rows: visibles.map((reserva) {
+                    final finalizada = reserva.estado == 'cancelada' || reserva.estado == 'completada';
+                    return DataRow(cells: [
+                      DataCell(Text('#${reserva.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                      DataCell(
+                        SizedBox(
+                          width: 160,
+                          child: Text(
+                            _nombreClienteDe(reserva.cliente, reserva.usuarioId),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                      ),
+                      DataCell(Text(_nombreSucursal(reserva.sucursalId))),
+                      DataCell(Text(_fechaCorta(reserva.fechaReserva))),
+                      DataCell(_chipEstado(reserva.estado, _colorEstadoReserva(reserva.estado))),
+                      DataCell(
+                        finalizada
+                            ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey)
+                            : PopupMenuButton<String>(
+                                tooltip: 'Cambiar estado',
+                                icon: const Icon(Icons.published_with_changes_outlined, size: 20),
+                                onSelected: (v) => _cambiarEstadoReserva(reserva, v),
+                                itemBuilder: (_) => estadosReserva
+                                    .where((e) => e != reserva.estado)
+                                    .map((e) => PopupMenuItem(value: e, child: Text(e)))
+                                    .toList(),
+                              ),
+                      ),
+                    ]);
+                  }).toList(),
                 ),
-              ]);
-            }).toList(),
+              ),
+            ),
           ),
         ),
+        _paginador(
+          pagina: pagina,
+          totalPaginas: totalPaginas,
+          onAnterior: pagina > 1
+              ? () => setState(() => _paginaReservas = pagina - 1)
+              : null,
+          onSiguiente: pagina < totalPaginas
+              ? () => setState(() => _paginaReservas = pagina + 1)
+              : null,
+        ),
+      ],
+    );
+  }
+
+  /// [Paginación] Controles "Anterior / Página X de Y / Siguiente".
+  Widget _paginador({
+    required int pagina,
+    required int totalPaginas,
+    required VoidCallback? onAnterior,
+    required VoidCallback? onSiguiente,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextButton.icon(
+            onPressed: onAnterior,
+            icon: const Icon(Icons.chevron_left),
+            label: const Text('Anterior'),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Página $pagina de $totalPaginas',
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: onSiguiente,
+            icon: const Icon(Icons.chevron_right),
+            label: const Text('Siguiente'),
+          ),
+        ],
       ),
     );
   }

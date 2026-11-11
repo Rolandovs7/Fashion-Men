@@ -14,12 +14,14 @@ import '../screens/login_page.dart';
 class DrawerEncabezado extends StatelessWidget {
   final String nombre;
   final String rolEtiqueta;
+  final String email;
   final String marca;
 
   const DrawerEncabezado({
     super.key,
     required this.nombre,
     required this.rolEtiqueta,
+    this.email = '',
     this.marca = 'MENSTYLE',
   });
 
@@ -82,6 +84,18 @@ class DrawerEncabezado extends StatelessWidget {
                         letterSpacing: 0.6,
                       ),
                     ),
+                    if (email.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        email.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

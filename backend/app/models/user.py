@@ -31,6 +31,12 @@ class Usuario(Base):
         index=True
     )
 
+    # CU04 - Datos de contacto del cliente (opcional, editable por admin).
+    telefono: Mapped[str | None] = mapped_column(
+        String(30),
+        nullable=True
+    )
+
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False

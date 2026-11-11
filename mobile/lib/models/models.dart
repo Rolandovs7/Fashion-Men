@@ -96,6 +96,8 @@ class Usuario {
   final String nombre;
   final String apellido;
   final String email;
+  final String? telefono;
+  final String? fechaRegistro;
   final bool activo;
   final String rol;
 
@@ -104,15 +106,21 @@ class Usuario {
     required this.nombre,
     required this.apellido,
     required this.email,
+    this.telefono,
+    this.fechaRegistro,
     required this.activo,
     required this.rol,
   });
+
+  String get nombreCompleto => '$nombre $apellido'.trim();
 
   factory Usuario.fromJson(Map<String, dynamic> json) => Usuario(
     id: json['id'],
     nombre: json['nombre'],
     apellido: json['apellido'],
     email: json['email'],
+    telefono: json['telefono']?.toString(),
+    fechaRegistro: json['fecha_registro']?.toString(),
     activo: json['activo'] ?? true,
     rol: json['rol'] ?? 'cliente',
   );
@@ -315,6 +323,29 @@ class DetallePedido {
   );
 }
 
+class ClienteResumen {
+  final int id;
+  final String nombre;
+  final String apellido;
+  final String email;
+
+  ClienteResumen({
+    required this.id,
+    required this.nombre,
+    required this.apellido,
+    required this.email,
+  });
+
+  String get nombreCompleto => '$nombre $apellido'.trim();
+
+  factory ClienteResumen.fromJson(Map<String, dynamic> json) => ClienteResumen(
+    id: json['id'] ?? 0,
+    nombre: (json['nombre'] ?? '').toString(),
+    apellido: (json['apellido'] ?? '').toString(),
+    email: (json['email'] ?? '').toString(),
+  );
+}
+
 class Pedido {
   final int id;
   final int usuarioId;
@@ -322,6 +353,7 @@ class Pedido {
   final String estado;
   final double total;
   final List<DetallePedido> detalles;
+  final ClienteResumen? cliente;
 
   Pedido({
     required this.id,
@@ -330,6 +362,7 @@ class Pedido {
     required this.estado,
     required this.total,
     required this.detalles,
+    this.cliente,
   });
 
   factory Pedido.fromJson(Map<String, dynamic> json) => Pedido(
@@ -341,6 +374,9 @@ class Pedido {
     detalles: (json['detalles'] as List)
         .map((d) => DetallePedido.fromJson(d))
         .toList(),
+    cliente: json['cliente'] is Map
+        ? ClienteResumen.fromJson((json['cliente'] as Map).cast<String, dynamic>())
+        : null,
   );
 }
 
@@ -373,6 +409,7 @@ class Reserva {
   final String estado;
   final String? observaciones;
   final List<DetalleReserva> detalles;
+  final ClienteResumen? cliente;
 
   Reserva({
     required this.id,
@@ -382,6 +419,7 @@ class Reserva {
     required this.estado,
     this.observaciones,
     required this.detalles,
+    this.cliente,
   });
 
   factory Reserva.fromJson(Map<String, dynamic> json) => Reserva(
@@ -394,6 +432,9 @@ class Reserva {
     detalles: (json['detalles'] as List)
         .map((d) => DetalleReserva.fromJson(d))
         .toList(),
+    cliente: json['cliente'] is Map
+        ? ClienteResumen.fromJson((json['cliente'] as Map).cast<String, dynamic>())
+        : null,
   );
 }
 

@@ -4,7 +4,7 @@
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.dependencies import obtener_db, obtener_usuario_actual, requerir_rol, get_current_empresa_id
 from app.models.branch import Sucursal
@@ -60,7 +60,11 @@ def listar_todas_las_reservas(
     [Segundo Parcial] RNF02 - Aislamiento de datos por empresa
     Listar todas las reservas de la empresa (solo administradores)
     """
-    query = db.query(Reserva).filter(Reserva.empresa_id == empresa_id)
+    query = (
+        db.query(Reserva)
+        .options(joinedload(Reserva.cliente))
+        .filter(Reserva.empresa_id == empresa_id)
+    )
     if estado:
         query = query.filter(Reserva.estado == estado)
     if sucursal_id is not None:

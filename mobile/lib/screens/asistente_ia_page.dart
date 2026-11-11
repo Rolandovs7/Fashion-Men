@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../core/sesion.dart';
 import '../core/theme.dart';
@@ -20,8 +21,9 @@ import '../widgets/sesion_expirada_view.dart';
 /// a SQL seguro (solo SELECT, filtrado por empresa) y devuelve
 /// {sql, columnas, resultados, mensaje}.
 ///
-/// El botón de micrófono queda preparado: requiere agregar el
-/// paquete `speech_to_text` al pubspec.yaml para activarse.
+/// La entrada es un único [TextField] libre (sin consultas
+/// predefinidas). El micrófono usa `speech_to_text`: al terminar de
+/// dictar, la transcripción se autoenvía al asistente.
 class AsistenteIaPage extends StatefulWidget {
   final bool embedded;
   const AsistenteIaPage({super.key, this.embedded = false});
@@ -48,25 +50,21 @@ class _Mensaje {
   }) : sqlVisible = false;
 }
 
-const List<String> _sugerencias = [
-  '¿Cuáles son los productos más vendidos?',
-  '¿Cuántas ventas hubo el último mes?',
-  '¿Qué clientes compraron más?',
-  'Stock disponible por sucursal',
-];
-
 class _AsistenteIaPageState extends State<AsistenteIaPage> {
   final _preguntaController = TextEditingController();
   final _scrollController = ScrollController();
   final List<_Mensaje> _mensajes = [];
+  final stt.SpeechToText _speech = stt.SpeechToText();
 
   bool _enviando = false;
   bool _sesionExpirada = false;
+  bool _escuchando = false;
   String _error = '';
   String? _ultimaPregunta;
 
   @override
   void dispose() {
+    _speech.cancel();
     _preguntaController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -155,15 +153,78 @@ class _AsistenteIaPageState extends State<AsistenteIaPage> {
     }
   }
 
-  /// [Preparado] Micrófono: requiere el paquete `speech_to_text`
-  /// en pubspec.yaml (todavía no está incluido).
-  void _microfono() {
-    // [Segundo Parcial] Micrófono preparado para integración futura.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('El micrófono estará disponible próximamente.'),
-      ),
-    );
+  /// Micrófono real con `speech_to_text`: dicta la pregunta y, al
+  /// obtener el resultado final, la envía automáticamente al asistente.
+  Future<void> _microfono() async {
+    if (_enviando) return;
+
+    if (_speech.isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _escuchando = false);
+      return;
+    }
+
+    try {
+      final disponible = await _speech.initialize(
+        onStatus: (estado) {
+          if (!mounted) return;
+          if (estado == 'done' || estado == 'notListening') {
+            setState(() => _escuchando = false);
+          }
+        },
+        onError: (error) {
+          if (!mounted) return;
+          setState(() => _escuchando = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'No se pudo usar el micrófono: ${error.errorMsg}',
+              ),
+            ),
+          );
+        },
+      );
+
+      if (!disponible) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'El reconocimiento de voz no está disponible en este dispositivo.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      setState(() => _escuchando = true);
+      await _speech.listen(
+        onResult: (resultado) {
+          if (!mounted) return;
+          final texto = resultado.recognizedWords.trim();
+          if (texto.isEmpty) return;
+          _preguntaController.text = texto;
+          _preguntaController.selection = TextSelection.fromPosition(
+            TextPosition(offset: texto.length),
+          );
+          if (resultado.finalResult) {
+            setState(() => _escuchando = false);
+            // Auto-envío: el dictado termina y se consulta al asistente.
+            _enviarPregunta(texto);
+          }
+        },
+        listenOptions: stt.SpeechListenOptions(
+          listenFor: const Duration(seconds: 45),
+          pauseFor: const Duration(seconds: 3),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _escuchando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error de micrófono: $e')),
+      );
+    }
   }
 
   @override
@@ -222,17 +283,21 @@ class _AsistenteIaPageState extends State<AsistenteIaPage> {
             style: TextStyle(color: Colors.grey.shade600, fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 20),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              for (final sugerencia in _sugerencias)
-                ActionChip(
-                  avatar: const Icon(Icons.bolt, size: 16, color: AppTheme.bronce),
-                  label: Text(sugerencia),
-                  onPressed: () => _enviarPregunta(sugerencia),
+              Icon(Icons.mic_none_outlined, size: 18, color: AppTheme.bronce),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Escribí tu pregunta o dictala con el micrófono.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12.5,
+                  ),
                 ),
+              ),
             ],
           ),
         ],
@@ -433,11 +498,14 @@ class _AsistenteIaPageState extends State<AsistenteIaPage> {
               ),
             ),
             const SizedBox(width: 8),
-            // Micrófono: preparado para speech_to_text (no está en pubspec).
+            // Micrófono: dicta la pregunta y la envía automáticamente.
             IconButton(
-              tooltip: 'Búsqueda por voz (próximamente)',
+              tooltip: _escuchando ? 'Detener dictado' : 'Dictar pregunta',
               onPressed: _enviando ? null : _microfono,
-              icon: const Icon(Icons.mic_none_outlined),
+              icon: Icon(
+                _escuchando ? Icons.mic : Icons.mic_none_outlined,
+                color: _escuchando ? Colors.red : null,
+              ),
             ),
             const SizedBox(width: 4),
             IconButton.filled(

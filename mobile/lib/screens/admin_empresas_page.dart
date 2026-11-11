@@ -7,6 +7,7 @@ import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../services/api_client.dart';
 import '../widgets/sesion_expirada_view.dart';
+import 'nueva_empresa_page.dart';
 
 /// Lista de empresas (tenants). Solo SuperAdmin.
 /// Consume GET /api/empresas (EmpresaListadoRead[]),
@@ -29,7 +30,6 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
   bool _sesionExpirada = false;
   String _error = '';
   List<dynamic> _empresas = const [];
-  List<dynamic> _planes = const [];
 
   @override
   void initState() {
@@ -45,14 +45,12 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
       _sesionExpirada = false;
     });
     try {
-      final results = await Future.wait([
-        http.get(ApiClient.uri('/empresas'), headers: ApiClient.authHeaders()),
-        http.get(ApiClient.uri('/suscripciones/planes'), headers: ApiClient.authHeaders()),
-      ]);
-      final res = results[0];
-      final resPlanes = results[1];
+      final res = await http.get(
+        ApiClient.uri('/empresas'),
+        headers: ApiClient.authHeaders(),
+      );
 
-      if (ApiClient.esErrorAuth(res) || ApiClient.esErrorAuth(resPlanes)) {
+      if (ApiClient.esErrorAuth(res)) {
         await ApiClient.manejarErrorAuth();
       }
 
@@ -63,17 +61,10 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
         throw Exception(msg);
       }
 
-      List<dynamic> planes = const [];
-      if (resPlanes.statusCode >= 200 && resPlanes.statusCode < 300) {
-        final decodedPlanes = jsonDecode(resPlanes.body);
-        planes = decodedPlanes is List ? decodedPlanes : const [];
-      }
-
       final decoded = jsonDecode(res.body);
       if (!mounted) return;
       setState(() {
         _empresas = decoded is List ? decoded : const [];
-        _planes = planes;
         _cargando = false;
       });
     } on SesionExpiradaException {
@@ -176,7 +167,7 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
       return Scaffold(
         body: content,
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: _abrirFormularioNuevaEmpresa,
+          onPressed: _abrirNuevaEmpresa,
           icon: const Icon(Icons.add_business),
           label: const Text('Registrar nueva empresa'),
           backgroundColor: AppTheme.negro,
@@ -187,7 +178,7 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Empresas (Tenants)')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _abrirFormularioNuevaEmpresa,
+        onPressed: _abrirNuevaEmpresa,
         icon: const Icon(Icons.add_business),
         label: const Text('Registrar nueva empresa'),
         backgroundColor: AppTheme.negro,
@@ -351,231 +342,18 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
     );
   }
 
-  Future<void> _abrirFormularioNuevaEmpresa() async {
-    if (!mounted) return;
+  Future<void> _abrirNuevaEmpresa() async {
+    final creada = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const NuevaEmpresaPage()),
+    );
+    if (!mounted || creada != true) return;
 
-    // Si los planes aún no se cargaron (por ejemplo, falló la petición
-    // inicial), reintentamos antes de abrir el formulario.
-    if (_planes.isEmpty) {
-      await _cargar();
-      if (!mounted) return;
-    }
-    if (_planes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudieron cargar los planes. Reintenta.'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    // Se usa el context vigente del Scaffold y un context propio para el
-    // bottom sheet. Nunca se reutiliza un context capturado tras un await.
-    await showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (sheetContext) => _FormularioNuevaEmpresa(
-        planes: _planes.cast<Map<String, dynamic>>(),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Empresa registrada correctamente.'),
+        backgroundColor: Colors.green,
       ),
     );
-    if (!mounted) return;
     await _cargar();
-  }
-}
-
-/// Formulario simple de registro de nueva empresa (POST /api/empresas).
-class _FormularioNuevaEmpresa extends StatefulWidget {
-  final List<Map<String, dynamic>> planes;
-  const _FormularioNuevaEmpresa({required this.planes});
-
-  @override
-  State<_FormularioNuevaEmpresa> createState() => _FormularioNuevaEmpresaState();
-}
-
-class _FormularioNuevaEmpresaState extends State<_FormularioNuevaEmpresa> {
-  final _formKey = GlobalKey<FormState>();
-  final _nombreCtrl = TextEditingController();
-  final _nitCtrl = TextEditingController();
-  final _adminNombreCtrl = TextEditingController();
-  final _adminApellidoCtrl = TextEditingController();
-  final _adminEmailCtrl = TextEditingController();
-  final _adminPasswordCtrl = TextEditingController();
-
-  int? _planId;
-  bool _creandoAdmin = false;
-  bool _guardando = false;
-  String _error = '';
-
-  @override
-  void dispose() {
-    _nombreCtrl.dispose();
-    _nitCtrl.dispose();
-    _adminNombreCtrl.dispose();
-    _adminApellidoCtrl.dispose();
-    _adminEmailCtrl.dispose();
-    _adminPasswordCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _guardar() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_planId == null) {
-      setState(() => _error = 'Selecciona un plan inicial.');
-      return;
-    }
-
-    setState(() {
-      _guardando = true;
-      _error = '';
-    });
-
-    try {
-      final body = <String, dynamic>{
-        'nombre_empresa': _nombreCtrl.text.trim(),
-        'plan_id': _planId,
-        'nit': _nitCtrl.text.trim().isEmpty ? null : _nitCtrl.text.trim(),
-      };
-      if (_creandoAdmin) {
-        body['admin_nombre'] = _adminNombreCtrl.text.trim();
-        body['admin_apellido'] = _adminApellidoCtrl.text.trim();
-        body['admin_email'] = _adminEmailCtrl.text.trim();
-        body['admin_password'] = _adminPasswordCtrl.text;
-      }
-
-      final res = await http.post(
-        ApiClient.uri('/empresas'),
-        headers: ApiClient.jsonHeaders(),
-        body: jsonEncode(body..removeWhere((k, v) => v == null)),
-      );
-      if (!mounted) return;
-      if (ApiClient.esErrorAuth(res)) {
-        await ApiClient.manejarErrorAuth();
-      }
-      if (!mounted) return;
-      if (res.statusCode < 200 || res.statusCode >= 300) {
-        setState(() {
-          _guardando = false;
-          _error = ApiClient.mensajeHttp(res, fallback: 'No se pudo registrar la empresa');
-        });
-        return;
-      }
-      if (mounted) Navigator.of(context).pop();
-    } on SesionExpiradaException {
-      if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _guardando = false;
-        _error = e.toString().replaceFirst('Exception: ', '');
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('Registrar nueva empresa', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
-              const SizedBox(height: 4),
-              Text('Se creará con el plan seleccionado y 30 días de vigencia.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nombreCtrl,
-                decoration: const InputDecoration(labelText: 'Nombre de la empresa', border: OutlineInputBorder()),
-                validator: (v) => (v == null || v.trim().length < 2) ? 'Ingresa el nombre' : null,
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _nitCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'NIT (opcional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 10),
-              DropdownButtonFormField<int>(
-                initialValue: _planId,
-                decoration: const InputDecoration(labelText: 'Plan inicial', border: OutlineInputBorder()),
-                items: widget.planes
-                    .map((p) => DropdownMenuItem(
-                          value: (p['id'] as num?)?.toInt(),
-                          child: Text('${p['nombre']} · Bs ${(p['precio_mensual'] ?? 0).toStringAsFixed(0)}/mes'),
-                        ))
-                    .toList(),
-                onChanged: (v) => setState(() => _planId = v),
-              ),
-              const SizedBox(height: 14),
-              SwitchListTile(
-                value: _creandoAdmin,
-                onChanged: (v) => setState(() => _creandoAdmin = v),
-                title: const Text('Crear administrador inicial', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                subtitle: const Text('Opcional: usuario admin de la nueva empresa', style: TextStyle(fontSize: 12)),
-                contentPadding: EdgeInsets.zero,
-              ),
-              if (_creandoAdmin) ...[
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _adminNombreCtrl,
-                        decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder(), isDense: true),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _adminApellidoCtrl,
-                        decoration: const InputDecoration(labelText: 'Apellido', border: OutlineInputBorder(), isDense: true),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _adminEmailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email del admin', border: OutlineInputBorder(), isDense: true),
-                  validator: (v) => (v == null || !v.contains('@')) ? 'Email inválido' : null,
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: _adminPasswordCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder(), isDense: true),
-                  validator: (v) => (v == null || v.length < 6) ? 'Mínimo 6 caracteres' : null,
-                ),
-                const SizedBox(height: 8),
-              ],
-              if (_error.isNotEmpty) ...[
-                Text(_error, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 10),
-              ],
-              FilledButton.icon(
-                onPressed: _guardando ? null : _guardar,
-                icon: _guardando
-                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(Icons.add_business),
-                label: Text(_guardando ? 'Registrando...' : 'Registrar empresa'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }

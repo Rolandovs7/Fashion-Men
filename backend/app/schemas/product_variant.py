@@ -9,12 +9,14 @@ class VarianteCrear(BaseModel):
     color_id: int
     nombre_variante: Optional[str] = None
     imagen_url: Optional[str] = Field(None, max_length=500)
+    sku: Optional[str] = Field(None, min_length=1, max_length=60)
 
 
 class VarianteActualizar(BaseModel):
     activo: Optional[bool] = None
     nombre_variante: Optional[str] = None
     imagen_url: Optional[str] = Field(None, max_length=500)
+    sku: Optional[str] = Field(None, min_length=1, max_length=60)
 
 
 class VarianteRespuesta(BaseModel):
@@ -27,6 +29,7 @@ class VarianteRespuesta(BaseModel):
     color_codigo_hex: Optional[str] = None
     color_imagen_url: Optional[str] = None
     nombre_variante: Optional[str] = None
+    sku: Optional[str] = None
     imagen_url: Optional[str] = None
     activo: bool
     stock_disponible: int = 0

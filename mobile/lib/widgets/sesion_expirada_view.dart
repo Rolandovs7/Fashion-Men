@@ -31,7 +31,10 @@ class SesionExpiradaView extends StatelessWidget {
             const SizedBox(height: 18),
             FilledButton.icon(
               onPressed: () async {
-                await AuthService.instance.limpiarSesion();
+                // [Fix 1.1] logout() limpia TODO (token/usuario/refreshToken)
+                // con await antes de navegar, y bloquea redirecciones 401
+                // rezagadas: se navega al Login una sola vez.
+                await AuthService.instance.logout();
                 if (!context.mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -53,7 +56,7 @@ class SesionExpiradaView extends StatelessWidget {
 }
 
 Future<void> irALogin(BuildContext context) async {
-  await AuthService.instance.limpiarSesion();
+  await AuthService.instance.logout();
   if (!context.mounted) return;
   Navigator.of(context).pushAndRemoveUntil(
     MaterialPageRoute(builder: (_) => const LoginPage()),

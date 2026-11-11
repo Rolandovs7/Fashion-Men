@@ -11,7 +11,12 @@ from app.core.dependencies import obtener_db, requerir_rol
 from app.core.security import obtener_password_hash
 from app.models.saas import Empresa, Plan, Suscripcion
 from app.models.user import Usuario
-from app.schemas.empresa import EmpresaCrearRequest, EmpresaCrearResponse, EmpresaListadoRead
+from app.schemas.empresa import (
+    EmpresaCrearRequest,
+    EmpresaCrearResponse,
+    EmpresaEstadoRequest,
+    EmpresaListadoRead,
+)
 from app.services.email_service import enviar_correo_bienvenida
 
 router = APIRouter()
@@ -47,6 +52,7 @@ def listar_empresas(
             EmpresaListadoRead(
                 id=emp.id,
                 nombre=emp.nombre,
+                nit=getattr(emp, "nit", None),
                 fecha_registro=getattr(emp, "fecha_registro", None),
                 plan_actual=plan_nombre,
                 activo=bool(getattr(emp, "activo", True)),
@@ -77,7 +83,7 @@ def crear_empresa(
         if not datos.admin_password or not datos.admin_nombre or not datos.admin_apellido:
             raise HTTPException(status_code=400, detail="Para crear el usuario admin inicial indique nombre, apellido, email y contraseña")
 
-    empresa = Empresa(nombre=datos.nombre_empresa, activo=True)
+    empresa = Empresa(nombre=datos.nombre_empresa, nit=datos.nit, activo=True)
     db.add(empresa)
     db.flush()
 
@@ -124,4 +130,49 @@ def crear_empresa(
         suscripcion_id=suscripcion.id,
         admin_usuario_id=admin_usuario_id,
         mensaje="Empresa registrada correctamente con plan inicial.",
+    )
+
+
+@router.patch(
+    "/{empresa_id}/estado",
+    response_model=EmpresaListadoRead,
+)
+def cambiar_estado_empresa(
+    empresa_id: int,
+    datos: EmpresaEstadoRequest,
+    db: Session = Depends(obtener_db),
+    _superadmin: Usuario = Depends(requerir_rol("superadmin")),
+):
+    """
+    [SaaS] Activa/desactiva un tenant. Solo superadmin.
+    Una empresa desactivada no puede iniciar sesión ni consumir la API
+    (ver auth.login y dependencies.obtener_usuario_actual).
+    """
+    empresa = db.query(Empresa).filter(Empresa.id == empresa_id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="La empresa indicada no existe")
+
+    empresa.activo = datos.activo
+    db.commit()
+    db.refresh(empresa)
+
+    # Reutiliza la misma lógica de listado para devolver plan actual
+    sus = (
+        db.query(Suscripcion)
+        .filter(Suscripcion.empresa_id == empresa.id, Suscripcion.estado == "activo")
+        .order_by(Suscripcion.fecha_inicio.desc())
+        .first()
+    )
+    plan_nombre = None
+    if sus is not None:
+        plan = db.query(Plan).filter(Plan.id == sus.plan_id).first()
+        plan_nombre = plan.nombre if plan else None
+
+    return EmpresaListadoRead(
+        id=empresa.id,
+        nombre=empresa.nombre,
+        nit=getattr(empresa, "nit", None),
+        fecha_registro=getattr(empresa, "fecha_registro", None),
+        plan_actual=plan_nombre,
+        activo=bool(empresa.activo),
     )

@@ -274,6 +274,9 @@ class _AdminCatalogoPageState extends State<AdminCatalogoPage> {
   }
 
   // ============== PRODUCTOS ==============
+  // [Rediseño 2.7] Formulario de alta + buscador + filtro por
+  // categoría (chips) + GridView de productos en cards con stock
+  // total (suma de variantes) y acciones editar/desactivar.
   Widget _tabProductos() {
     final nombreCtrl = TextEditingController();
     final descCtrl = TextEditingController();
@@ -282,6 +285,8 @@ class _AdminCatalogoPageState extends State<AdminCatalogoPage> {
     int? proveedorId;
     int? temporadaId;
     int? coleccionId;
+    String busqueda = '';
+    int? categoriaFiltro;
 
     return StatefulBuilder(
       builder: (context, setLocalState) => ListView(
@@ -377,37 +382,64 @@ class _AdminCatalogoPageState extends State<AdminCatalogoPage> {
             ),
           ),
           const SizedBox(height: 16),
-          ...productos.map(
-            (p) => Card(
-              child: ListTile(
-                title: Text(p.nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('Bs ${p.precio.toStringAsFixed(2)}'),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      onPressed: () => _editarProducto(p),
-                    ),
-                    if (p.activo)
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        onPressed: () async {
-                          try {
-                            await catalogoService.eliminarProducto(p.id);
-                            _mostrarMensaje('Producto desactivado.');
-                            _cargarTodo();
-                          } catch (e) {
-                            _mostrarError(e);
-                          }
-                        },
-                      )
-                    else
-                      const Chip(label: Text('Inactivo'), visualDensity: VisualDensity.compact),
-                  ],
-                ),
-              ),
+
+          // [Rediseño 2.7] Buscador por nombre
+          TextField(
+            onChanged: (v) => setLocalState(() => busqueda = v.trim().toLowerCase()),
+            decoration: InputDecoration(
+              hintText: 'Buscar producto por nombre...',
+              prefixIcon: const Icon(Icons.search),
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
+          ),
+          const SizedBox(height: 10),
+
+          // [Rediseño 2.7] Filtro por categoría (chips)
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: [
+                ChoiceChip(
+                  label: const Text('Todas'),
+                  selected: categoriaFiltro == null,
+                  onSelected: (_) => setLocalState(() => categoriaFiltro = null),
+                ),
+                const SizedBox(width: 8),
+                for (final c in categorias) ...[
+                  ChoiceChip(
+                    label: Text(c.nombre),
+                    selected: categoriaFiltro == c.id,
+                    onSelected: (_) => setLocalState(() => categoriaFiltro = c.id),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // [Rediseño 2.7] GridView de productos en cards
+          _GrillaProductos(
+            productos: productos
+                .where((p) =>
+                    (categoriaFiltro == null || p.categoriaId == categoriaFiltro) &&
+                    (busqueda.isEmpty || p.nombre.toLowerCase().contains(busqueda)))
+                .toList(),
+            nombresCategoria: {
+              for (final c in categorias) c.id: c.nombre,
+            },
+            onEditar: _editarProducto,
+            onDesactivar: (p) async {
+              try {
+                await catalogoService.eliminarProducto(p.id);
+                _mostrarMensaje('Producto desactivado.');
+                _cargarTodo();
+              } catch (e) {
+                _mostrarError(e);
+              }
+            },
           ),
         ],
       ),
@@ -1654,5 +1686,233 @@ class _AdminCatalogoPageState extends State<AdminCatalogoPage> {
     } catch (e) {
       _mostrarError(e);
     }
+  }
+}
+
+/// ============================================================
+/// [Rediseño 2.7] Grilla de productos en cards.
+/// Muestra imagen (con fallback), nombre, categoría, precio y
+/// stock total (suma de `stock_disponible` de las variantes,
+/// cargado de forma diferida por producto). Al cambiar la lista
+/// filtrada, `didUpdateWidget` carga solo los productos nuevos.
+/// ============================================================
+class _GrillaProductos extends StatefulWidget {
+  final List<Producto> productos;
+  final Map<int, String> nombresCategoria;
+  final void Function(Producto) onEditar;
+  final void Function(Producto) onDesactivar;
+
+  const _GrillaProductos({
+    required this.productos,
+    required this.nombresCategoria,
+    required this.onEditar,
+    required this.onDesactivar,
+  });
+
+  @override
+  State<_GrillaProductos> createState() => _GrillaProductosState();
+}
+
+class _GrillaProductosState extends State<_GrillaProductos> {
+  final CatalogoService _catalogoService = CatalogoService();
+
+  /// Stock total por producto_id (suma de variantes).
+  final Map<int, int> _stocks = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarStocks(widget.productos);
+  }
+
+  @override
+  void didUpdateWidget(covariant _GrillaProductos oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nuevos = widget.productos.where((p) => !_stocks.containsKey(p.id)).toList();
+    if (nuevos.isNotEmpty) {
+      _cargarStocks(nuevos);
+    }
+  }
+
+  Future<void> _cargarStocks(List<Producto> productos) async {
+    for (final p in productos) {
+      // Evita trabajos innecesarios si el widget ya no está montado.
+      if (!mounted) return;
+      try {
+        final variantes = await _catalogoService.listarVariantesPorProducto(p.id);
+        if (!mounted) return;
+        setState(() {
+          _stocks[p.id] = variantes.fold<int>(0, (suma, v) => suma + v.stockDisponible);
+        });
+      } catch (_) {
+        // Sin datos de variantes: se muestra el card sin stock.
+        if (!mounted) return;
+        setState(() => _stocks[p.id] = 0);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.productos.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: Text('No se encontraron productos.', style: TextStyle(color: Colors.grey))),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.productos.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 0.62,
+      ),
+      itemBuilder: (context, i) {
+        final p = widget.productos[i];
+        return _cardProducto(p);
+      },
+    );
+  }
+
+  Widget _cardProducto(Producto p) {
+    final categoria = widget.nombresCategoria[p.categoriaId] ?? 'Sin categoría';
+    final stock = _stocks[p.id];
+    final stockBajo = (stock ?? 0) <= p.stockMinimo;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: p.activo ? Colors.grey.shade300 : Colors.grey.shade400),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Imagen con fallback (inicial del producto sobre negro)
+          Expanded(
+            flex: 3,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (p.imagenUrl != null && p.imagenUrl!.isNotEmpty)
+                  Image.network(
+                    p.imagenUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => _fallbackImagen(p),
+                  )
+                else
+                  _fallbackImagen(p),
+                if (!p.activo)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Inactivo',
+                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // Datos + acciones
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    p.nombre,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(categoria, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                  const SizedBox(height: 4),
+                  Text('Bs ${p.precio.toStringAsFixed(2)}',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Icon(
+                        stock == null ? Icons.hourglass_empty : (stockBajo ? Icons.error_outline : Icons.inventory_2_outlined),
+                        size: 13,
+                        color: stock == null ? Colors.grey : (stockBajo ? Colors.orange : Colors.green),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          stock == null ? 'Cargando…' : 'Stock: $stock',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: stock == null ? Colors.grey : (stockBajo ? Colors.orange.shade800 : Colors.green.shade700),
+                          ),
+                        ),
+                      ),
+                      if (p.activo)
+                        SizedBox(
+                          width: 28,
+                          height: 28,
+                          child: IconButton(
+                            padding: EdgeInsets.zero,
+                            iconSize: 16,
+                            icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            onPressed: () => widget.onDesactivar(p),
+                          ),
+                        ),
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: IconButton(
+                          padding: EdgeInsets.zero,
+                          iconSize: 16,
+                          icon: const Icon(Icons.edit_outlined),
+                          onPressed: () => widget.onEditar(p),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fallbackImagen(Producto p) {
+    final inicial = p.nombre.isNotEmpty ? p.nombre[0].toUpperCase() : '?';
+    return Container(
+      color: Colors.black,
+      alignment: Alignment.center,
+      child: Text(
+        inicial,
+        style: const TextStyle(
+          color: Color(0xFFFFD400),
+          fontWeight: FontWeight.w800,
+          fontSize: 30,
+        ),
+      ),
+    );
   }
 }

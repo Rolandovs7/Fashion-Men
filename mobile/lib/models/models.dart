@@ -151,6 +151,9 @@ class Producto {
   final int? coleccionId;
   final bool activo;
 
+  /// CU15 / RF21 - Umbral de stock mínimo (alertas de reposición).
+  final int stockMinimo;
+
   Producto({
     required this.id,
     required this.nombre,
@@ -162,6 +165,7 @@ class Producto {
     this.temporadaId,
     this.coleccionId,
     required this.activo,
+    this.stockMinimo = 5,
   });
 
   factory Producto.fromJson(Map<String, dynamic> json) => Producto(
@@ -175,6 +179,7 @@ class Producto {
     temporadaId: json['temporada_id'],
     coleccionId: json['coleccion_id'],
     activo: json['activo'] ?? true,
+    stockMinimo: (json['stock_minimo'] as num?)?.toInt() ?? 5,
   );
 }
 
@@ -189,6 +194,9 @@ class Variante {
   final bool activo;
   final int stockDisponible;
 
+  /// CU15 / RF21 - Código SKU de la variante (autogenerado si es null).
+  final String? sku;
+
   Variante({
     required this.id,
     required this.productoId,
@@ -199,6 +207,7 @@ class Variante {
     this.colorHex,
     required this.activo,
     required this.stockDisponible,
+    this.sku,
   });
 
   factory Variante.fromJson(Map<String, dynamic> json) => Variante(
@@ -211,6 +220,7 @@ class Variante {
     colorHex: json['color_codigo_hex'],
     activo: json['activo'] ?? true,
     stockDisponible: json['stock_disponible'] ?? 0,
+    sku: json['sku'],
   );
 }
 

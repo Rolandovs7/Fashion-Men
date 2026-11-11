@@ -30,6 +30,12 @@ class Empresa(Base):
         unique=True
     )
 
+    # [SaaS] Identificación tributaria del tenant (NIT en Bolivia).
+    nit: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True
+    )
+
     fecha_registro: Mapped[datetime] = mapped_column(
         DateTime,
         default=lambda: datetime.now(timezone.utc),

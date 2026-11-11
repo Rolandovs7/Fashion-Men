@@ -21,8 +21,33 @@ class AppTheme {
   static Color get fondoReservas => const Color(0xFFEFE8DC);
   static Color get fondoPerfil => Colors.white;
 
-  static TextStyle get fuenteTitulo => GoogleFonts.cormorantGaramond();
-  static TextStyle get fuenteCuerpo => GoogleFonts.jost();
+  static TextStyle get fuenteTitulo => GoogleFonts.inter(
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.3,
+      );
+  static TextStyle get fuenteCuerpo => GoogleFonts.inter();
+
+  /// [Rediseño 2.1] Tipografía global Inter con tamaños definidos
+  /// para toda la app (headline, títulos, cuerpo y etiquetas).
+  static TextTheme _textThemeInter(Color colorTexto) {
+    return GoogleFonts.interTextTheme().copyWith(
+      displayLarge: GoogleFonts.inter(fontSize: 56, fontWeight: FontWeight.w800, letterSpacing: -1.5, color: colorTexto),
+      displayMedium: GoogleFonts.inter(fontSize: 44, fontWeight: FontWeight.w800, letterSpacing: -1, color: colorTexto),
+      displaySmall: GoogleFonts.inter(fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -0.5, color: colorTexto),
+      headlineLarge: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.5, color: colorTexto),
+      headlineMedium: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.w700, color: colorTexto),
+      headlineSmall: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.w700, color: colorTexto),
+      titleLarge: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.w600, color: colorTexto),
+      titleMedium: GoogleFonts.inter(fontSize: 17, fontWeight: FontWeight.w600, color: colorTexto),
+      titleSmall: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: colorTexto),
+      bodyLarge: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w400, color: colorTexto),
+      bodyMedium: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: colorTexto),
+      bodySmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, color: colorTexto),
+      labelLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: colorTexto),
+      labelMedium: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: colorTexto),
+      labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: colorTexto),
+    );
+  }
 
   static ThemeData get temaClaro => _construirTema(Brightness.light);
   static ThemeData get light => temaClaro;
@@ -40,8 +65,7 @@ class AppTheme {
     );
 
     return base.copyWith(
-      textTheme: GoogleFonts.jostTextTheme(base.textTheme as TextTheme?)
-          .apply(bodyColor: colorTexto, displayColor: colorTexto),
+      textTheme: _textThemeInter(colorTexto),
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         foregroundColor: colorTexto,
@@ -49,9 +73,9 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: fuenteTitulo.copyWith(
           color: colorTexto,
-          fontWeight: FontWeight.w600,
-          fontSize: 26,
-          letterSpacing: 3.5,
+          fontWeight: FontWeight.w700,
+          fontSize: 24,
+          letterSpacing: 0.2,
         ),
       ),
       cardTheme: CardThemeData(

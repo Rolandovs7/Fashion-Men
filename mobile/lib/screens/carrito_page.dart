@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/carrito_service.dart';
 import '../services/catalogo_service.dart';
@@ -145,13 +146,24 @@ class _CarritoPageState extends State<CarritoPage> {
 
     setState(() => procesando = true);
     try {
-      final pedido = await pedidosService.crearDesdeCarrito(sucursalId);
+      // [Fix 1.3] Checkout sin redirección automática ante 401/403:
+      // se muestra el mensaje inline con botón, sin cerrar la app.
+      final pedido = await ApiClient.sinRedireccionAutomatica(
+        () => pedidosService.crearDesdeCarrito(sucursalId),
+      );
       if (!mounted) return;
       setState(() {
         procesando = false;
         mensaje = 'Pedido #${pedido.id} creado. Ve a "Pedidos" para pagarlo.';
       });
       _cargar();
+    } on SesionExpiradaException {
+      if (!mounted) return;
+      setState(() {
+        procesando = false;
+        sesionExpirada = true;
+        error = '';
+      });
     } catch (e) {
       setState(() {
         procesando = false;
@@ -267,9 +279,8 @@ class _CarritoPageState extends State<CarritoPage> {
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : sesionExpirada
-              ? SesionExpiradaView(
-                  mensaje: 'Inicia sesión para ver tu carrito.',
-                  onReintentar: _cargar,
+              ? const SesionExpiradaView(
+                  mensaje: 'Tu sesión expiró. Iniciá sesión de nuevo',
                 )
               : RefreshIndicator(
                   onRefresh: _cargar,

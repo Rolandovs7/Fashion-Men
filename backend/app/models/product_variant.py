@@ -32,6 +32,12 @@ class ProductoVariante(Base):
         nullable=True
     )
 
+    # CU15 / RF21 - Código SKU de la variante (se autogenera si no se indica).
+    sku: Mapped[str | None] = mapped_column(
+        String(60),
+        nullable=True
+    )
+
     imagen_url: Mapped[str | None] = mapped_column(
         String(500),
         nullable=True

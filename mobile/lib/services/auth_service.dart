@@ -20,6 +20,7 @@ import '../db/database_helper.dart';
 class AuthService {
   static const _kToken = 'auth_token';
   static const _kUsuario = 'auth_usuario';
+  static const _kRefreshToken = 'refresh_token';
 
   static final AuthService instance = AuthService._internal();
 
@@ -33,6 +34,14 @@ class AuthService {
 
   String? token;
   Map<String, dynamic>? usuarioActual;
+  String? refreshToken;
+
+  /// [Fix 1.1 - Logout bucle] true mientras se ejecuta un cierre de sesión.
+  /// El interceptor de 401 de [ApiClient] consulta este flag para NO
+  /// redirigir al Login (ni apilar Logins) durante el logout.
+  bool _isLoggingOut = false;
+
+  bool get isLoggingOut => _isLoggingOut;
 
   Future<String> login(String email, String password) async {
     final response = await http.post(
@@ -58,6 +67,8 @@ class AuthService {
     }
 
     await _guardarSesion();
+    // Login exitoso: se rehabilitan las redirecciones automáticas por 401.
+    _isLoggingOut = false;
     // ignore: discarded_futures
     sincronizarCatalogoLocal();
     return token!;
@@ -124,6 +135,8 @@ class AuthService {
 
   Future<bool> restaurarSesion() async {
     try {
+      // Arranque limpio de la app: no hay logout en curso.
+      _isLoggingOut = false;
       final prefs = await SharedPreferences.getInstance();
       final t = prefs.getString(_kToken);
       if (t == null || t.isEmpty) return false;
@@ -208,13 +221,31 @@ class AuthService {
   Future<void> limpiarSesion() async {
     token = null;
     usuarioActual = null;
+    refreshToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_kToken);
     await prefs.remove(_kUsuario);
+    await prefs.remove(_kRefreshToken);
   }
 
+  /// [Fix 1.1 - Logout bucle] Cierre de sesión único e idempotente.
+  ///
+  /// - Borra token, usuario y refreshToken de SharedPreferences con `await`
+  ///   ANTES de devolver el control: el caller navega al Login recién cuando
+  ///   la sesión local ya quedó limpia.
+  /// - Deja [_isLoggingOut] en true (se libera con un login exitoso o al
+  ///   restaurar sesión) para que los 401 rezagados de peticiones en vuelo
+  ///   no redirijan al Login ni apilen pantallas durante el logout.
   Future<void> logout() async {
-    await limpiarSesion();
+    if (_isLoggingOut) return; // nunca dos logout simultáneos
+    _isLoggingOut = true;
+    token = null;
+    usuarioActual = null;
+    refreshToken = null;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kToken);
+    await prefs.remove(_kUsuario);
+    await prefs.remove(_kRefreshToken);
   }
 
   String _extraerError(String body, String mensajePorDefecto) {

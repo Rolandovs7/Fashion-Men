@@ -17,6 +17,7 @@ from app.schemas.suscripciones import (
     CambiarPlanRequest,
     CheckoutPlanResponse,
     ConfirmarPagoRequest,
+    PagoHistorialRead,
 )
 from app.services.email_service import enviar_correo_pago
 
@@ -106,6 +107,41 @@ def obtener_mi_suscripcion(
         fecha_fin=suscripcion.fecha_fin,
         estado=suscripcion.estado,
     )
+
+
+@router.get("/historial", response_model=list[PagoHistorialRead])
+def obtener_historial_pagos(
+    db: Session = Depends(obtener_db),
+    usuario: Usuario = Depends(obtener_usuario_actual),
+    empresa_id: int = Depends(get_current_empresa_id),
+):
+    """
+    [SaaS] CU02 - Historial de pagos/suscripciones de la empresa.
+    Cada registro representa un pago aplicado (plan, monto y vigencia).
+    """
+    suscripciones = (
+        db.query(Suscripcion)
+        .filter(Suscripcion.empresa_id == empresa_id)
+        .order_by(Suscripcion.fecha_inicio.desc())
+        .all()
+    )
+    planes = {p.id: p for p in db.query(Plan).all()}
+
+    historial: list[PagoHistorialRead] = []
+    for sus in suscripciones:
+        plan = planes.get(sus.plan_id)
+        historial.append(
+            PagoHistorialRead(
+                id=sus.id,
+                plan_id=sus.plan_id,
+                plan_nombre=plan.nombre if plan else f"Plan #{sus.plan_id}",
+                precio_mensual=plan.precio_mensual if plan else 0,
+                fecha_inicio=sus.fecha_inicio,
+                fecha_fin=sus.fecha_fin,
+                estado=sus.estado,
+            )
+        )
+    return historial
 
 
 @router.put("/cambiar-plan", response_model=CheckoutPlanResponse)

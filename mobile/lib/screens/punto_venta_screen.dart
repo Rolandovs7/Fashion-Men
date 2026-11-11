@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../db/database_helper.dart';
+import '../services/auth_service.dart';
 import '../services/offline_sync_service.dart';
+import 'login_page.dart';
 
 /// POS offline básico.
 /// - Carga productos desde SQLite local.
@@ -32,6 +37,10 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
   bool _cobrando = false;
   String _error = '';
   String _mensaje = '';
+
+  /// [Fix 1.3] true si la sincronización falló por 401/403:
+  /// mensaje inline con botón, sin cerrar la app.
+  bool _sesionExpirada = false;
 
   @override
   void initState() {
@@ -124,15 +133,34 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
       setState(() {
         _cobrando = false;
         _carrito.clear();
+        _sesionExpirada = false;
         _mensaje =
             'Venta guardada localmente (offline). Se sincronizará al recuperar conexión.\nID: $uuid';
       });
+      // [Fix 1.3] Intenta sincronizar de inmediato si hay internet.
+      // La petición lleva Authorization: Bearer <token> (OfflineSyncService).
+      unawaited(_intentarSincronizar());
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _cobrando = false;
         _error = 'No se pudo guardar la venta offline: $e';
       });
+    }
+  }
+
+  /// [Fix 1.3] Sincroniza operaciones pendientes con el JWT vigente.
+  /// Ante 401/403 muestra el mensaje inline, sin cerrar la app.
+  Future<void> _intentarSincronizar() async {
+    try {
+      await _sync.sincronizarPendientes();
+      if (!mounted) return;
+      setState(() => _mensaje = 'Venta sincronizada con el servidor.');
+    } on SesionExpiradaException {
+      if (!mounted) return;
+      setState(() => _sesionExpirada = true);
+    } catch (_) {
+      // Sin conexión: las operaciones quedan pendientes (offline-first).
     }
   }
 
@@ -158,6 +186,7 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                if (_sesionExpirada) _bannerSesionExpirada(),
                 if (_mensaje.isNotEmpty) _banner(_mensaje, Colors.green),
                 if (_error.isNotEmpty) _banner(_error, Colors.red),
                 Expanded(
@@ -345,5 +374,40 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Text(texto, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
+      );
+
+  /// [Fix 1.3] Mensaje inline de sesión expirada con botón para volver al
+  /// Login. No cierra la app ni redirige automáticamente.
+  Widget _bannerSesionExpirada() => Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.red.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Tu sesión expiró. Iniciá sesión de nuevo',
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: () async {
+                await AuthService.instance.logout();
+                if (!mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
+              },
+              icon: const Icon(Icons.login),
+              label: const Text('Iniciar sesión de nuevo'),
+            ),
+          ],
+        ),
       );
 }

@@ -43,3 +43,14 @@ class ConfirmarPagoRequest(BaseModel):
     """[Segundo Parcial] CU02 - Confirmación de pago (simulación Stripe Billing)."""
     plan_id: int = Field(..., gt=0)
     payment_status: str = Field(..., min_length=1)  # ej: 'success'
+
+
+class PagoHistorialRead(BaseModel):
+    """Historial de pagos/suscripciones de la empresa (CU02)."""
+    id: int
+    plan_id: int
+    plan_nombre: str
+    precio_mensual: Decimal
+    fecha_inicio: datetime
+    fecha_fin: datetime | None = None
+    estado: str

@@ -108,6 +108,7 @@ def crear_producto(
         tipo_prenda_id=datos.tipo_prenda_id,
         marca_id=datos.marca_id,
         descuento_id=datos.descuento_id,
+        stock_minimo=datos.stock_minimo if datos.stock_minimo is not None else 5,
         empresa_id=empresa_id,
         activo=datos.activo if datos.activo is not None else True
     )
@@ -153,6 +154,7 @@ def actualizar_producto(
     if datos.tipo_prenda_id is not None: producto.tipo_prenda_id = datos.tipo_prenda_id
     if datos.marca_id is not None: producto.marca_id = datos.marca_id
     if datos.descuento_id is not None: producto.descuento_id = datos.descuento_id
+    if datos.stock_minimo is not None: producto.stock_minimo = datos.stock_minimo
     if datos.activo is not None: producto.activo = datos.activo
 
     db.commit()

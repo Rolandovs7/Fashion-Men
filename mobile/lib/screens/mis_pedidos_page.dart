@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' hide Card;
 
 import '../models/models.dart';
+import '../services/api_client.dart';
 import '../services/pedidos_service.dart';
 import '../services/auth_service.dart';
 import '../services/tipos_pago_service.dart';
@@ -33,6 +34,10 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   bool _stripeListo = false;
   int? _pedidoIdProcesandoStripe;
 
+  /// [Fix 1.3] true cuando un pago falló por 401/403: se muestra el mensaje
+  /// inline "Tu sesión expiró..." con botón, sin cerrar la app.
+  bool _sesionExpirada = false;
+
   final etiquetas = const {
     'pendiente': 'Pendiente',
     'pagado': 'Pagado',
@@ -53,7 +58,8 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
 
   Future<void> _cargar() async {
     if ((AuthService.instance.token ?? '').trim().isEmpty) {
-      await AuthService.instance.limpiarSesion();
+      // Sin token: cierre completo (flag anti-bucle) y Login una sola vez.
+      await AuthService.instance.logout();
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -65,6 +71,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
     setState(() {
       cargando = true;
       error = '';
+      _sesionExpirada = false;
     });
 
     try {
@@ -120,8 +127,19 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
     }
   }
 
+  /// Método por defecto para el pago manual ([Fix 1.4]): prefiere "efectivo".
+  String _metodoPagoManual() {
+    for (final t in tiposPago) {
+      if (t.nombre.trim().toLowerCase() == 'efectivo') return t.nombre;
+    }
+    return tiposPago.isNotEmpty ? tiposPago.first.nombre : 'efectivo';
+  }
+
+  /// [Fix 1.4] Registrar pago manual: sin selector de métodos
+  /// (tarjeta/QR/manual); se muestra directamente el botón "Confirmar pago".
+  /// [Fix 1.3] Ante 401/403 no se redirige al Login: mensaje inline con botón.
   Future<void> _pagar(Pedido pedido) async {
-    String metodo = tiposPago.isNotEmpty ? tiposPago.first.nombre : 'tarjeta';
+    final metodo = _metodoPagoManual();
     final referenciaController = TextEditingController();
 
     final confirmar = await showModalBottomSheet<bool>(
@@ -134,82 +152,92 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
           top: 20,
           bottom: MediaQuery.of(context).viewInsets.bottom + 20,
         ),
-        child: StatefulBuilder(
-          builder: (context, setModalState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Pagar pedido #${pedido.id}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Pagar pedido #${pedido.id}',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
-              const SizedBox(height: 4),
-              Text(
-                'Total: Bs ${pedido.total.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Total: Bs ${pedido.total.toStringAsFixed(2)}',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Método: $metodo',
+              style: const TextStyle(color: Colors.grey, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: referenciaController,
+              decoration: const InputDecoration(
+                labelText: 'Referencia (opcional)',
+                border: OutlineInputBorder(),
               ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                initialValue: metodo,
-                decoration: const InputDecoration(
-                  labelText: 'Método de pago',
-                  border: OutlineInputBorder(),
-                ),
-                items: tiposPago.isNotEmpty
-                    ? tiposPago
-                          .map(
-                            (t) => DropdownMenuItem(
-                              value: t.nombre,
-                              child: Text(t.nombre),
-                            ),
-                          )
-                          .toList()
-                    : [DropdownMenuItem(value: metodo, child: Text(metodo))],
-                onChanged: (v) => setModalState(() => metodo = v ?? metodo),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                'Confirmar pago de Bs ${pedido.total.toStringAsFixed(2)}',
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: referenciaController,
-                decoration: const InputDecoration(
-                  labelText: 'Referencia (opcional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(
-                  'Confirmar pago de Bs ${pedido.total.toStringAsFixed(2)}',
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
 
+    final referencia = referenciaController.text.trim();
+    referenciaController.dispose();
+
     if (confirmar != true) return;
 
     try {
-      await pedidosService.pagar(
-        pedidoId: pedido.id,
-        metodo: metodo,
-        monto: pedido.total,
-        referencia: referenciaController.text.trim().isEmpty
-            ? null
-            : referenciaController.text.trim(),
+      // [Fix 1.3] Sin redirección automática: el 401 se maneja inline.
+      await ApiClient.sinRedireccionAutomatica(
+        () => pedidosService.pagar(
+          pedidoId: pedido.id,
+          metodo: metodo,
+          monto: pedido.total,
+          referencia: referencia.isEmpty ? null : referencia,
+        ),
       );
       setState(
         () =>
             mensaje = 'Pago del pedido #${pedido.id} procesado correctamente.',
       );
       _cargar();
+    } on SesionExpiradaException {
+      _marcarSesionExpirada();
     } catch (e) {
       setState(() => error = e.toString().replaceFirst('Exception: ', ''));
     }
+  }
+
+  /// [Fix 1.3] Marca sesión expirada para mostrar el mensaje inline.
+  void _marcarSesionExpirada() {
+    if (!mounted) return;
+    setState(() {
+      _sesionExpirada = true;
+      error = '';
+      mensaje = '';
+    });
+  }
+
+  /// [Fix 1.3] Botón inline del mensaje de sesión expirada.
+  Future<void> _irALogin() async {
+    await AuthService.instance.logout();
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+      (route) => false,
+    );
   }
 
   Future<void> _pagarConStripe(Pedido pedido) async {
@@ -217,28 +245,33 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
       _pedidoIdProcesandoStripe = pedido.id;
       error = '';
       mensaje = '';
+      _sesionExpirada = false;
     });
 
     try {
-      if (!_stripeListo) {
-        final config = await stripeService.obtenerConfig();
-        Stripe.publishableKey = config.publishableKey;
-        await Stripe.instance.applySettings();
-        _stripeListo = true;
-      }
+      var estado = '';
+      // [Fix 1.3] Sin redirección automática ante 401: mensaje inline.
+      await ApiClient.sinRedireccionAutomatica(() async {
+        if (!_stripeListo) {
+          final config = await stripeService.obtenerConfig();
+          Stripe.publishableKey = config.publishableKey;
+          await Stripe.instance.applySettings();
+          _stripeListo = true;
+        }
 
-      final intent = await stripeService.crearIntent(pedido.id, moneda: 'usd');
+        final intent = await stripeService.crearIntent(pedido.id, moneda: 'usd');
 
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: intent.clientSecret,
-          merchantDisplayName: 'MenStyle',
-        ),
-      );
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: intent.clientSecret,
+            merchantDisplayName: 'MenStyle',
+          ),
+        );
 
-      await Stripe.instance.presentPaymentSheet();
+        await Stripe.instance.presentPaymentSheet();
 
-      final estado = await stripeService.confirmarPago(intent.paymentIntentId);
+        estado = await stripeService.confirmarPago(intent.paymentIntentId);
+      });
 
       if (!mounted) return;
       setState(() {
@@ -248,6 +281,10 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
             : 'Pago en estado: $estado';
       });
       _cargar();
+    } on SesionExpiradaException {
+      if (!mounted) return;
+      setState(() => _pedidoIdProcesandoStripe = null);
+      _marcarSesionExpirada();
     } on StripeException catch (e) {
       if (!mounted) return;
       setState(() {
@@ -296,6 +333,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  if (_sesionExpirada) _bannerSesionExpirada(),
                   if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
                   if (error.isNotEmpty) _banner(error, Colors.red),
                   if (!cargando && pedidos.isEmpty && error.isEmpty)
@@ -440,6 +478,34 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
     ),
   );
 
+  /// [Fix 1.3] Mensaje inline de sesión expirada con botón para volver al
+  /// Login. No cierra la app ni redirige automáticamente.
+  Widget _bannerSesionExpirada() => Container(
+    width: double.infinity,
+    margin: const EdgeInsets.only(bottom: 12),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.red.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Tu sesión expiró. Iniciá sesión de nuevo',
+          style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: _irALogin,
+          icon: const Icon(Icons.login),
+          label: const Text('Iniciar sesión de nuevo'),
+        ),
+      ],
+    ),
+  );
+
   Future<void> _pagarConQr(Pedido pedido) async {
     // Abrir la pantalla de QR y esperar el resultado
     final referencia = await Navigator.push<String>(
@@ -456,11 +522,14 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
 
     // El usuario confirmó que ya pagó. Registrar el pago manualmente.
     try {
-      await pedidosService.pagar(
-        pedidoId: pedido.id,
-        metodo: 'qr',
-        monto: pedido.total,
-        referencia: referencia,
+      // [Fix 1.3] Sin redirección automática ante 401: mensaje inline.
+      await ApiClient.sinRedireccionAutomatica(
+        () => pedidosService.pagar(
+          pedidoId: pedido.id,
+          metodo: 'qr',
+          monto: pedido.total,
+          referencia: referencia,
+        ),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -469,6 +538,8 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
         ),
       );
       await _cargar();
+    } on SesionExpiradaException {
+      _marcarSesionExpirada();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

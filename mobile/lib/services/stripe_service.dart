@@ -50,7 +50,7 @@ class StripeService {
       Uri.parse('${ApiClient.baseUrl}/pagos/stripe/config'),
       headers: ApiClient.authHeaders(),
     );
-    _verificar(response);
+    await _verificar(response);
     return StripeConfigInfo.fromJson(jsonDecode(response.body));
   }
 
@@ -63,7 +63,7 @@ class StripeService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'pedido_id': pedidoId, 'moneda': moneda}),
     );
-    _verificar(response);
+    await _verificar(response);
     return StripeIntentInfo.fromJson(jsonDecode(response.body));
   }
 
@@ -73,12 +73,18 @@ class StripeService {
       headers: ApiClient.jsonHeaders(),
       body: jsonEncode({'payment_intent_id': paymentIntentId}),
     );
-    _verificar(response);
+    await _verificar(response);
     final data = jsonDecode(response.body);
     return data['estado'] as String;
   }
 
-  void _verificar(http.Response response) {
+  /// [Fix 1.3] Los endpoints de pago (bajo /api/pagos) viajan con JWT
+  /// (Authorization: Bearer). Ante 401/403 se delega en ApiClient para que
+  /// la pantalla muestre el mensaje inline sin cerrar la app.
+  Future<void> _verificar(http.Response response) async {
+    if (ApiClient.esErrorAuth(response)) {
+      await ApiClient.manejarErrorAuth();
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(_extraerError(response.body));
     }

@@ -551,17 +551,32 @@ Asistente:"""
     # [Segundo Parcial] CU23 - Reportes Generativos (Text-to-SQL)
     # [Segundo Parcial] RN-IA-01 - Seguridad SQL
     # ============================================================
-    def consultar_sql_natural(self, pregunta: str, empresa_id: int) -> dict:
-        from sqlalchemy import text
+    # Tablas del esquema que tienen la columna empresa_id (tenant).
+    _TABLAS_EMPRESA = ("productos", "pedidos", "sucursales", "usuarios")
+    # Palabras que no pueden ser alias de tabla.
+    _PALABRAS_RESERVADAS = {
+        "where", "join", "inner", "left", "right", "full", "group", "order",
+        "limit", "offset", "having", "on", "as", "union", "cross", "natural",
+    }
 
-        # Generar SQL con Groq
-        sql_generado = None
-        if GROQ_DISPONIBLE and GROQ_CLIENT is not None:
-            try:
-                sistema = """Eres un generador de SQL para PostgreSQL. 
+    @staticmethod
+    def _limpiar_sql(contenido: str) -> str:
+        """Quita markdown, prefijos y punto y coma final del SQL generado."""
+        sql = (contenido or "").strip()
+        for marca in ("```sql", "```SQL", "```"):
+            sql = sql.replace(marca, "")
+        sql = sql.strip()
+        if sql.lower().startswith("sql:"):
+            sql = sql[4:].strip()
+        return sql.rstrip().rstrip(";").strip()
+
+    @staticmethod
+    def _system_prompt_sql(empresa_id: int) -> str:
+        return f"""Eres un generador de SQL para PostgreSQL.
 Genera una consulta SQL SELECT para PostgreSQL. Usa EXCLUSIVAMENTE las tablas y columnas listadas a continuación. No inventes columnas.
 Solo responde con el SQL, sin markdown, sin explicación.
-Debes incluir obligatoriamente el filtro WHERE empresa_id = %s.
+Todas las columnas deben ir calificadas con el alias de su tabla (ej. pe.empresa_id, no empresa_id). Nunca uses una columna sin alias si hay más de una tabla en la consulta.
+Debes incluir obligatoriamente el filtro por empresa, calificado con el alias de la tabla que tenga la columna empresa_id (ej. WHERE pe.empresa_id = {empresa_id}).
 Prohibido: DROP, DELETE, UPDATE, INSERT, TRUNCATE, ALTER, CREATE, GRANT, EXEC.
 
 ESQUEMA REAL:
@@ -572,47 +587,180 @@ ESQUEMA REAL:
 - pedidos (id, fecha_pedido, total, empresa_id, usuario_id, sucursal_id, estado)
 - detalles_pedido (id, pedido_id, variante_id, cantidad, precio_unitario, subtotal)
 - sucursales (id, nombre, empresa_id)
-- usuarios (id, nombre, apellido, rol, empresa_id)""" % empresa_id
-                respuesta = GROQ_CLIENT.chat.completions.create(
-                    model=GROQ_MODEL,
-                    messages=[
-                        {"role": "system", "content": sistema},
-                        {"role": "user", "content": f"Pregunta: {pregunta}"},
-                    ],
-                    temperature=0.1,
-                )
-                sql_generado = (respuesta.choices[0].message.content or "").strip().replace("```sql", "").replace("```", "").strip()
-            except Exception as e:
-                raise ValueError(f"Error Groq: {str(e)}")
+- usuarios (id, nombre, apellido, rol, empresa_id)"""
 
-        if not sql_generado:
-            sql_lower = pregunta.lower()
-            if "mas vendido" in sql_lower or "top" in sql_lower:
-                sql_generado = f"SELECT p.nombre, SUM(dp.cantidad) as total_vendido, SUM(dp.subtotal) as ingresos FROM productos p JOIN producto_variantes pv ON pv.producto_id = p.id JOIN detalles_pedido dp ON dp.variante_id = pv.id JOIN pedidos pe ON pe.id = dp.pedido_id WHERE pe.estado != 'cancelado' AND p.empresa_id = {empresa_id} AND pe.empresa_id = {empresa_id} GROUP BY p.id, p.nombre ORDER BY total_vendido DESC LIMIT 10"
-            elif "ventas" in sql_lower and "mes" in sql_lower:
-                sql_generado = f"SELECT DATE_TRUNC('month', pe.fecha_pedido) as mes, SUM(pe.total) as total_ventas, COUNT(pe.id) as cantidad_pedidos FROM pedidos pe WHERE pe.estado != 'cancelado' AND pe.empresa_id = {empresa_id} GROUP BY DATE_TRUNC('month', pe.fecha_pedido) ORDER BY mes DESC LIMIT 12"
-            else:
-                sql_generado = f"SELECT pe.id, pe.fecha_pedido, pe.total, pe.estado FROM pedidos pe WHERE pe.empresa_id = {empresa_id} ORDER BY pe.fecha_pedido DESC LIMIT 20"
+    def _generar_sql_groq(
+        self,
+        pregunta: str,
+        empresa_id: int,
+        sql_previo: Optional[str] = None,
+        error_previo: Optional[str] = None,
+    ) -> str:
+        """Pide el SQL a Groq. Si hay un intento fallido, envía el error para que se corrija."""
+        mensajes = [
+            {"role": "system", "content": self._system_prompt_sql(empresa_id)},
+            {"role": "user", "content": f"Pregunta: {pregunta}"},
+        ]
+        if sql_previo and error_previo:
+            mensajes.append({"role": "assistant", "content": sql_previo})
+            mensajes.append(
+                {
+                    "role": "user",
+                    "content": (
+                        f"El SQL falló con este error: {error_previo}. "
+                        "Corregilo y devolvé únicamente el SQL corregido, "
+                        "calificando todas las columnas con el alias de su tabla."
+                    ),
+                }
+            )
+        respuesta = GROQ_CLIENT.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=mensajes,
+            temperature=0.1,
+        )
+        return self._limpiar_sql(respuesta.choices[0].message.content or "")
 
+    @staticmethod
+    def _validar_sql(sql_generado: str) -> None:
+        """RN-IA-01: solo SELECT y sin sentencias destructivas."""
         sql_up = sql_generado.upper()
         if not sql_up.strip().startswith("SELECT"):
             raise ValueError("RN-IA-01: Solo se permiten consultas SELECT")
         for forbidden in ["DROP", "DELETE", "UPDATE", "INSERT", "TRUNCATE", "ALTER", "CREATE", "GRANT", "EXEC"]:
-            if forbidden in sql_up:
+            if re.search(rf"\b{forbidden}\b", sql_up):
                 raise ValueError(f"RN-IA-01: Palabra prohibida detectada: {forbidden}")
-        if f"empresa_id = {empresa_id}" not in sql_generado and "EMPRESA_ID" not in sql_up:
-            sql_generado = sql_generado.rstrip().rstrip(";") + f" AND empresa_id = {empresa_id}"
 
-        try:
-            result = self.db.execute(text(sql_generado))
-            rows = result.fetchall()
-            cols = list(result.keys())
-            data = []
-            for r in rows:
-                data.append(dict(zip(cols, r)))
-            return {"sql": sql_generado, "columnas": cols, "resultados": data, "mensaje": "Consulta ejecutada correctamente"}
-        except Exception as e:
-            raise ValueError(f"Error al ejecutar consulta: {str(e)}")
+    def _sql_respaldo(self, pregunta: str, empresa_id: int) -> str:
+        """SQL determinístico cuando Groq no está disponible."""
+        sql_lower = pregunta.lower()
+        if "mas vendido" in sql_lower or "top" in sql_lower:
+            return (
+                "SELECT p.nombre, SUM(dp.cantidad) as total_vendido, "
+                "SUM(dp.subtotal) as ingresos FROM productos p "
+                "JOIN producto_variantes pv ON pv.producto_id = p.id "
+                "JOIN detalles_pedido dp ON dp.variante_id = pv.id "
+                "JOIN pedidos pe ON pe.id = dp.pedido_id "
+                f"WHERE pe.estado != 'cancelado' AND p.empresa_id = {empresa_id} "
+                f"AND pe.empresa_id = {empresa_id} "
+                "GROUP BY p.id, p.nombre ORDER BY total_vendido DESC LIMIT 10"
+            )
+        if "ventas" in sql_lower and "mes" in sql_lower:
+            return (
+                "SELECT DATE_TRUNC('month', pe.fecha_pedido) as mes, "
+                "SUM(pe.total) as total_ventas, COUNT(pe.id) as cantidad_pedidos "
+                "FROM pedidos pe WHERE pe.estado != 'cancelado' "
+                f"AND pe.empresa_id = {empresa_id} "
+                "GROUP BY DATE_TRUNC('month', pe.fecha_pedido) ORDER BY mes DESC LIMIT 12"
+            )
+        return (
+            "SELECT pe.id, pe.fecha_pedido, pe.total, pe.estado "
+            "FROM pedidos pe "
+            f"WHERE pe.empresa_id = {empresa_id} "
+            "ORDER BY pe.fecha_pedido DESC LIMIT 20"
+        )
+
+    def _agregar_filtro_empresa(self, sql_generado: str, empresa_id: int) -> str:
+        """
+        Si el SQL no filtra por empresa, agrega la condición usando el alias
+        de la tabla (nunca una columna `empresa_id` sin calificar, que causa
+        "column reference empresa_id is ambiguous" cuando hay JOINs).
+        """
+        # Solo se considera filtrado si existe una comparación real
+        # (`empresa_id = ...`), no si la columna aparece únicamente en el SELECT.
+        if re.search(r"\bempresa_id\s*=", sql_generado, re.IGNORECASE):
+            return sql_generado
+
+        tablas = "|".join(self._TABLAS_EMPRESA)
+        patron_tabla = re.compile(
+            rf"\b(?:FROM|JOIN)\s+(?:public\.)?({tablas})\b"
+            r"(?:\s+(?:AS\s+)?([A-Za-z_]\w*))?",
+            re.IGNORECASE,
+        )
+        condicion = None
+        for match in patron_tabla.finditer(sql_generado):
+            tabla = match.group(1)
+            alias = match.group(2)
+            if alias and alias.lower() in self._PALABRAS_RESERVADAS:
+                alias = None
+            calificado = f"{alias}.empresa_id" if alias else f"{tabla}.empresa_id"
+            condicion = f"{calificado} = {int(empresa_id)}"
+            break
+
+        if condicion is None:
+            # Sin tablas multiempresa no hay filtro que inyectar.
+            return sql_generado
+
+        patron_corte = re.compile(
+            r"\b(GROUP\s+BY|ORDER\s+BY|LIMIT|OFFSET|HAVING|UNION)\b",
+            re.IGNORECASE,
+        )
+        corte = patron_corte.search(sql_generado)
+        if re.search(r"\bWHERE\b", sql_generado, re.IGNORECASE):
+            clausula = f" AND {condicion} "
+        else:
+            clausula = f" WHERE {condicion} "
+        if corte:
+            return sql_generado[: corte.start()].rstrip() + clausula + sql_generado[corte.start():]
+        return sql_generado + clausula.rstrip()
+
+    def consultar_sql_natural(self, pregunta: str, empresa_id: int) -> dict:
+        from sqlalchemy import text
+
+        usa_groq = GROQ_DISPONIBLE and GROQ_CLIENT is not None
+        sql_generado: Optional[str] = None
+        ultimo_error: Optional[str] = None
+        # 1 generación + hasta 2 reintentos de auto-corrección.
+        intentos = 3 if usa_groq else 1
+
+        for intento in range(intentos):
+            if usa_groq:
+                try:
+                    sql_generado = self._generar_sql_groq(
+                        pregunta,
+                        empresa_id,
+                        sql_previo=sql_generado,
+                        error_previo=ultimo_error,
+                    )
+                except Exception as e:
+                    raise ValueError(f"Error Groq: {str(e)}")
+            else:
+                sql_generado = self._sql_respaldo(pregunta, empresa_id)
+
+            if not sql_generado:
+                sql_generado = self._sql_respaldo(pregunta, empresa_id)
+
+            try:
+                self._validar_sql(sql_generado)
+                sql_generado = self._agregar_filtro_empresa(sql_generado, empresa_id)
+            except ValueError as e:
+                ultimo_error = str(e)
+                if not usa_groq or intento == intentos - 1:
+                    raise
+                continue
+
+            try:
+                result = self.db.execute(text(sql_generado))
+                rows = result.fetchall()
+                cols = list(result.keys())
+                data = [dict(zip(cols, r)) for r in rows]
+                return {
+                    "sql": sql_generado,
+                    "columnas": cols,
+                    "resultados": data,
+                    "mensaje": "Consulta ejecutada correctamente",
+                }
+            except Exception as e:
+                ultimo_error = str(e)
+                # PostgreSQL aborta la transacción tras un error: se revierte
+                # antes de reintentar con el SQL corregido.
+                try:
+                    self.db.rollback()
+                except Exception:
+                    pass
+                if not usa_groq or intento == intentos - 1:
+                    raise ValueError(f"Error al ejecutar consulta: {ultimo_error}")
+
+        raise ValueError(f"Error al ejecutar consulta: {ultimo_error}")
 
     # ============================================================
     # [Segundo Parcial] CU24 - Machine Learning (Predicciones)

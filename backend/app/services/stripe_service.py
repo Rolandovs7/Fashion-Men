@@ -48,13 +48,15 @@ def crear_payment_intent(
     db: Session,
     usuario_id: int,
     pedido_id: int,
-    moneda: str = "usd"
+    moneda: str = "usd",
+    permitir_ajeno: bool = False,
 ) -> dict:
     """
     Crea un PaymentIntent en Stripe para un pedido.
 
     Flujo:
-    1. Verificar que el pedido existe y pertenece al usuario
+    1. Verificar que el pedido existe y pertenece al usuario (salvo que
+       Admin/SuperAdmin ya hayan validado el tenant en la ruta)
     2. Verificar que está en estado "pendiente"
     3. Crear PaymentIntent en Stripe
     4. Registrar intento de pago en BD (estado "pendiente")
@@ -64,10 +66,10 @@ def crear_payment_intent(
     publishable = os.getenv("STRIPE_PUBLISHABLE_KEY", "")
 
     # 1. Verificar pedido
-    pedido = db.query(Pedido).filter(
-        Pedido.id == pedido_id,
-        Pedido.usuario_id == usuario_id
-    ).first()
+    consulta = db.query(Pedido).filter(Pedido.id == pedido_id)
+    if not permitir_ajeno:
+        consulta = consulta.filter(Pedido.usuario_id == usuario_id)
+    pedido = consulta.first()
 
     if not pedido:
         raise HTTPException(
@@ -91,7 +93,7 @@ def crear_payment_intent(
             currency=moneda.lower(),
             metadata={
                 "pedido_id": str(pedido.id),
-                "usuario_id": str(usuario_id)
+                "usuario_id": str(pedido.usuario_id)
             },
             automatic_payment_methods={"enabled": True}
         )

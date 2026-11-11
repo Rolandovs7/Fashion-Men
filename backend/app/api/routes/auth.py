@@ -18,6 +18,7 @@ from app.core.security import (
 )
 from app.core.password_validator import mensaje_error_password
 from app.models.user import Usuario
+from app.models.saas import Empresa
 from app.models.password_reset_token import PasswordResetToken
 from app.services.email_service import enviar_email_reset_password
 from app.schemas.auth import (
@@ -138,6 +139,16 @@ def login_usuario(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario desactivado"
         )
+
+    # [SaaS] Bloquear login si la empresa del usuario está desactivada
+    # (superadmin mantiene acceso para poder reactivarla).
+    if usuario.empresa_id is not None and usuario.rol != "superadmin":
+        empresa = db.query(Empresa).filter(Empresa.id == usuario.empresa_id).first()
+        if empresa is not None and not empresa.activo:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="La empresa está desactivada. Contacte al administrador de la plataforma."
+            )
 
     token_data = {
         "sub": usuario.email,

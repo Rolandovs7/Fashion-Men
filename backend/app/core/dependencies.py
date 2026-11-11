@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.core.security import SECRET_KEY, ALGORITHM
 from app.models.user import Usuario
-from app.models.saas import Suscripcion
+from app.models.saas import Empresa, Suscripcion
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -57,6 +57,16 @@ def obtener_usuario_actual(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario desactivado"
         )
+
+    # [SaaS] Token de una empresa desactivada queda bloqueado
+    # (superadmin mantiene acceso para poder reactivarla).
+    if usuario.empresa_id is not None and usuario.rol != "superadmin":
+        empresa = db.query(Empresa).filter(Empresa.id == usuario.empresa_id).first()
+        if empresa is not None and not empresa.activo:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="La empresa está desactivada. Contacte al administrador de la plataforma."
+            )
 
     return usuario
 

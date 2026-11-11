@@ -14,6 +14,8 @@ import '../screens/login_page.dart';
 /// o los helpers [get]/[post]/[put]/[delete] para inyectar el JWT.
 class ApiClient {
   static bool _redirigiendoLogin = false;
+  static bool _suprimirRedireccion = false;
+  static http.Response? _respuestaAuthPendiente;
   /// URL del backend. Por defecto apunta a producción (Render).
   /// Para desarrollo local, usa --dart-define=API_URL=http://localhost:8000/api
   static const String baseUrl = AppConfig.apiUrl;
@@ -54,31 +56,93 @@ class ApiClient {
   static Future<http.Response> delete(String path, {bool auth = true}) =>
       http.delete(uri(path), headers: authHeaders());
 
-  static bool esErrorAuth(http.Response response) =>
-      response.statusCode == 401 || response.statusCode == 403;
-
-  static Future<Never> manejarErrorAuth() async {
-    await AuthService.instance.limpiarSesion();
-    _redirigirALogin();
-    throw SesionExpiradaException();
+  /// [Fix 1.1] Un 401/403 proveniente de `/login` o `/refresh`
+  /// (credenciales inválidas) NO dispara el cierre global de sesión
+  /// ni la redirección al Login: se reporta como error normal de la petición.
+  static bool esErrorAuth(http.Response response) {
+    final path = (response.request?.url.path ?? '').toLowerCase();
+    final esFlujoLogin = path.endsWith('/login') || path.contains('/refresh');
+    if (esFlujoLogin) return false;
+    final esAuth = response.statusCode == 401 || response.statusCode == 403;
+    // Se guarda la respuesta para que manejarErrorAuth() pueda distinguir
+    // si el 401 corresponde al token vigente o a una petición rezagada.
+    if (esAuth) _respuestaAuthPendiente = response;
+    return esAuth;
   }
 
+  /// [Fix 1.1 + 1.3] Cierra la sesión y redirige al Login (una sola vez).
+  ///
+  /// - Si la petición fallida llevaba un token distinto al vigente
+  ///   (petición rezagada tras logout/re-login), NO borra la sesión nueva.
+  /// - Con [sinRedireccionAutomatica] activo (flujos de pago) NO redirige:
+  ///   la pantalla captura [SesionExpiradaException] y muestra el mensaje
+  ///   inline sin cerrar la app.
+  static Future<Never> manejarErrorAuth() async {
+    final response = _respuestaAuthPendiente;
+    _respuestaAuthPendiente = null;
+    final vigente = response == null || _esPeticionVigente(response);
+    if (vigente) {
+      await AuthService.instance.limpiarSesion();
+      if (!_suprimirRedireccion) _redirigirALogin();
+    }
+    throw SesionExpiradaException('Tu sesión expiró. Iniciá sesión de nuevo');
+  }
+
+  /// Indica si la petición que falló usaba el token actualmente vigente.
+  /// Evita que 401 rezagados (token viejo o sin token) borren una sesión
+  /// recién iniciada — causa raíz del bucle de logout.
+  static bool _esPeticionVigente(http.Response response) {
+    final req = response.request;
+    final enviado =
+        req is http.Request ? (req.headers['Authorization'] ?? '').trim() : '';
+    final actual = _token();
+    if (enviado.isEmpty) return actual.isEmpty;
+    return enviado == 'Bearer $actual';
+  }
+
+  /// [Fix 1.3] Ejecuta [accion] (flujos de pago) SIN la redirección
+  /// automática al Login ante 401/403. La pantalla captura
+  /// [SesionExpiradaException] y muestra "Tu sesión expiró..." inline
+  /// con un botón, sin cerrar la app. Anidable.
+  static Future<T> sinRedireccionAutomatica<T>(Future<T> Function() accion) async {
+    final anterior = _suprimirRedireccion;
+    _suprimirRedireccion = true;
+    try {
+      return await accion();
+    } finally {
+      _suprimirRedireccion = anterior;
+    }
+  }
+
+  /// [Fix 1.1] Redirige al Login una sola vez:
+  /// - nunca durante un logout manual (`AuthService.isLoggingOut`);
+  /// - nunca si ya hay un [LoginPage] abierto (evita Logins apilados);
+  /// - nunca en paralelo si ya hay una redirección en curso.
   static void _redirigirALogin() {
     if (_redirigiendoLogin) return;
+    if (AuthService.instance.isLoggingOut) return;
+    if (LoginPage.abierto) return;
     final nav = AppNavigator.key.currentState;
     if (nav == null) return;
     _redirigiendoLogin = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        nav.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
-      } finally {
+      if (AuthService.instance.isLoggingOut || LoginPage.abierto) return;
+      if (!nav.mounted) {
         _redirigiendoLogin = false;
+        return;
       }
+      nav.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+      // El flag se libera cuando la LoginPage se cierra (dispose),
+      // ver [liberarRedireccionLogin].
     });
   }
+
+  /// Lo invoca [LoginPage] al cerrarse: rehabilita la redirección
+  /// automática ante 401 (ya no hay un Login abierto).
+  static void liberarRedireccionLogin() => _redirigiendoLogin = false;
 
   static String mensajeHttp(http.Response response, {String fallback = 'Error en la petición'}) {
     String detalle = fallback;

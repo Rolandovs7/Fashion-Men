@@ -40,6 +40,7 @@ def _serializar_variante(db: Session, variante: ProductoVariante) -> dict:
         "color_codigo_hex": color.codigo_hex if color else None,
         "color_imagen_url": color.imagen_url if color else None,
         "nombre_variante": variante.nombre_variante,
+        "sku": variante.sku,
         "imagen_url": variante.imagen_url,
         "activo": variante.activo,
         "stock_disponible": _calcular_stock_disponible(db, variante.id)
@@ -117,12 +118,16 @@ def crear_variante(db: Session, datos: VarianteCrear) -> dict:
             detail="Ya existe una variante con esa talla y color para este producto"
         )
 
+    # CU15 / RF21 - SKU explícito o autogenerado determinista (producto-talla-color)
+    sku = datos.sku or f"MS-P{datos.producto_id}-T{datos.talla_id}-C{datos.color_id}"
+
     nueva_variante = ProductoVariante(
         producto_id=datos.producto_id,
         talla_id=datos.talla_id,
         color_id=datos.color_id,
         nombre_variante=datos.nombre_variante,
         imagen_url=datos.imagen_url,
+        sku=sku,
         activo=True
     )
 
@@ -148,6 +153,9 @@ def actualizar_variante(
 
     if datos.imagen_url is not None:
         variante.imagen_url = datos.imagen_url
+
+    if datos.sku is not None:
+        variante.sku = datos.sku
 
     db.commit()
     db.refresh(variante)

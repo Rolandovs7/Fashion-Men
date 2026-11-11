@@ -22,6 +22,8 @@ class ProductoBase(BaseModel):
     tipo_prenda_id: Optional[int] = None
     marca_id: Optional[int] = None
     descuento_id: Optional[int] = None
+    # CU15 / RF21 - Umbral de stock mínimo (alertas de reposición)
+    stock_minimo: Optional[int] = Field(None, ge=0)
 
 
 class ProductoCrear(ProductoBase):
@@ -43,6 +45,7 @@ class ProductoActualizar(BaseModel):
     tipo_prenda_id: Optional[int] = None
     marca_id: Optional[int] = None
     descuento_id: Optional[int] = None
+    stock_minimo: Optional[int] = Field(None, ge=0)
     activo: Optional[bool] = None
 
 

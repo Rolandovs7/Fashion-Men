@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/sesion.dart';
+import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import '../services/inventario_service.dart';
@@ -15,16 +16,34 @@ import '../widgets/sesion_expirada_view.dart';
 // Equivalente a admin-inventario (Angular). Selecciona sucursal,
 // muestra stock por variante (talla/color), permite registrar,
 // editar y eliminar. Mismos endpoints /api/inventario que Angular.
+//
+// [Rediseño 2.8] Tabla horizontal (DataTable) con columnas
+// Producto, SKU, Categoría, Stock, Stock Mínimo, Precio, Estado
+// y Acciones; filtro por sucursal y edición mediante diálogo.
 // ============================================================
 class _FilaInventario {
   final Inventario inventario;
   Variante? variante;
   Producto? producto;
-  bool editando = false;
-  int? cantidadEdit;
-  int? reservadaEdit;
+  String? categoriaNombre;
 
   _FilaInventario(this.inventario);
+
+  int get disponible => inventario.disponible;
+  int get stockMinimo => producto?.stockMinimo ?? 5;
+
+  /// Estado de reposición según disponible vs stock mínimo (RF21).
+  String get estadoEtiqueta {
+    if (disponible <= 0) return 'Sin stock';
+    if (disponible < stockMinimo) return 'Bajo mínimo';
+    return 'Disponible';
+  }
+
+  Color get estadoColor {
+    if (disponible <= 0) return Colors.red.shade700;
+    if (disponible < stockMinimo) return Colors.orange.shade800;
+    return Colors.green.shade700;
+  }
 }
 
 class AdminInventarioPage extends StatefulWidget {
@@ -42,6 +61,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
 
   List<Sucursal> sucursales = [];
   List<Producto> productos = [];
+  List<Categoria> categorias = [];
   List<Variante> variantesDelProducto = [];
   List<_FilaInventario> filas = [];
 
@@ -64,13 +84,17 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
 
   Future<void> _cargarInicial() async {
     try {
-      final sucursalesResultado = await sucursalesService.listar();
-      final productosResultado = await catalogoService.listarProductos();
+      final resultados = await Future.wait([
+        sucursalesService.listar(),
+        catalogoService.listarProductos(),
+        catalogoService.listarCategorias(),
+      ]);
 
       if (!mounted) return;
       setState(() {
-        sucursales = sucursalesResultado;
-        productos = productosResultado.where((p) => p.activo).toList();
+        sucursales = resultados[0] as List<Sucursal>;
+        productos = (resultados[1] as List<Producto>).where((p) => p.activo).toList();
+        categorias = resultados[2] as List<Categoria>;
       });
 
       if (sucursales.isNotEmpty) {
@@ -125,6 +149,10 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
         fila.variante = await catalogoService.obtenerVariante(inv.varianteId);
         if (fila.variante != null) {
           fila.producto = await catalogoService.obtenerProducto(fila.variante!.productoId);
+          if (fila.producto != null) {
+            final cat = categorias.where((c) => c.id == fila.producto!.categoriaId);
+            fila.categoriaNombre = cat.isEmpty ? '—' : cat.first.nombre;
+          }
         }
       } catch (_) {
         // Si no se puede resolver el nombre, igual se muestra la fila con el ID.
@@ -132,6 +160,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
       nuevasFilas.add(fila);
     }
 
+    if (!mounted) return;
     setState(() {
       filas = nuevasFilas;
       cargando = false;
@@ -148,6 +177,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     if (productoId == null) return;
 
     final variantes = await catalogoService.listarVariantesPorProducto(productoId);
+    if (!mounted) return;
     setState(() => variantesDelProducto = variantes);
   }
 
@@ -185,17 +215,64 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     }
   }
 
-  void _editarFila(_FilaInventario fila) {
-    setState(() {
-      fila.editando = true;
-      fila.cantidadEdit = fila.inventario.cantidad;
-      fila.reservadaEdit = fila.inventario.cantidadReservada;
-    });
-  }
+  // CU15 / RF22 - [Rediseño 2.8] Edición por diálogo (cantidad/reservada)
+  Future<void> _editarFilaDialogo(_FilaInventario fila) async {
+    final cantidadCtrl = TextEditingController(text: '${fila.inventario.cantidad}');
+    final reservadaCtrl = TextEditingController(text: '${fila.inventario.cantidadReservada}');
 
-  // CU15 / RF22 - Actualiza cantidad/reservado (movimiento de inventario)
-  Future<void> _guardarFila(_FilaInventario fila) async {
-    if (fila.cantidadEdit == null || fila.reservadaEdit == null || fila.reservadaEdit! > fila.cantidadEdit!) {
+    final guardar = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Editar inventario', style: TextStyle(fontWeight: FontWeight.w800)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                fila.producto?.nombre ?? 'Producto (variante #${fila.inventario.varianteId})',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              if (fila.variante != null)
+                Text(
+                  '${fila.variante!.tallaNombre} · ${fila.variante!.colorNombre}',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: cantidadCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Cantidad total',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: reservadaCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Cantidad reservada',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancelar')),
+          FilledButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Guardar')),
+        ],
+      ),
+    );
+
+    if (guardar != true) return;
+
+    final cantidad = int.tryParse(cantidadCtrl.text.trim());
+    final reservada = int.tryParse(reservadaCtrl.text.trim());
+    if (cantidad == null || reservada == null || reservada > cantidad) {
       setState(() => error = 'La cantidad reservada no puede ser mayor que la cantidad total.');
       return;
     }
@@ -203,8 +280,8 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     try {
       await inventarioService.actualizar(
         fila.inventario.id,
-        cantidad: fila.cantidadEdit,
-        cantidadReservada: fila.reservadaEdit,
+        cantidad: cantidad,
+        cantidadReservada: reservada,
       );
       setState(() => mensaje = 'Inventario actualizado correctamente.');
       _cargarInventario();
@@ -252,174 +329,203 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                   if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
                   if (error.isNotEmpty) _banner(error, Colors.red),
 
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text('Sucursal', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<int>(
-                      initialValue: sucursalSeleccionadaId,
-                      decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
-                      items: sucursales
-                          .map((s) => DropdownMenuItem(value: s.id, child: Text('${s.nombre} — ${s.ciudad}')))
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() => sucursalSeleccionadaId = v);
-                        _cargarInventario();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Text('Registrar stock', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<int>(
-                      initialValue: productoSeleccionadoId,
-                      decoration: const InputDecoration(labelText: 'Producto', border: OutlineInputBorder(), isDense: true),
-                      items: productos.map((p) => DropdownMenuItem(value: p.id, child: Text(p.nombre))).toList(),
-                      onChanged: _cargarVariantesDelProducto,
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<int>(
-                      initialValue: varianteSeleccionadaId,
-                      decoration: const InputDecoration(labelText: 'Talla / Color', border: OutlineInputBorder(), isDense: true),
-                      items: variantesDelProducto
-                          .map((v) => DropdownMenuItem(value: v.id, child: Text('${v.tallaNombre} · ${v.colorNombre}')))
-                          .toList(),
-                      onChanged: (v) => setState(() => varianteSeleccionadaId = v),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Cantidad inicial', border: OutlineInputBorder(), isDense: true),
-                      onChanged: (v) => cantidadNueva = int.tryParse(v) ?? 0,
-                    ),
-                    const SizedBox(height: 10),
-                    FilledButton(
-                      onPressed: guardando ? null : _agregarStock,
-                      child: Text(guardando ? 'Guardando...' : 'Registrar stock'),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Si la variante ya tiene stock en esta sucursal, edítalo directamente en la lista.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            if (cargando)
-              const Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (filas.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: Center(child: Text('Sin registros de inventario para esta sucursal.', style: TextStyle(color: Colors.grey))),
-              )
-            else
-              ...filas.map(
-                (fila) => Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          fila.producto?.nombre ?? 'Producto (variante #${fila.inventario.varianteId})',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        if (fila.variante != null)
-                          Text('${fila.variante!.tallaNombre} · ${fila.variante!.colorNombre}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                        const SizedBox(height: 8),
-                        if (fila.editando) ...[
+                  // [Rediseño 2.8] Filtro por sucursal
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                           Row(
                             children: [
-                              Expanded(
-                                child: TextField(
-                                  decoration: const InputDecoration(labelText: 'Cantidad', isDense: true, border: OutlineInputBorder()),
-                                  keyboardType: TextInputType.number,
-                                  controller: TextEditingController(text: '${fila.cantidadEdit}'),
-                                  onChanged: (v) => fila.cantidadEdit = int.tryParse(v) ?? 0,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: TextField(
-                                  decoration: const InputDecoration(labelText: 'Reservada', isDense: true, border: OutlineInputBorder()),
-                                  keyboardType: TextInputType.number,
-                                  controller: TextEditingController(text: '${fila.reservadaEdit}'),
-                                  onChanged: (v) => fila.reservadaEdit = int.tryParse(v) ?? 0,
-                                ),
-                              ),
+                              const Icon(Icons.store_outlined, size: 18, color: AppTheme.bronce),
+                              const SizedBox(width: 6),
+                              const Text('Sucursal', style: TextStyle(fontWeight: FontWeight.bold)),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(onPressed: () => setState(() => fila.editando = false), child: const Text('Cancelar')),
-                              FilledButton(onPressed: () => _guardarFila(fila), child: const Text('Guardar')),
-                            ],
-                          ),
-                        ] else ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _dato('Cantidad', '${fila.inventario.cantidad}'),
-                              _dato('Reservada', '${fila.inventario.cantidadReservada}'),
-                              _dato(
-                                'Disponible',
-                                '${fila.inventario.disponible}',
-                                color: fila.inventario.disponible == 0 ? Colors.red : Colors.green.shade700,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton(onPressed: () => _editarFila(fila), child: const Text('Editar')),
-                              TextButton(
-                                onPressed: () => _eliminarFila(fila),
-                                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                child: const Text('Eliminar'),
-                              ),
-                            ],
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<int>(
+                            initialValue: sucursalSeleccionadaId,
+                            decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
+                            items: sucursales
+                                .map((s) => DropdownMenuItem(value: s.id, child: Text('${s.nombre} — ${s.ciudad}')))
+                                .toList(),
+                            onChanged: (v) {
+                              setState(() => sucursalSeleccionadaId = v);
+                              _cargarInventario();
+                            },
                           ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+
+                  // Registrar stock (CU15 / RF22)
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.add_box_outlined, size: 18, color: AppTheme.bronce),
+                              const SizedBox(width: 6),
+                              const Text('Registrar stock', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<int>(
+                            initialValue: productoSeleccionadoId,
+                            decoration: const InputDecoration(labelText: 'Producto', border: OutlineInputBorder(), isDense: true),
+                            items: productos.map((p) => DropdownMenuItem(value: p.id, child: Text(p.nombre))).toList(),
+                            onChanged: _cargarVariantesDelProducto,
+                          ),
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<int>(
+                            initialValue: varianteSeleccionadaId,
+                            decoration: const InputDecoration(labelText: 'Talla / Color', border: OutlineInputBorder(), isDense: true),
+                            items: variantesDelProducto
+                                .map((v) => DropdownMenuItem(value: v.id, child: Text('${v.tallaNombre} · ${v.colorNombre}')))
+                                .toList(),
+                            onChanged: (v) => setState(() => varianteSeleccionadaId = v),
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(labelText: 'Cantidad inicial', border: OutlineInputBorder(), isDense: true),
+                            onChanged: (v) => cantidadNueva = int.tryParse(v) ?? 0,
+                          ),
+                          const SizedBox(height: 10),
+                          FilledButton(
+                            onPressed: guardando ? null : _agregarStock,
+                            child: Text(guardando ? 'Guardando...' : 'Registrar stock'),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Si la variante ya tiene stock en esta sucursal, edítala en la tabla.',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // [Rediseño 2.8] Tabla de inventario con scroll horizontal
+                  if (cargando)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 30),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else if (filas.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 30),
+                      child: Center(child: Text('Sin registros de inventario para esta sucursal.', style: TextStyle(color: Colors.grey))),
+                    )
+                  else
+                    Card(
+                      elevation: 0,
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: DataTable(
+                          headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
+                          dataTextStyle: const TextStyle(fontSize: 12.5),
+                          columnSpacing: 20,
+                          columns: const [
+                            DataColumn(label: Text('Producto')),
+                            DataColumn(label: Text('SKU')),
+                            DataColumn(label: Text('Categoría')),
+                            DataColumn(label: Text('Stock'), numeric: true),
+                            DataColumn(label: Text('Stock Mínimo'), numeric: true),
+                            DataColumn(label: Text('Precio'), numeric: true),
+                            DataColumn(label: Text('Estado')),
+                            DataColumn(label: Text('Acciones')),
+                          ],
+                          rows: filas.map((fila) {
+                            final producto = fila.producto;
+                            return DataRow(cells: [
+                              DataCell(
+                                SizedBox(
+                                  width: 180,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        producto?.nombre ?? 'Producto (variante #${fila.inventario.varianteId})',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontWeight: FontWeight.w700),
+                                      ),
+                                      if (fila.variante != null)
+                                        Text(
+                                          '${fila.variante!.tallaNombre} · ${fila.variante!.colorNombre}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Text(
+                                  fila.variante?.sku ?? 'MS-P${fila.variante?.productoId ?? '-'}-T${fila.variante?.tallaId ?? '-'}-C${fila.variante?.colorId ?? '-'}',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              DataCell(Text(fila.categoriaNombre ?? '—')),
+                              DataCell(Text('${fila.inventario.cantidad}')),
+                              DataCell(Text('${fila.stockMinimo}')),
+                              DataCell(Text(producto == null ? '—' : 'Bs ${producto.precio.toStringAsFixed(2)}')),
+                              DataCell(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: fila.estadoColor.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    fila.estadoEtiqueta,
+                                    style: TextStyle(color: fila.estadoColor, fontSize: 11, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ),
+                              DataCell(
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_outlined, size: 18),
+                                      tooltip: 'Editar cantidades',
+                                      onPressed: () => _editarFilaDialogo(fila),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                                      tooltip: 'Eliminar registro',
+                                      onPressed: () => _eliminarFila(fila),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ]);
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
+            ),
     );
   }
-
-  Widget _dato(String etiqueta, String valor, {Color? color}) => Column(
-        children: [
-          Text(etiqueta, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
-          Text(valor, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
-        ],
-      );
 
   Widget _banner(String texto, Color color) => Container(
         width: double.infinity,

@@ -91,6 +91,14 @@ class Producto(Base):
         nullable=True
     )
 
+    # CU15 / RF21 - Umbral de stock mínimo para alertas de reposición.
+    stock_minimo: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=5,
+        server_default="5"
+    )
+
     empresa_id: Mapped[int | None] = mapped_column(
         ForeignKey("empresas.id"),
         nullable=True,

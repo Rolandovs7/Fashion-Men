@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/sesion.dart';
+import '../core/theme.dart';
 import '../services/api_client.dart';
 import '../widgets/sesion_expirada_view.dart';
 
 /// Mi Suscripción (administrador/superadmin): plan actual, planes disponibles
 /// y cambio de plan con pago simulado (POST /suscripciones/confirmar-pago).
+///
+/// [Rediseño 2.6] Cards con plan actual (fechas, estado, días restantes),
+/// historial de pagos (GET /suscripciones/historial) y botón
+/// "Renovar / Cambiar plan".
 class AdminSuscripcionPage extends StatefulWidget {
   final bool embedded;
   const AdminSuscripcionPage({super.key, this.embedded = false});
@@ -23,6 +28,7 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
   String _error = '';
   Map<String, dynamic>? _suscripcion;
   List<dynamic> _planes = const [];
+  List<dynamic> _historial = const [];
 
   @override
   void initState() {
@@ -40,9 +46,11 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
       final results = await Future.wait([
         http.get(ApiClient.uri('/suscripciones/mi-suscripcion'), headers: ApiClient.authHeaders()),
         http.get(ApiClient.uri('/suscripciones/planes'), headers: ApiClient.authHeaders()),
+        http.get(ApiClient.uri('/suscripciones/historial'), headers: ApiClient.authHeaders()),
       ]);
       final resSub = results[0];
       final resPlanes = results[1];
+      final resHistorial = results[2];
 
       for (final res in results) {
         if (ApiClient.esErrorAuth(res)) {
@@ -71,6 +79,14 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
         // ignore: avoid_print
         print('[AdminSuscripcionPage] mi-suscripcion: $msg');
         throw Exception(msg);
+      }
+
+      // Historial de pagos: si falla, no bloquea la pantalla
+      if (resHistorial.statusCode >= 200 && resHistorial.statusCode < 300) {
+        final decoded = jsonDecode(resHistorial.body);
+        _historial = decoded is List ? decoded : const [];
+      } else {
+        _historial = const [];
       }
 
       if (!mounted) return;
@@ -108,6 +124,15 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
     final plan = _suscripcion?['plan'];
     if (plan is Map) return (plan['id'] as num?)?.toInt();
     return null;
+  }
+
+  int get _diasRestantes {
+    final fin = _suscripcion?['fecha_fin'];
+    if (fin == null) return 0;
+    final fechaFin = DateTime.tryParse(fin.toString());
+    if (fechaFin == null) return 0;
+    final hoy = DateTime.now();
+    return fechaFin.difference(hoy).inDays;
   }
 
   Future<void> _abrirModalPago(Map<String, dynamic> plan) async {
@@ -181,6 +206,54 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
     }
   }
 
+  /// [2.6] Selector rápido de planes para "Renovar / Cambiar plan".
+  Future<void> _abrirSelectorPlanes() async {
+    if (_planes.isEmpty) return;
+    final planActualId = _planActualId;
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const Text('Renovar / Cambiar plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text('Elige el plan para tu empresa', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+            const SizedBox(height: 16),
+            for (final p in _planes) ..._tilePlanSelector(ctx, (p as Map).cast<String, dynamic>(), planActualId),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _tilePlanSelector(BuildContext ctx, Map<String, dynamic> plan, int? planActualId) {
+    final id = (plan['id'] as num?)?.toInt();
+    final esActual = id != null && id == planActualId;
+    return [
+      Card(
+        margin: const EdgeInsets.only(bottom: 10),
+        child: ListTile(
+          leading: Icon(
+            esActual ? Icons.check_circle : Icons.workspace_premium_outlined,
+            color: esActual ? Colors.green : AppTheme.bronce,
+          ),
+          title: Text('${plan['nombre']}', style: const TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: Text(_fmtPrecio(plan['precio_mensual'])),
+          trailing: esActual
+              ? const Chip(label: Text('Actual'), visualDensity: VisualDensity.compact)
+              : const Icon(Icons.chevron_right),
+          onTap: esActual
+              ? null
+              : () {
+                  Navigator.of(ctx).pop();
+                  _abrirModalPago(plan);
+                },
+        ),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final content = _buildContent();
@@ -213,18 +286,15 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
     }
 
     final planActual = _suscripcion?['plan'] as Map?;
-    final planActualId = _planActualId;
 
     return RefreshIndicator(
       onRefresh: _cargar,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const Text('Mi Suscripción', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 4),
-          Text('Gestiona el plan de tu empresa', style: TextStyle(color: Colors.grey.shade600)),
-          const SizedBox(height: 16),
           _cardPlanActual(planActual),
+          const SizedBox(height: 20),
+          _seccionHistorial(),
           const SizedBox(height: 20),
           const Text('Planes disponibles', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
@@ -234,7 +304,7 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
             ..._planes.map((p) {
               final plan = p as Map? ?? const {};
               final id = (plan['id'] as num?)?.toInt();
-              final esActual = id != null && id == planActualId;
+              final esActual = id != null && id == _planActualId;
               return _cardPlan(plan.cast<String, dynamic>(), esActual: esActual);
             }),
         ],
@@ -242,6 +312,7 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
     );
   }
 
+  // ---------------- Plan actual ----------------
   Widget _cardPlanActual(Map? plan) {
     if (plan == null) {
       return Card(
@@ -260,35 +331,159 @@ class _AdminSuscripcionPageState extends State<AdminSuscripcionPage> {
     }
     final nombre = (plan['nombre'] ?? '—').toString();
     final precio = _fmtPrecio(plan['precio_mensual']);
+    final inicio = _fmtFecha(_suscripcion?['fecha_inicio']);
     final vence = _fmtFecha(_suscripcion?['fecha_fin']);
     final estado = (_suscripcion?['estado'] ?? '').toString();
+    final dias = _diasRestantes;
+    final activa = estado.isEmpty || estado == 'activo';
+
     return Card(
-      color: Colors.green.shade50,
+      color: AppTheme.negro,
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                const Icon(Icons.workspace_premium, color: Colors.green),
+                const Icon(Icons.workspace_premium, color: AppTheme.amarilloMarca),
                 const SizedBox(width: 8),
-                const Text('Plan actual', style: TextStyle(fontWeight: FontWeight.w700)),
+                const Text('Plan actual', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700)),
                 const Spacer(),
-                Chip(label: Text(estado.isEmpty ? 'activo' : estado), visualDensity: VisualDensity.compact),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: activa ? Colors.green.withValues(alpha: 0.18) : Colors.red.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    activa ? 'Activo' : estado,
+                    style: TextStyle(
+                      color: activa ? Colors.green.shade300 : Colors.red.shade300,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(nombre, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            Text(nombre, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
             const SizedBox(height: 4),
-            Text('Precio: $precio / mes'),
-            Text('Vence: $vence'),
+            Text('$precio / mes', style: const TextStyle(color: AppTheme.amarilloMarca, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _datoFecha('Inicio', inicio),
+                ),
+                Expanded(child: _datoFecha('Vence', vence)),
+                Expanded(child: _datoFecha('Días restantes', dias > 0 ? '$dias' : '—')),
+              ],
+            ),
+            if (dias >= 0) ...[
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: (dias / 30).clamp(0.0, 1.0),
+                  minHeight: 6,
+                  backgroundColor: Colors.white24,
+                  color: dias <= 5 ? Colors.red.shade300 : AppTheme.amarilloMarca,
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: _abrirSelectorPlanes,
+                icon: const Icon(Icons.autorenew),
+                label: const Text('Renovar / Cambiar plan'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.amarilloMarca,
+                  foregroundColor: AppTheme.negro,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  Widget _datoFecha(String etiqueta, String valor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(etiqueta, style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 2),
+        Text(valor, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+      ],
+    );
+  }
+
+  // ---------------- Historial de pagos ----------------
+  Widget _seccionHistorial() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Historial de pagos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        if (_historial.isEmpty)
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: Text('Aún no hay pagos registrados.'),
+            ),
+          )
+        else
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: Column(
+              children: [
+                for (var i = 0; i < _historial.length; i++) ...[
+                  if (i > 0) const Divider(height: 1, indent: 12, endIndent: 12),
+                  _tilePago((_historial[i] as Map).cast<String, dynamic>()),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _tilePago(Map<String, dynamic> pago) {
+    final nombre = (pago['plan_nombre'] ?? 'Plan').toString();
+    final monto = _fmtPrecio(pago['precio_mensual']);
+    final inicio = _fmtFecha(pago['fecha_inicio']);
+    final fin = _fmtFecha(pago['fecha_fin']);
+    final estado = (pago['estado'] ?? '').toString();
+    final activo = estado == 'activo';
+    return ListTile(
+      leading: Icon(
+        activo ? Icons.check_circle : Icons.history,
+        color: activo ? Colors.green : Colors.grey,
+      ),
+      title: Text(nombre, style: const TextStyle(fontWeight: FontWeight.w700)),
+      subtitle: Text('$monto · $inicio → $fin'),
+      trailing: Chip(
+        label: Text(activo ? 'Vigente' : 'Finalizado'),
+        visualDensity: VisualDensity.compact,
+        backgroundColor: activo ? Colors.green.withValues(alpha: 0.12) : Colors.grey.shade200,
+        labelStyle: TextStyle(
+          color: activo ? Colors.green.shade800 : Colors.grey.shade700,
+          fontWeight: FontWeight.w600,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  // ---------------- Planes disponibles ----------------
   Widget _cardPlan(Map<String, dynamic> plan, {required bool esActual}) {
     final nombre = (plan['nombre'] ?? 'Plan').toString();
     final precio = _fmtPrecio(plan['precio_mensual']);

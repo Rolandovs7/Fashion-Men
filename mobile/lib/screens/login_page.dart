@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import 'admin_main_shell.dart';
 import 'main_shell.dart';
 import 'registro_page.dart';
 
 class LoginPage extends StatefulWidget {
+  /// [Fix 1.1 - Logout bucle] true mientras existe un LoginPage montado.
+  /// ApiClient lo consulta para no apilar varias pantallas de Login
+  /// cuando varios 401 llegan casi simultáneos.
+  static bool abierto = false;
+
   const LoginPage({super.key});
 
   @override
@@ -22,6 +28,23 @@ class _LoginPageState extends State<LoginPage> {
   bool cargando = false;
   bool ocultarPassword = true;
   String error = '';
+
+  @override
+  void initState() {
+    super.initState();
+    LoginPage.abierto = true;
+  }
+
+  @override
+  void dispose() {
+    LoginPage.abierto = false;
+    // Al cerrarse el Login (login exitoso o logout) se rehabilita la
+    // redirección automática ante 401 de ApiClient.
+    ApiClient.liberarRedireccionLogin();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> iniciarSesion() async {
     setState(() {
@@ -58,13 +81,6 @@ class _LoginPageState extends State<LoginPage> {
         setState(() => cargando = false);
       }
     }
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
   }
 
   @override

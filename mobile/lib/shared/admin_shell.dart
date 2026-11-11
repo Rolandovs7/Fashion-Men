@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../services/auth_service.dart';
-import '../screens/login_page.dart';
+import '../shared/menu_drawer.dart';
 import '../screens/admin_catalogo_page.dart';
 import '../screens/admin_inventario_page.dart';
 import '../screens/punto_venta_page.dart';
@@ -83,10 +84,9 @@ class _EnlaceAdmin {
 
 class _GrupoAdmin {
   final String titulo;
-  final IconData icono;
   final List<_EnlaceAdmin> enlaces;
 
-  const _GrupoAdmin(this.titulo, this.icono, this.enlaces);
+  const _GrupoAdmin(this.titulo, this.enlaces);
 }
 
 class AdminDrawer extends StatelessWidget {
@@ -97,15 +97,15 @@ class AdminDrawer extends StatelessWidget {
   // 💰 VENTAS        → Punto de Venta, Operaciones
   // ⚙️ CONFIGURACIÓN → Usuarios, Permisos, Roles, Tipos de Pago
   static final List<_GrupoAdmin> _grupos = [
-    _GrupoAdmin('CATÁLOGO', Icons.inventory_2_outlined, [
+    _GrupoAdmin('CATÁLOGO', [
       _EnlaceAdmin('Catálogo', Icons.checkroom_outlined, (_) => const AdminCatalogoPage()),
       _EnlaceAdmin('Inventario', Icons.warehouse_outlined, (_) => const AdminInventarioPage()),
     ]),
-    _GrupoAdmin('VENTAS', Icons.attach_money, [
+    _GrupoAdmin('VENTAS', [
       _EnlaceAdmin('Punto de Venta', Icons.point_of_sale_outlined, (_) => const PuntoVentaPage()),
-      _EnlaceAdmin('Operaciones', Icons.receipt_long_outlined, (_) => const AdminOperacionesPage()),
+      _EnlaceAdmin('Pedidos y Reservas', Icons.receipt_long_outlined, (_) => const AdminOperacionesPage()),
     ]),
-    _GrupoAdmin('CONFIGURACIÓN', Icons.settings_outlined, [
+    _GrupoAdmin('CONFIGURACIÓN', [
       _EnlaceAdmin('Usuarios', Icons.people_outline, (_) => const UsuariosPage()),
       _EnlaceAdmin('Permisos', Icons.lock_outline, (_) => const PermisosPage()),
       _EnlaceAdmin('Roles', Icons.badge_outlined, (_) => const RolesPage()),
@@ -131,76 +131,26 @@ class AdminDrawer extends StatelessWidget {
     );
   }
 
-  Future<void> _cerrarSesion(BuildContext context) async {
-    await AuthService.instance.logout();
-    if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-      (route) => false,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final usuario = AuthService.instance.usuarioActual;
+    final nombre = usuario == null
+        ? ''
+        : '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}'.trim();
+    final rol = usuario == null ? '' : (usuario['rol'] ?? '').toString();
 
     return Drawer(
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.black),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Text(
-                    'MENSTYLE',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 20,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'ADMINISTRACIÓN',
-                    style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
-                  ),
-                  if (usuario != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      '${usuario['nombre'] ?? ''} ${usuario['apellido'] ?? ''}',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            DrawerEncabezado(nombre: nombre, rolEtiqueta: rolEtiquetaDe(rol)),
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
                   for (final grupo in _grupos) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                      child: Row(
-                        children: [
-                          Icon(grupo.icono, size: 16, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Text(
-                            grupo.titulo,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    DrawerSeccion(grupo.titulo),
                     for (final enlace in grupo.enlaces)
                       ListTile(
                         leading: Icon(enlace.icono),
@@ -208,21 +158,17 @@ class AdminDrawer extends StatelessWidget {
                         dense: true,
                         onTap: () => _navegar(context, enlace.builder),
                       ),
+                    const Divider(height: 1, indent: 16, endIndent: 16),
                   ],
                 ],
               ),
             ),
-            const Divider(height: 1),
             ListTile(
               leading: const Icon(Icons.storefront_outlined),
               title: const Text('Ir a la tienda', style: TextStyle(fontWeight: FontWeight.w600)),
               onTap: () => _irATienda(context),
             ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Cerrar sesión', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red)),
-              onTap: () => _cerrarSesion(context),
-            ),
+            const DrawerCerrarSesion(),
             const SizedBox(height: 8),
           ],
         ),

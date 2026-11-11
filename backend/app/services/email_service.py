@@ -13,6 +13,7 @@ Variables de entorno:
 
 import os
 import logging
+from html import escape
 from typing import Any
 
 import requests
@@ -237,4 +238,39 @@ def enviar_correo_pago(email: str, nombre_empresa: str, plan: str, monto) -> boo
     except Exception as e:
         logger.error("Fallo enviar_correo_pago a %s: %s", email, e)
         print(f"❌ Fallo enviar_correo_pago a {email}: {e}")
+        return False
+
+
+def enviar_correo_devolucion(email_cliente: str, nombre_producto: str, estado: str) -> bool:
+    """
+    [Segundo Parcial] CU12 - Gestionar cambio de prendas (Devoluciones)
+    Notifica al cliente que su devolución fue aprobada y que el stock
+    fue repuesto en el inventario.
+
+    Se envía vía Brevo con la misma vía transaccional que los correos
+    de bienvenida y pago. Nunca lanza excepción: retorna False si falla,
+    para que un problema de correo no rompa la devolución.
+    """
+    try:
+        if not email_cliente:
+            logger.warning("enviar_correo_devolucion: email vacío, se omite.")
+            return False
+
+        producto = (nombre_producto or "tu producto").strip() or "tu producto"
+        estado_fmt = (estado or "aprobada").strip() or "aprobada"
+
+        asunto = "Devolución Aprobada - MenStyle"
+        html = _plantilla_html(
+            "Devolución aprobada",
+            f"<p>Hola, tu devolución del producto <strong>{escape(producto)}</strong> "
+            f"ha sido aprobada. El stock ha sido repuesto en nuestro inventario. "
+            f"Gracias por tu compra.</p>"
+            f"<p style=\"color:#888;font-size:12px;\">"
+            f"Estado de tu devolución: <strong>{escape(estado_fmt)}</strong></p>",
+        )
+        return _enviar_transaccional(asunto, email_cliente, html)
+    except Exception as e:
+        # El correo es best-effort: nunca debe romper el flujo de devolución.
+        logger.error("Fallo enviar_correo_devolucion a %s: %s", email_cliente, e)
+        print(f"❌ Fallo enviar_correo_devolucion a {email_cliente}: {e}")
         return False

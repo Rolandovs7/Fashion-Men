@@ -30,6 +30,45 @@ class _RegistroPageState extends State<RegistroPage> {
   String error = '';
   String mensaje = '';
 
+  List<Map<String, dynamic>> empresas = [];
+  int? empresaId;
+
+  String get empresaNombre {
+    for (final empresa in empresas) {
+      if (empresa['id'] == empresaId) {
+        return (empresa['nombre'] ?? 'MenStyle').toString();
+      }
+    }
+    return 'MenStyle';
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarEmpresas();
+  }
+
+  Future<void> _cargarEmpresas() async {
+    try {
+      final lista = await authService.listarEmpresasPublicas();
+      if (!mounted) return;
+      setState(() {
+        empresas = lista;
+        if (lista.isNotEmpty) {
+          final porDefecto = lista.firstWhere(
+            (e) => (e['nombre'] ?? '').toString().toLowerCase() == 'menstyle',
+            orElse: () => lista.first,
+          );
+          empresaId = porDefecto['id'] as int?;
+        }
+      });
+    } catch (e) {
+      // Sin conexión o endpoint no disponible: el backend usa MenStyle.
+      // ignore: avoid_print
+      print('[RegistroPage] empresas: $e');
+    }
+  }
+
   Future<void> registrar() async {
     setState(() {
       cargando = true;
@@ -43,6 +82,7 @@ class _RegistroPageState extends State<RegistroPage> {
         apellido: apellidoController.text.trim(),
         email: emailController.text.trim(),
         password: passwordController.text,
+        empresaId: empresaId,
       );
 
       if (!mounted) return;
@@ -135,6 +175,27 @@ class _RegistroPageState extends State<RegistroPage> {
                           ),
                         ),
                         const SizedBox(height: 24),
+                        if (empresas.length > 1) ...[
+                          DropdownButtonFormField<int>(
+                            initialValue: empresaId,
+                            decoration: const InputDecoration(
+                              labelText: 'Tienda',
+                              prefixIcon: Icon(Icons.storefront_outlined),
+                            ),
+                            items: [
+                              for (final empresa in empresas)
+                                DropdownMenuItem<int>(
+                                  value: empresa['id'] as int,
+                                  child: Text(
+                                    (empresa['nombre'] ?? '').toString(),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                            ],
+                            onChanged: (valor) => setState(() => empresaId = valor),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         Row(
                           children: [
                             Expanded(
@@ -273,7 +334,7 @@ class _RegistroPageState extends State<RegistroPage> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            'M',
+            empresaNombre.isEmpty ? 'M' : empresaNombre.characters.first.toUpperCase(),
             style: AppTheme.fuenteTitulo.copyWith(
               color: AppTheme.amarilloMarca,
               fontWeight: FontWeight.w800,
@@ -283,7 +344,7 @@ class _RegistroPageState extends State<RegistroPage> {
         ),
         const SizedBox(height: 10),
         Text(
-          'MENSTYLE.',
+          '${empresaNombre.toUpperCase()}.',
           style: AppTheme.fuenteTitulo.copyWith(
             color: AppTheme.negro,
             fontSize: 18,

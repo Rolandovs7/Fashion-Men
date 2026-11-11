@@ -43,6 +43,27 @@ class AuthService {
 
   bool get isLoggingOut => _isLoggingOut;
 
+  /// Nombre real de la empresa del usuario autenticado.
+  /// Se usa para el branding dinámico (header, recibos, reportes).
+  /// Fallback: MenStyle (tienda por defecto).
+  String get nombreEmpresa {
+    final nombre = (usuarioActual?['empresa_nombre'] ?? '').toString().trim();
+    return nombre.isEmpty ? 'MenStyle' : nombre;
+  }
+
+  /// Empresas activas disponibles para el registro público.
+  Future<List<Map<String, dynamic>>> listarEmpresasPublicas() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.apiUrl}/empresas/publicas'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(_extraerError(response.body, 'No se pudieron cargar las empresas'));
+    }
+    final data = jsonDecode(response.body);
+    if (data is! List) return [];
+    return data.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
   Future<String> login(String email, String password) async {
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
@@ -82,6 +103,7 @@ class AuthService {
     required String apellido,
     required String email,
     required String password,
+    int? empresaId,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/registro'),
@@ -91,6 +113,7 @@ class AuthService {
         'apellido': apellido,
         'email': email,
         'password': password,
+        'empresa_id': ?empresaId,
       }),
     );
 

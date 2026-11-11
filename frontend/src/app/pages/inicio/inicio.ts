@@ -16,6 +16,7 @@ import { ButtonComponent } from '../../shared/ui/button/button';
 import { InputComponent } from '../../shared/ui/input/input';
 import { PriceComponent } from '../../shared/ui/price/price';
 import { ToastService } from '../../shared/ui/toast/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 
 export interface CategoriaVitrina {
   nombre: string;
@@ -60,6 +61,11 @@ export class Inicio {
 
   private router = inject(Router);
   private toastService = inject(ToastService);
+  private authService = inject(AuthService);
+
+  get nombreEmpresa(): string {
+    return this.authService.nombreEmpresa();
+  }
 
   categorias: CategoriaVitrina[] = [
     { nombre: 'Camisas', etiqueta: 'Telas nobles',   imagen: '/imagenes/camisas/camisa-formal-blanca-png.png' },

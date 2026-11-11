@@ -9,6 +9,9 @@ class RegistroUsuario(BaseModel):
     email: EmailStr
     telefono: str | None = None
     password: str
+    # [Multitenant] Empresa (tienda) a la que pertenece el cliente.
+    # Si no se envía se usa MenStyle por compatibilidad.
+    empresa_id: int | None = None
 
     @field_validator("password")
     @classmethod
@@ -38,6 +41,7 @@ class UsuarioRespuesta(BaseModel):
     activo: bool
     rol: str
     empresa_id: int | None = None
+    empresa_nombre: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

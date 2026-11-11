@@ -16,6 +16,7 @@ from app.schemas.empresa import (
     EmpresaCrearResponse,
     EmpresaEstadoRequest,
     EmpresaListadoRead,
+    EmpresaPublicaRead,
     EmpresaUsuarioRead,
 )
 from app.services.email_service import enviar_correo_bienvenida
@@ -60,6 +61,22 @@ def listar_empresas(
             )
         )
     return resultado
+
+
+@router.get("/publicas", response_model=list[EmpresaPublicaRead])
+def listar_empresas_publicas(db: Session = Depends(obtener_db)):
+    """
+    Empresas activas para el registro público de clientes.
+    No requiere autenticación: el registro necesita saber a qué
+    tienda pertenece el nuevo cliente (/registro?empresa_id=2).
+    """
+    empresas = (
+        db.query(Empresa)
+        .filter(Empresa.activo.is_(True))
+        .order_by(Empresa.nombre.asc())
+        .all()
+    )
+    return [EmpresaPublicaRead(id=e.id, nombre=e.nombre) for e in empresas]
 
 
 @router.get("/{empresa_id}/usuarios", response_model=list[EmpresaUsuarioRead])

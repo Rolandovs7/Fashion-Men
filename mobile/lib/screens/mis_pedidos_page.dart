@@ -265,7 +265,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
         await Stripe.instance.initPaymentSheet(
           paymentSheetParameters: SetupPaymentSheetParameters(
             paymentIntentClientSecret: intent.clientSecret,
-            merchantDisplayName: 'MenStyle',
+            merchantDisplayName: AuthService.instance.nombreEmpresa,
           ),
         );
 

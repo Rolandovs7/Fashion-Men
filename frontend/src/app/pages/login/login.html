@@ -15,7 +15,7 @@
     <div class="relative z-10 flex min-h-full flex-col justify-between gap-12">
       <a routerLink="/catalogo" class="inline-flex items-center gap-2.5 w-max cursor-pointer">
         <span class="w-9 h-9 rounded-xl bg-ms-amber text-ms-black flex items-center justify-center font-black text-lg">M</span>
-        <span class="font-display text-2xl tracking-[0.18em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+        <span class="font-display text-2xl tracking-[0.18em]">{{ empresaNombre.toUpperCase() }}<span class="text-ms-amber">.</span></span>
       </a>
 
       <div class="max-w-md space-y-5">
@@ -29,8 +29,8 @@
       </div>
 
       <div class="flex items-center justify-between text-xs text-white/50">
-        <a routerLink="/registro" class="font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">¿No tenés cuenta? Registrate</a>
-        <span>© 2026 MenStyle · Sistemas II · U.A.G.R.M.</span>
+        <a [routerLink]="['/registro']" [queryParams]="registroQueryParams" class="font-semibold text-white/80 hover:text-ms-amber transition-colors cursor-pointer">¿No tenés cuenta? Registrate</a>
+        <span>© 2026 {{ empresaNombre }} · Sistemas II · U.A.G.R.M.</span>
       </div>
     </div>
   </aside>
@@ -45,7 +45,7 @@
       <div class="lg:hidden text-center mb-8">
         <a routerLink="/catalogo" class="inline-flex items-center gap-2 cursor-pointer">
           <span class="w-8 h-8 rounded-lg bg-ms-amber text-ms-black flex items-center justify-center font-black">M</span>
-          <span class="font-display text-xl tracking-[0.18em] text-ms-ink">MENSTYLE<span class="text-ms-amber">.</span></span>
+          <span class="font-display text-xl tracking-[0.18em] text-ms-ink">{{ empresaNombre.toUpperCase() }}<span class="text-ms-amber">.</span></span>
         </a>
       </div>
 
@@ -129,10 +129,10 @@
 
       <p class="text-center text-sm text-ms-slate">
         ¿No tenés cuenta?
-        <a routerLink="/registro" class="font-bold text-ms-ink hover:text-ms-amber transition-colors cursor-pointer">Registrate</a>
+        <a [routerLink]="['/registro']" [queryParams]="registroQueryParams" class="font-bold text-ms-ink hover:text-ms-amber transition-colors cursor-pointer">Registrate</a>
       </p>
 
-      <p class="mt-10 text-center text-[11px] text-ms-slate/70">© 2026 MenStyle · Sistemas II · U.A.G.R.M.</p>
+      <p class="mt-10 text-center text-[11px] text-ms-slate/70">© 2026 {{ empresaNombre }} · Sistemas II · U.A.G.R.M.</p>
     </div>
   </main>
 

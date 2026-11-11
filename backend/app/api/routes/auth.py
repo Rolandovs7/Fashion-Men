@@ -76,9 +76,32 @@ def registro_usuario(
             detail="El email ya está registrado"
         )
 
-    # Asignar a la empresa por defecto si existe (MenStyle)
-    from app.models.saas import Empresa
-    empresa_default = db.query(Empresa).filter(Empresa.nombre == "MenStyle").first()
+    # [Multitenant] El cliente pertenece a la empresa (tienda) desde la
+    # que se registró. Si el frontend no envía empresa_id, se mantiene
+    # MenStyle como tienda por defecto.
+    empresa = None
+    if datos.empresa_id is not None:
+        empresa = db.query(Empresa).filter(Empresa.id == datos.empresa_id).first()
+        if empresa is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La empresa indicada no existe"
+            )
+        if not empresa.activo:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La empresa indicada está desactivada"
+            )
+    else:
+        empresa = db.query(Empresa).filter(Empresa.nombre == "MenStyle").first()
+        if empresa is None:
+            # Fallback: primera empresa activa disponible.
+            empresa = (
+                db.query(Empresa)
+                .filter(Empresa.activo.is_(True))
+                .order_by(Empresa.id.asc())
+                .first()
+            )
 
     nuevo_usuario = Usuario(
         nombre=datos.nombre,
@@ -88,7 +111,7 @@ def registro_usuario(
         password_hash=obtener_password_hash(datos.password),
         rol="cliente",
         activo=True,
-        empresa_id=empresa_default.id if empresa_default else None
+        empresa_id=empresa.id if empresa else None
     )
 
     db.add(nuevo_usuario)
@@ -171,11 +194,22 @@ def login_usuario(
 
 @router.get("/me", response_model=UsuarioRespuesta)
 def obtener_usuario_actual_endpoint(
-    usuario_actual: Usuario = Depends(obtener_usuario_actual)
+    usuario_actual: Usuario = Depends(obtener_usuario_actual),
+    db: Session = Depends(obtener_db)
 ):
-    """Obtener el usuario autenticado"""
+    """Obtener el usuario autenticado (incluye el nombre de su empresa)."""
 
-    return usuario_actual
+    empresa_nombre = None
+    if usuario_actual.empresa_id is not None:
+        empresa = (
+            db.query(Empresa)
+            .filter(Empresa.id == usuario_actual.empresa_id)
+            .first()
+        )
+        empresa_nombre = empresa.nombre if empresa else None
+
+    respuesta = UsuarioRespuesta.model_validate(usuario_actual)
+    return respuesta.model_copy(update={"empresa_nombre": empresa_nombre})
 
 
 @router.get("/admin")

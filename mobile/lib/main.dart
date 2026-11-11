@@ -21,7 +21,7 @@ class MenStyleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'MenStyle',
+      onGenerateTitle: (_) => AuthService.instance.nombreEmpresa,
       navigatorKey: AppNavigator.key,
       theme: AppTheme.light,
       home: const _AuthGate(),

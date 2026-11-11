@@ -117,6 +117,11 @@ export class AdminShellComponent implements OnInit {
     this.menuMovilAbierto = false;
   }
 
+  get nombreEmpresa(): string {
+    const nombre = (this.usuario?.empresa_nombre ?? '').toString().trim();
+    return nombre || this.authService.nombreEmpresa();
+  }
+
   inicialesUsuario(): string {
     const nombre = this.usuario?.nombre ?? '';
     const apellido = this.usuario?.apellido ?? '';

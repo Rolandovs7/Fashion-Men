@@ -29,6 +29,11 @@ export interface EmpresaListado {
   activo?: boolean;
 }
 
+export interface EmpresaPublica {
+  id: number;
+  nombre: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EmpresaService {
   private http = inject(HttpClient);
@@ -44,6 +49,11 @@ export class EmpresaService {
 
   listarEmpresas(): Observable<EmpresaListado[]> {
     return this.http.get<EmpresaListado[]>(this.apiUrl, { headers: this.headers() });
+  }
+
+  /** Empresas activas para el registro público (sin autenticación). */
+  listarPublicas(): Observable<EmpresaPublica[]> {
+    return this.http.get<EmpresaPublica[]>(`${this.apiUrl}/publicas`);
   }
 
   crearEmpresa(datos: EmpresaCrearRequest): Observable<EmpresaCrearResponse> {

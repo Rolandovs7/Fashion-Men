@@ -110,6 +110,17 @@ def seed_saas():
         else:
             print("Empresa FashionTest ya existe")
 
+        # [Multitenant] Avenor es la segunda tienda de demostración.
+        # Se crea por nombre (nunca por id) para no confundirla con
+        # otras empresas que ya ocupen ese id.
+        empresa_avenor = db.query(Empresa).filter(Empresa.nombre == "Avenor").first()
+        if not empresa_avenor:
+            empresa_avenor = Empresa(nombre="Avenor", activo=True)
+            db.add(empresa_avenor)
+            print("Creada empresa Avenor")
+        else:
+            print("Empresa Avenor ya existe")
+
         db.flush()
 
         # Asignar suscripciones
@@ -138,6 +149,19 @@ def seed_saas():
             print("Creada suscripción Básico para FashionTest")
         else:
             print("Suscripción para FashionTest ya existe")
+
+        sub_avenor = db.query(Suscripcion).filter(Suscripcion.empresa_id == empresa_avenor.id).first()
+        if not sub_avenor:
+            sub_avenor = Suscripcion(
+                empresa_id=empresa_avenor.id,
+                plan_id=plan_basico.id,
+                fecha_inicio=datetime.now(timezone.utc),
+                estado="activo"
+            )
+            db.add(sub_avenor)
+            print("Creada suscripción Básico para Avenor")
+        else:
+            print("Suscripción para Avenor ya existe")
 
         # Asignar empresa a usuarios y sucursales actuales (MenStyle)
         usuarios_actualizados = db.query(Usuario).filter(Usuario.empresa_id.is_(None)).update(

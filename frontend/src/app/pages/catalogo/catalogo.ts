@@ -64,6 +64,10 @@ export class Catalogo implements OnInit {
 
   readonly paginaTamano = 8;
 
+  get nombreEmpresa(): string {
+    return this.authService.nombreEmpresa();
+  }
+
   productos: Producto[] = [];
   categorias: Categoria[] = [];
   recomendaciones: ProductoSugerido[] = [];

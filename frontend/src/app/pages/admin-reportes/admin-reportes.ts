@@ -24,6 +24,7 @@ import {
   VentaSucursal,
 } from '../../core/services/reports.service';
 import { AdminShellComponent } from '../../shared/admin-shell/admin-shell';
+import { AuthService } from '../../core/services/auth.service';
 import {
   ButtonComponent,
   AlertComponent,
@@ -42,6 +43,11 @@ Chart.register(...registerables);
 export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
   private reportsService = inject(ReportsService);
   private cdr = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+
+  get nombreEmpresa(): string {
+    return this.authService.nombreEmpresa();
+  }
 
   @ViewChild('canvasVentasMes') canvasVentasMes!: ElementRef<HTMLCanvasElement>;
   @ViewChild('canvasMetodoPago') canvasMetodoPago!: ElementRef<HTMLCanvasElement>;
@@ -176,7 +182,7 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
       ws['!cols'] = colWidths;
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Reporte Ventas');
-      XLSX.writeFile(wb, 'reporte_menstyle_ventas.xlsx');
+      XLSX.writeFile(wb, `reporte_${this.nombreEmpresa.toLowerCase().replace(/\s+/g, '_')}_ventas.xlsx`);
     } catch (e) {
       // ignore
     }
@@ -187,10 +193,10 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
       const doc = new jsPDF({ orientation: 'landscape' });
       const fecha = new Date().toLocaleString();
       doc.setFontSize(16);
-      doc.text('MenStyle - Reporte de Ventas', 14, 16);
+      doc.text(`${this.nombreEmpresa} - Reporte de Ventas`, 14, 16);
       doc.setFontSize(9);
       doc.text(`Fecha de emisión: ${fecha}`, 14, 22);
-      doc.text('Empresa: MenStyle', 14, 27);
+      doc.text(`Empresa: ${this.nombreEmpresa}`, 14, 27);
 
       const rows = this.productosTop.map((p: any) => [
         p.fecha || '',
@@ -224,7 +230,7 @@ export class AdminReportes implements OnInit, AfterViewInit, OnDestroy {
           }
         }
       });
-      doc.save('reporte_menstyle_ventas.pdf');
+      doc.save(`reporte_${this.nombreEmpresa.toLowerCase().replace(/\s+/g, '_')}_ventas.pdf`);
     } catch (e) {
       // ignore
     }

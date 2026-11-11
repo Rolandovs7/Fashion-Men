@@ -151,7 +151,9 @@ class _CatalogoPageState extends State<CatalogoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
-      appBar: widget.embedded ? null : AppBar(title: const Text('MENSTYLE')),
+      appBar: widget.embedded
+          ? null
+          : AppBar(title: Text(AuthService.instance.nombreEmpresa.toUpperCase())),
       floatingActionButton: FloatingActionButton(
         onPressed: () =>
             Navigator.of(context)

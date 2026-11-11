@@ -15,14 +15,14 @@ class DrawerEncabezado extends StatelessWidget {
   final String nombre;
   final String rolEtiqueta;
   final String email;
-  final String marca;
+  final String? marca;
 
   const DrawerEncabezado({
     super.key,
     required this.nombre,
     required this.rolEtiqueta,
     this.email = '',
-    this.marca = 'MENSTYLE',
+    this.marca,
   });
 
   @override
@@ -103,7 +103,7 @@ class DrawerEncabezado extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            marca,
+            (marca ?? AuthService.instance.nombreEmpresa).toUpperCase(),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.28),
               fontWeight: FontWeight.w900,

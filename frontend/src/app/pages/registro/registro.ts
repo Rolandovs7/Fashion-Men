@@ -1,7 +1,8 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { EmpresaPublica, EmpresaService } from '../../core/services/empresa.service';
 import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui';
 
 // ============================================================
@@ -20,11 +21,13 @@ import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui
   templateUrl: './registro.html',
   styleUrl: './registro.css'
 })
-export class Registro {
+export class Registro implements OnInit {
 
   private http = inject(HttpClient);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+  private empresaService = inject(EmpresaService);
 
   nombre = '';
   email = '';
@@ -38,6 +41,37 @@ export class Registro {
   errorPassword2 = '';
   mensaje = '';
   cargando = false;
+
+  empresas: EmpresaPublica[] = [];
+  empresaId: number | null = null;
+  /** empresa_id recibido en la URL: /registro?empresa_id=2 (link Avenor). */
+  private empresaIdUrl: number | null = null;
+
+  ngOnInit(): void {
+    const param = Number(this.route.snapshot.queryParamMap.get('empresa_id'));
+    this.empresaIdUrl = Number.isFinite(param) && param > 0 ? param : null;
+    this.empresaId = this.empresaIdUrl;
+
+    this.empresaService.listarPublicas().subscribe({
+      next: (empresas) => {
+        this.empresas = empresas ?? [];
+        if (this.empresaId == null) {
+          const porDefecto = this.empresas.find(
+            (e) => e.nombre.toLowerCase() === 'menstyle'
+          );
+          this.empresaId = porDefecto?.id ?? this.empresas[0]?.id ?? null;
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Sin listado público se mantiene el fallback del backend (MenStyle).
+      }
+    });
+  }
+
+  get empresaNombre(): string {
+    return this.empresas.find((e) => e.id === this.empresaId)?.nombre ?? 'MenStyle';
+  }
 
   togglePassword(): void {
     this.mostrarPassword = !this.mostrarPassword;
@@ -77,7 +111,8 @@ export class Registro {
       nombre: nombre,
       apellido: apellido,
       email: this.email,
-      password: this.password
+      password: this.password,
+      empresa_id: this.empresaId
     };
 
     this.http.post(

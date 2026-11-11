@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/config.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../services/catalogo_service.dart';
 import 'catalogo_page.dart';
 import 'producto_detalle_page.dart';
@@ -136,6 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _header() {
+    final nombreEmpresa = AuthService.instance.nombreEmpresa;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -161,21 +163,23 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Icon(Icons.checkroom, color: AppTheme.negro, size: 26),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'MenStyle',
-                  style: TextStyle(
+                  nombreEmpresa,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                     fontSize: 22,
                     letterSpacing: 0.5,
                   ),
                 ),
-                SizedBox(height: 2),
-                Text(
+                const SizedBox(height: 2),
+                const Text(
                   'Moda masculina · Tienda y POS',
                   style: TextStyle(color: Colors.white70, fontSize: 12.5, fontWeight: FontWeight.w500),
                 ),

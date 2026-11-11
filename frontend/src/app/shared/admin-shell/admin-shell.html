@@ -16,9 +16,9 @@
 
     <div class="p-5 border-b border-ms-white/10">
       <a routerLink="/catalogo" class="flex items-center gap-3 cursor-pointer">
-        <span class="w-9 h-9 rounded-xl bg-ms-amber text-ms-black flex items-center justify-center font-black text-lg shrink-0">M</span>
+        <span class="w-9 h-9 rounded-xl bg-ms-amber text-ms-black flex items-center justify-center font-black text-lg shrink-0">{{ nombreEmpresa.charAt(0).toUpperCase() }}</span>
         <span>
-          <span class="block font-display text-xl leading-none tracking-[0.15em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+          <span class="block font-display text-xl leading-none tracking-[0.15em]">{{ nombreEmpresa.toUpperCase() }}<span class="text-ms-amber">.</span></span>
           <span class="block text-[10px] text-ms-white/50 font-semibold uppercase tracking-widest mt-1.5">Panel de Administración</span>
         </span>
       </a>
@@ -130,7 +130,7 @@
       <div class="absolute inset-0 bg-ms-black/60 backdrop-blur-sm animate-fade-in" (click)="cerrarMenuMovil()"></div>
       <aside class="absolute left-0 top-0 h-full w-72 bg-ms-ink text-ms-white flex flex-col animate-slide-in-left">
         <div class="p-5 border-b border-ms-white/10 flex items-center justify-between gap-3">
-          <span class="font-display text-xl tracking-[0.15em]">MENSTYLE<span class="text-ms-amber">.</span></span>
+          <span class="font-display text-xl tracking-[0.15em]">{{ nombreEmpresa.toUpperCase() }}<span class="text-ms-amber">.</span></span>
           <button
             (click)="cerrarMenuMovil()"
             class="w-9 h-9 rounded-lg flex items-center justify-center text-ms-white/60 hover:text-ms-white hover:bg-ms-white/5 transition-all cursor-pointer"

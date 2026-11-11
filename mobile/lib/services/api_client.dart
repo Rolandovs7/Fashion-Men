@@ -20,6 +20,8 @@ class ApiClient {
   /// Para desarrollo local, usa --dart-define=API_URL=http://localhost:8000/api
   static const String baseUrl = AppConfig.apiUrl;
 
+  /// Se lee en cada petición (no al construir la pantalla) para usar siempre
+  /// el token vigente de [AuthService], incluso tras un re-login.
   static String _token() => (AuthService.instance.token ?? '').trim();
 
   static Map<String, String> jsonHeaders({bool auth = true}) {
@@ -85,8 +87,13 @@ class ApiClient {
   static Future<Never> manejarErrorAuth() async {
     final response = _respuestaAuthPendiente;
     _respuestaAuthPendiente = null;
-    if (_esEndpointSinRedireccion(response)) {
-      // Pagos y Dashboard: el 401 NO expulsa al usuario del flujo.
+    // Los flujos envueltos en [sinRedireccionAutomatica] (pago, checkout,
+    // confirmación) y los endpoints de pagos/reportes NUNCA expulsan al
+    // usuario: solo lanzan la excepción para que la pantalla muestre el
+    // mensaje inline. Se evalúa también el flag porque una petición
+    // concurrente (p. ej. sincronización de catálogo) podría haber dejado
+    // su propia respuesta 401 en [_respuestaAuthPendiente].
+    if (_suprimirRedireccion || _esEndpointSinRedireccion(response)) {
       throw SesionExpiradaException('Tu sesión expiró. Reintentá');
     }
     final vigente = response == null || _esPeticionVigente(response);

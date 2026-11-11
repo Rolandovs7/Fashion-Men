@@ -13,14 +13,17 @@ from app.services import payment_type_service
 def registrar_pago(
     db: Session,
     usuario_id: int,
-    datos: PagoCrear
+    datos: PagoCrear,
+    permitir_ajeno: bool = False,
 ) -> Pago:
     # [Segundo Parcial] CU02/CU19 - Checkout tienda:
     # tarjeta, qr y efectivo = pago confirmado (aprobado/pagado) inmediatamente
-    pedido = db.query(Pedido).filter(
-        Pedido.id == datos.pedido_id,
-        Pedido.usuario_id == usuario_id
-    ).first()
+    # Admin/SuperAdmin ya validaron el tenant en la ruta y pueden operar
+    # sobre pedidos de otros usuarios de su empresa.
+    consulta = db.query(Pedido).filter(Pedido.id == datos.pedido_id)
+    if not permitir_ajeno:
+        consulta = consulta.filter(Pedido.usuario_id == usuario_id)
+    pedido = consulta.first()
 
     if not pedido:
         raise HTTPException(
@@ -84,7 +87,7 @@ def registrar_pago(
 
         crear_notificacion(
             db,
-            usuario_id=usuario_id,
+            usuario_id=pedido.usuario_id,
             titulo=titulo_notif,
             mensaje=mensaje_notif
         )
@@ -102,12 +105,13 @@ def registrar_pago(
 def listar_pagos_pedido(
     db: Session,
     usuario_id: int,
-    pedido_id: int
+    pedido_id: int,
+    permitir_ajeno: bool = False,
 ) -> List[Pago]:
-    pedido = db.query(Pedido).filter(
-        Pedido.id == pedido_id,
-        Pedido.usuario_id == usuario_id
-    ).first()
+    consulta = db.query(Pedido).filter(Pedido.id == pedido_id)
+    if not permitir_ajeno:
+        consulta = consulta.filter(Pedido.usuario_id == usuario_id)
+    pedido = consulta.first()
 
     if not pedido:
         raise HTTPException(

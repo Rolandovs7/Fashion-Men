@@ -38,6 +38,7 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
   }
 
   Future<void> _cargar() async {
+    if (!mounted) return;
     setState(() {
       _cargando = true;
       _error = '';
@@ -351,18 +352,33 @@ class _AdminEmpresasPageState extends State<AdminEmpresasPage> {
   }
 
   Future<void> _abrirFormularioNuevaEmpresa() async {
+    if (!mounted) return;
+
+    // Si los planes aún no se cargaron (por ejemplo, falló la petición
+    // inicial), reintentamos antes de abrir el formulario.
+    if (_planes.isEmpty) {
+      await _cargar();
+      if (!mounted) return;
+    }
     if (_planes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No se pudieron cargar los planes. Reintenta.'), backgroundColor: Colors.red),
       );
       return;
     }
+
+    // Se usa el context vigente del Scaffold y un context propio para el
+    // bottom sheet. Nunca se reutiliza un context capturado tras un await.
     await showModalBottomSheet<void>(
       context: context,
+      useSafeArea: true,
       isScrollControlled: true,
-      builder: (_) => _FormularioNuevaEmpresa(planes: _planes.cast<Map<String, dynamic>>()),
+      builder: (sheetContext) => _FormularioNuevaEmpresa(
+        planes: _planes.cast<Map<String, dynamic>>(),
+      ),
     );
-    _cargar();
+    if (!mounted) return;
+    await _cargar();
   }
 }
 

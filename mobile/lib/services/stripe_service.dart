@@ -79,8 +79,9 @@ class StripeService {
   }
 
   /// [Fix 1.3] Los endpoints de pago (bajo /api/pagos) viajan con JWT
-  /// (Authorization: Bearer). Ante 401/403 se delega en ApiClient para que
-  /// la pantalla muestre el mensaje inline sin cerrar la app.
+  /// (Authorization: Bearer). Ante un 401 real se delega en ApiClient para que
+  /// la pantalla muestre el mensaje inline sin cerrar la app. Los 400/402/403
+  /// y 422 se muestran con el mensaje real del backend.
   Future<void> _verificar(http.Response response) async {
     if (ApiClient.esErrorAuth(response)) {
       await ApiClient.manejarErrorAuth();
@@ -93,8 +94,18 @@ class StripeService {
   String _extraerError(String body) {
     try {
       final data = jsonDecode(body);
-      if (data is Map && data['detail'] != null) {
-        return data['detail'].toString();
+      if (data is Map) {
+        final detail = data['detail'] ?? data['message'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail.trim();
+        }
+        if (detail is List) {
+          final mensajes = detail
+              .map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString())
+              .where((m) => m.trim().isNotEmpty)
+              .join(', ');
+          if (mensajes.isNotEmpty) return mensajes;
+        }
       }
     } catch (_) {}
     return 'No se pudo procesar el pago con Stripe';

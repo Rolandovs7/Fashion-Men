@@ -38,7 +38,7 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
   String _error = '';
   String _mensaje = '';
 
-  /// [Fix 1.3] true si la sincronización falló por 401/403:
+  /// [Fix 1.3] true si la sincronización falló por un 401 real:
   /// mensaje inline con botón, sin cerrar la app.
   bool _sesionExpirada = false;
 
@@ -150,7 +150,7 @@ class _PuntoVentaScreenState extends State<PuntoVentaScreen> {
   }
 
   /// [Fix 1.3] Sincroniza operaciones pendientes con el JWT vigente.
-  /// Ante 401/403 muestra el mensaje inline, sin cerrar la app.
+  /// Ante un 401 real muestra el mensaje inline, sin cerrar la app.
   Future<void> _intentarSincronizar() async {
     try {
       await _sync.sincronizarPendientes();

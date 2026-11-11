@@ -77,6 +77,7 @@ def crear_usuario(
         nombre=datos.nombre,
         apellido=datos.apellido,
         email=datos.email,
+        telefono=datos.telefono,
         password_hash=obtener_password_hash(datos.password),
         rol=datos.rol,
         activo=True,
@@ -162,6 +163,7 @@ def actualizar_usuario(
     usuario.nombre = datos.nombre
     usuario.apellido = datos.apellido
     usuario.email = datos.email
+    usuario.telefono = datos.telefono
     usuario.activo = datos.activo
     usuario.rol = datos.rol
 

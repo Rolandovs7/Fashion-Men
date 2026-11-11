@@ -38,3 +38,16 @@ class EmpresaListadoRead(BaseModel):
     fecha_registro: datetime | None = None
     plan_actual: str | None = None
     activo: bool = True
+
+
+class EmpresaUsuarioRead(BaseModel):
+    """Usuario/cliente de una empresa (panel de administración)."""
+    id: int
+    nombre: str
+    apellido: str
+    nombre_completo: str
+    email: str
+    telefono: str | None = None
+    fecha_registro: datetime | None = None
+    activo: bool = True
+    rol: str = "cliente"

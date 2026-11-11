@@ -65,3 +65,6 @@ class Reserva(Base):
 
     detalles = relationship("DetalleReserva", backref="reserva", cascade="all, delete-orphan")
 
+    # CU24 - Datos del cliente para las tablas de administración.
+    cliente = relationship("Usuario", foreign_keys=[usuario_id])
+

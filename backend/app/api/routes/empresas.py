@@ -16,6 +16,7 @@ from app.schemas.empresa import (
     EmpresaCrearResponse,
     EmpresaEstadoRequest,
     EmpresaListadoRead,
+    EmpresaUsuarioRead,
 )
 from app.services.email_service import enviar_correo_bienvenida
 
@@ -59,6 +60,51 @@ def listar_empresas(
             )
         )
     return resultado
+
+
+@router.get("/{empresa_id}/usuarios", response_model=list[EmpresaUsuarioRead])
+def listar_usuarios_empresa(
+    empresa_id: int,
+    db: Session = Depends(obtener_db),
+    usuario_actual: Usuario = Depends(requerir_rol("administrador")),
+):
+    """
+    [SaaS] Usuarios/clientes de una empresa (panel admin).
+    - SuperAdmin: puede consultar cualquier empresa.
+    - Administrador: solo su propia empresa.
+    Devuelve nombre, email, teléfono, fecha de registro y estado.
+    """
+    empresa = db.query(Empresa).filter(Empresa.id == empresa_id).first()
+    if not empresa:
+        raise HTTPException(status_code=404, detail="La empresa indicada no existe")
+
+    if usuario_actual.rol != "superadmin" and usuario_actual.empresa_id != empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes acceso a los usuarios de esta empresa",
+        )
+
+    usuarios = (
+        db.query(Usuario)
+        .filter(Usuario.empresa_id == empresa_id)
+        .order_by(Usuario.fecha_creacion.desc(), Usuario.id.desc())
+        .all()
+    )
+
+    return [
+        EmpresaUsuarioRead(
+            id=u.id,
+            nombre=u.nombre,
+            apellido=u.apellido,
+            nombre_completo=f"{u.nombre} {u.apellido}".strip(),
+            email=u.email,
+            telefono=getattr(u, "telefono", None),
+            fecha_registro=getattr(u, "fecha_creacion", None),
+            activo=bool(u.activo),
+            rol=u.rol,
+        )
+        for u in usuarios
+    ]
 
 
 @router.post("", response_model=EmpresaCrearResponse, status_code=status.HTTP_201_CREATED)

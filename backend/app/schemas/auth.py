@@ -7,6 +7,7 @@ class RegistroUsuario(BaseModel):
     nombre: str
     apellido: str
     email: EmailStr
+    telefono: str | None = None
     password: str
 
     @field_validator("password")
@@ -32,9 +33,11 @@ class UsuarioRespuesta(BaseModel):
     id: int
     nombre: str
     apellido: str
-    email: EmailStr
+    email: str
+    telefono: str | None = None
     activo: bool
     rol: str
+    empresa_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

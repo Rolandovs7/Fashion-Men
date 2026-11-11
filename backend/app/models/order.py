@@ -70,3 +70,6 @@ class Pedido(Base):
 
     detalles = relationship("DetallePedido", backref="pedido", cascade="all, delete-orphan")
 
+    # CU21 - Datos del cliente para las tablas de administración.
+    cliente = relationship("Usuario", foreign_keys=[usuario_id])
+

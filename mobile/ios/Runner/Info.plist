@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>MenStyle usa el micrófono para dictar tus consultas al Asistente IA.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>MenStyle usa el reconocimiento de voz para convertir tus preguntas en texto.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

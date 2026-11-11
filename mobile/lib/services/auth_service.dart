@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config.dart';
 import '../db/database_helper.dart';
+import 'api_client.dart';
 
 // ============================================================
 // TRAZABILIDAD MENSTYLE
@@ -20,7 +21,6 @@ import '../db/database_helper.dart';
 class AuthService {
   static const _kToken = 'auth_token';
   static const _kUsuario = 'auth_usuario';
-  static const _kRefreshToken = 'refresh_token';
 
   static final AuthService instance = AuthService._internal();
 
@@ -60,12 +60,15 @@ class AuthService {
     }
 
     final data = jsonDecode(response.body);
+    // [Fix auth] Nunca heredar credenciales de una sesión anterior.
+    await _limpiarPersistencia();
     token = data['access_token'];
 
     if (token == null) {
       throw Exception('El servidor no devolvió el token');
     }
 
+    ApiClient.reiniciarEstado();
     await _guardarSesion();
     // Login exitoso: se rehabilitan las redirecciones automáticas por 401.
     _isLoggingOut = false;
@@ -219,13 +222,20 @@ class AuthService {
   }
 
   Future<void> limpiarSesion() async {
+    await _limpiarPersistencia();
+  }
+
+  /// Limpia token, usuario y refresh token en memoria y en disco.
+  /// Se usa tanto al cerrar sesión como antes de un nuevo login para que
+  /// el siguiente usuario no herede las credenciales del anterior.
+  Future<void> _limpiarPersistencia() async {
     token = null;
     usuarioActual = null;
     refreshToken = null;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kToken);
-    await prefs.remove(_kUsuario);
-    await prefs.remove(_kRefreshToken);
+    // clear() equivale a deleteAll(): elimina todas las claves locales
+    // (token, usuario, refresh y cualquier dato heredado de otra sesión).
+    await prefs.clear();
   }
 
   /// [Fix 1.1 - Logout bucle] Cierre de sesión único e idempotente.
@@ -239,13 +249,9 @@ class AuthService {
   Future<void> logout() async {
     if (_isLoggingOut) return; // nunca dos logout simultáneos
     _isLoggingOut = true;
-    token = null;
-    usuarioActual = null;
-    refreshToken = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_kToken);
-    await prefs.remove(_kUsuario);
-    await prefs.remove(_kRefreshToken);
+    await _limpiarPersistencia();
+    // Descarta cualquier redirección/401 pendiente del usuario anterior.
+    ApiClient.reiniciarEstado();
   }
 
   String _extraerError(String body, String mensajePorDefecto) {

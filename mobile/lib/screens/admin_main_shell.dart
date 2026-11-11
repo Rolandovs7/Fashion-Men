@@ -8,6 +8,7 @@ import 'admin_empresas_page.dart';
 import 'admin_inventario_page.dart';
 import 'admin_operaciones_page.dart';
 import 'admin_suscripcion_page.dart';
+import 'admin_usuarios_page.dart';
 import 'asistente_ia_page.dart';
 import 'main_shell.dart';
 
@@ -74,6 +75,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
         _EntradaMenu('Catálogo', Icons.checkroom_outlined, AdminCatalogoPage(embedded: true)),
         _EntradaMenu('Inventario', Icons.inventory_2_outlined, AdminInventarioPage(embedded: true)),
         _EntradaMenu('Pedidos y Reservas', Icons.receipt_long_outlined, AdminOperacionesPage(embedded: true)),
+        _EntradaMenu('Usuarios', Icons.people_alt_outlined, AdminUsuariosPage(embedded: true)),
         _EntradaMenu('Asistente IA', Icons.smart_toy_outlined, AsistenteIaPage(embedded: true)),
       ]),
       _GrupoMenu('SAAS', [
@@ -98,6 +100,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
     final idx = _indice.clamp(0, plano.length - 1);
     final titulo = plano[idx].titulo;
     final nombre = '${widget.usuario['nombre'] ?? ''} ${widget.usuario['apellido'] ?? ''}'.trim();
+    final email = (widget.usuario['email'] ?? '').toString();
 
     return Scaffold(
       appBar: AppBar(title: Text(titulo)),
@@ -110,6 +113,7 @@ class _AdminMainShellState extends State<AdminMainShell> {
               DrawerEncabezado(
                 nombre: nombre,
                 rolEtiqueta: _esSuperAdmin ? 'SuperAdmin' : 'Administrador',
+                email: email,
               ),
               Expanded(
                 child: ListView(

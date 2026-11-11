@@ -70,8 +70,13 @@ class ApiClient {
     return esAuth;
   }
 
-  /// [Fix 1.1 + 1.3] Cierra la sesión y redirige al Login (una sola vez).
+  /// [Fix 1.1 + 1.3 + Interceptor global] Cierra la sesión y redirige al
+  /// Login (una sola vez).
   ///
+  /// - Endpoints de pagos (`/pagos`) o dashboard (`/reportes`): un 401 NO
+  ///   cierra la sesión ni redirige al Login. Se lanza
+  ///   [SesionExpiradaException('Tu sesión expiró. Reintentá')] para que la
+  ///   pantalla lo capture y muestre el mensaje inline con botón Reintentar.
   /// - Si la petición fallida llevaba un token distinto al vigente
   ///   (petición rezagada tras logout/re-login), NO borra la sesión nueva.
   /// - Con [sinRedireccionAutomatica] activo (flujos de pago) NO redirige:
@@ -80,12 +85,25 @@ class ApiClient {
   static Future<Never> manejarErrorAuth() async {
     final response = _respuestaAuthPendiente;
     _respuestaAuthPendiente = null;
+    if (_esEndpointSinRedireccion(response)) {
+      // Pagos y Dashboard: el 401 NO expulsa al usuario del flujo.
+      throw SesionExpiradaException('Tu sesión expiró. Reintentá');
+    }
     final vigente = response == null || _esPeticionVigente(response);
     if (vigente) {
       await AuthService.instance.limpiarSesion();
       if (!_suprimirRedireccion) _redirigirALogin();
     }
     throw SesionExpiradaException('Tu sesión expiró. Iniciá sesión de nuevo');
+  }
+
+  /// Endpoints cuyo 401 NO debe cerrar sesión ni expulsar al Login:
+  /// pagos (`/api/pagos/*`) y dashboard/reportes (`/api/reportes/*`).
+  /// La pantalla que los consume captura [SesionExpiradaException] y
+  /// muestra el mensaje inline "Tu sesión expiró. Reintentá".
+  static bool _esEndpointSinRedireccion(http.Response? response) {
+    final path = (response?.request?.url.path ?? '').toLowerCase();
+    return path.contains('/pagos') || path.contains('/reportes');
   }
 
   /// Indica si la petición que falló usaba el token actualmente vigente.

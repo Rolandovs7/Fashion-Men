@@ -35,6 +35,7 @@ class BrandsService {
   Future<List<Marca>> listar({bool soloActivos = false}) async {
     final response = await http.get(
       Uri.parse('${ApiClient.baseUrl}/marcas?solo_activos=$soloActivos'),
+      headers: ApiClient.authHeaders(),
     );
     _verificar(response);
     final data = jsonDecode(response.body) as List;

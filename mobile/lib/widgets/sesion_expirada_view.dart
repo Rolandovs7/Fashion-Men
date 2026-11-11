@@ -31,7 +31,7 @@ class SesionExpiradaView extends StatelessWidget {
             const SizedBox(height: 18),
             FilledButton.icon(
               onPressed: () async {
-                // [Fix 1.1] logout() limpia TODO (token/usuario/refreshToken)
+                // [Fix 1.1] logout() limpia token, usuario y refreshToken
                 // con await antes de navegar, y bloquea redirecciones 401
                 // rezagadas: se navega al Login una sola vez.
                 await AuthService.instance.logout();

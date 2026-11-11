@@ -18,8 +18,10 @@ import '../widgets/sesion_expirada_view.dart';
 // editar y eliminar. Mismos endpoints /api/inventario que Angular.
 //
 // [Rediseño 2.8] Tabla horizontal (DataTable) con columnas
-// Producto, SKU, Categoría, Stock, Stock Mínimo, Precio, Estado
+// Producto, Código, Categoría, Stock, Stock Mínimo, Precio, Estado
 // y Acciones; filtro por sucursal y edición mediante diálogo.
+// [Lote fix] Dropdowns expandidos (isExpanded) con ellipsis, columna
+// "Código" (antes "SKU") y paginación simple de 20 ítems por página.
 // ============================================================
 class _FilaInventario {
   final Inventario inventario;
@@ -55,6 +57,10 @@ class AdminInventarioPage extends StatefulWidget {
 }
 
 class _AdminInventarioPageState extends State<AdminInventarioPage> {
+  /// [Lote fix] Paginación simple: máximo 20 registros por página.
+  static const int _porPagina = 20;
+  int _paginaActual = 1;
+
   final inventarioService = InventarioService();
   final sucursalesService = SucursalesService();
   final catalogoService = CatalogoService();
@@ -164,7 +170,25 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     setState(() {
       filas = nuevasFilas;
       cargando = false;
+      // [Lote fix] Al recargar, se vuelve a la primera página.
+      _paginaActual = 1;
     });
+  }
+
+  // ==========================================================
+  // [Lote fix] Paginación simple (20 registros por página)
+  // ==========================================================
+  int get _totalPaginas =>
+      filas.isEmpty ? 1 : (filas.length / _porPagina).ceil();
+
+  int get _pagina => _paginaActual.clamp(1, _totalPaginas);
+
+  List<_FilaInventario> get _filasVisibles {
+    if (filas.isEmpty) return const [];
+    final inicio = (_pagina - 1) * _porPagina;
+    var fin = inicio + _porPagina;
+    if (fin > filas.length) fin = filas.length;
+    return filas.sublist(inicio, fin);
   }
 
   Future<void> _cargarVariantesDelProducto(int? productoId) async {
@@ -344,11 +368,23 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                             ],
                           ),
                           const SizedBox(height: 10),
+                          // [Lote fix] isExpanded + ellipsis para que el texto
+                          // no desborde el recuadro del dropdown.
                           DropdownButtonFormField<int>(
                             initialValue: sucursalSeleccionadaId,
+                            isExpanded: true,
                             decoration: const InputDecoration(border: OutlineInputBorder(), isDense: true),
                             items: sucursales
-                                .map((s) => DropdownMenuItem(value: s.id, child: Text('${s.nombre} — ${s.ciudad}')))
+                                .map(
+                                  (s) => DropdownMenuItem(
+                                    value: s.id,
+                                    child: Text(
+                                      '${s.nombre} — ${s.ciudad}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (v) {
                               setState(() => sucursalSeleccionadaId = v);
@@ -378,16 +414,38 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                           const SizedBox(height: 10),
                           DropdownButtonFormField<int>(
                             initialValue: productoSeleccionadoId,
+                            isExpanded: true,
                             decoration: const InputDecoration(labelText: 'Producto', border: OutlineInputBorder(), isDense: true),
-                            items: productos.map((p) => DropdownMenuItem(value: p.id, child: Text(p.nombre))).toList(),
+                            items: productos
+                                .map(
+                                  (p) => DropdownMenuItem(
+                                    value: p.id,
+                                    child: Text(
+                                      p.nombre,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: _cargarVariantesDelProducto,
                           ),
                           const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
                             initialValue: varianteSeleccionadaId,
+                            isExpanded: true,
                             decoration: const InputDecoration(labelText: 'Talla / Color', border: OutlineInputBorder(), isDense: true),
                             items: variantesDelProducto
-                                .map((v) => DropdownMenuItem(value: v.id, child: Text('${v.tallaNombre} · ${v.colorNombre}')))
+                                .map(
+                                  (v) => DropdownMenuItem(
+                                    value: v.id,
+                                    child: Text(
+                                      '${v.tallaNombre} · ${v.colorNombre}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                )
                                 .toList(),
                             onChanged: (v) => setState(() => varianteSeleccionadaId = v),
                           ),
@@ -441,7 +499,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                           columnSpacing: 20,
                           columns: const [
                             DataColumn(label: Text('Producto')),
-                            DataColumn(label: Text('SKU')),
+                            DataColumn(label: Text('Código')),
                             DataColumn(label: Text('Categoría')),
                             DataColumn(label: Text('Stock'), numeric: true),
                             DataColumn(label: Text('Stock Mínimo'), numeric: true),
@@ -449,7 +507,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                             DataColumn(label: Text('Estado')),
                             DataColumn(label: Text('Acciones')),
                           ],
-                          rows: filas.map((fila) {
+                          rows: _filasVisibles.map((fila) {
                             final producto = fila.producto;
                             return DataRow(cells: [
                               DataCell(
@@ -521,9 +579,53 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                         ),
                       ),
                     ),
+                  if (filas.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    _paginacion(),
+                  ],
                 ],
               ),
             ),
+    );
+  }
+
+  // [Lote fix] Controles de paginación: 20 registros por página.
+  Widget _paginacion() {
+    if (_totalPaginas <= 1) {
+      return Center(
+        child: Text(
+          '${filas.length} registros',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+        ),
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        OutlinedButton.icon(
+          onPressed: _pagina > 1
+              ? () => setState(() => _paginaActual = _pagina - 1)
+              : null,
+          icon: const Icon(Icons.chevron_left, size: 18),
+          label: const Text('Anterior'),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Text(
+            'Página $_pagina de $_totalPaginas · ${filas.length} registros',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+          ),
+        ),
+        FilledButton(
+          onPressed: _pagina < _totalPaginas
+              ? () => setState(() => _paginaActual = _pagina + 1)
+              : null,
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [Text('Siguiente'), Icon(Icons.chevron_right, size: 18)],
+          ),
+        ),
+      ],
     );
   }
 

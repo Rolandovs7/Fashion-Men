@@ -34,7 +34,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
   bool _stripeListo = false;
   int? _pedidoIdProcesandoStripe;
 
-  /// [Fix 1.3] true cuando un pago falló por 401/403: se muestra el mensaje
+  /// [Fix 1.3] true cuando un pago falló por 401 real: se muestra el mensaje
   /// inline "Tu sesión expiró..." con botón, sin cerrar la app.
   bool _sesionExpirada = false;
 
@@ -137,7 +137,8 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
 
   /// [Fix 1.4] Registrar pago manual: sin selector de métodos
   /// (tarjeta/QR/manual); se muestra directamente el botón "Confirmar pago".
-  /// [Fix 1.3] Ante 401/403 no se redirige al Login: mensaje inline con botón.
+  /// [Fix 1.3] Ante un 401 real no se redirige al Login: mensaje inline con
+  /// botón. Los 400/402/403/422 muestran el mensaje real del backend.
   Future<void> _pagar(Pedido pedido) async {
     final metodo = _metodoPagoManual();
     final referenciaController = TextEditingController();

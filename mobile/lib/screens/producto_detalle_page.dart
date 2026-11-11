@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/config.dart';
+import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import '../services/carrito_service.dart';
@@ -58,6 +59,7 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
             vars.where((v) => v.stockDisponible > 0).isNotEmpty
             ? vars.firstWhere((v) => v.stockDisponible > 0)
             : (vars.isNotEmpty ? vars.first : null);
+        cantidad = 1;
         cargando = false;
       });
     } catch (e) {
@@ -92,11 +94,14 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
 
     try {
       await carritoService.agregarItem(varianteSeleccionada!.id, cantidad);
+      if (!mounted) return;
       setState(() {
         agregando = false;
+        cantidad = 1;
         mensaje = 'Prenda agregada al carrito.';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         agregando = false;
         error = e.toString().replaceFirst('Exception: ', '');
@@ -126,231 +131,321 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Detalle de prenda')),
+      backgroundColor: AppTheme.fondoClaro,
+      appBar: AppBar(
+        backgroundColor: AppTheme.fondoClaro,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('Detalle de prenda'),
+      ),
       body: cargando
           ? const Center(child: CircularProgressIndicator())
           : producto == null
           ? Center(
               child: Text(error.isEmpty ? 'Producto no disponible' : error),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: SizedBox(
-                      height: 260,
-                      width: double.infinity,
-                      child: _ImagenDetalle(
-                        rutaRelativa: producto!.imagenUrl,
-                        nombre: producto!.nombre,
+          : _construirDetalle(producto!),
+    );
+  }
+
+  Widget _construirDetalle(Producto prod) {
+    final variante = varianteSeleccionada;
+    final sinStock = variante == null || variante.stockDisponible <= 0;
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Imagen principal a todo el ancho, 300 px y recorte cover.
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(28),
+            ),
+            child: SizedBox(
+              height: 300,
+              width: double.infinity,
+              child: _ImagenDetalle(
+                rutaRelativa: prod.imagenUrl,
+                nombre: prod.nombre,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  prod.nombre,
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                    height: 1.15,
+                    color: AppTheme.negro,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: AppTheme.amarilloMarca,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Bs ${prod.precio.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                        color: AppTheme.bronce,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  prod.descripcion?.isNotEmpty == true
+                      ? prod.descripcion!
+                      : 'Sin descripción disponible para esta prenda.',
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    height: 1.5,
+                    color: AppTheme.grisTexto,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _abrirVestidorVirtual,
+                    icon: const Icon(Icons.view_in_ar_outlined, size: 20),
+                    label: const Text('Probar con cámara (AR)'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.negro,
+                      side: BorderSide(color: Colors.grey.shade400),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13.5,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    producto!.nombre,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                ),
+                const SizedBox(height: 24),
+                Divider(color: Colors.grey.shade300, height: 1),
+                const SizedBox(height: 20),
+                if (variantes.isEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade50,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.amber.shade200),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Bs ${producto!.precio.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
+                    child: const Text(
+                      'Este producto aún no tiene tallas ni colores configurados.',
+                      style: TextStyle(
+                        color: Colors.brown,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                else ...[
+                  const Text(
+                    'Talla y color',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.negro,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    producto!.descripcion?.isNotEmpty == true
-                        ? producto!.descripcion!
-                        : 'Sin descripción disponible para esta prenda.',
-                    style: const TextStyle(color: Colors.grey),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: variantes.map((v) {
+                      final seleccionada = varianteSeleccionada?.id == v.id;
+                      final agotada = v.stockDisponible <= 0;
+                      return ChoiceChip(
+                        selected: seleccionada,
+                        showCheckmark: false,
+                        onSelected: agotada
+                            ? null
+                            : (_) => setState(() {
+                                varianteSeleccionada = v;
+                                if (cantidad > v.stockDisponible) {
+                                  cantidad = v.stockDisponible;
+                                }
+                                error = '';
+                                mensaje = '';
+                              }),
+                        avatar: Container(
+                          width: 14,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _colorDesdeHex(v.colorHex),
+                            border: Border.all(color: Colors.black12),
+                          ),
+                        ),
+                        label: Text(
+                          '${v.tallaNombre} · ${v.colorNombre}',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: seleccionada
+                                ? Colors.white
+                                : agotada
+                                ? Colors.grey
+                                : AppTheme.negro,
+                          ),
+                        ),
+                        selectedColor: AppTheme.negro,
+                        backgroundColor: Colors.white,
+                        disabledColor: Colors.grey.shade100,
+                        side: BorderSide(
+                          color: seleccionada
+                              ? AppTheme.negro
+                              : Colors.grey.shade300,
+                          width: seleccionada ? 1.5 : 1,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton.icon(
-                      onPressed: _abrirVestidorVirtual,
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: const Text('Probar con cámara (AR)'),
-                    ),
+                  const SizedBox(height: 12),
+                  _StockPill(
+                    stock: variante?.stockDisponible ?? 0,
                   ),
-                  const SizedBox(height: 24),
-                  if (variantes.isEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber.shade200),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      const Text(
+                        'Cantidad',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: AppTheme.negro,
+                        ),
                       ),
-                      child: const Text(
-                        'Este producto aún no tiene tallas ni colores configurados.',
-                        style: TextStyle(color: Colors.brown),
-                      ),
-                    )
-                  else ...[
-                    const Text(
-                      'ELIGE TALLA Y COLOR',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey,
-                        letterSpacing: 0.6,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: variantes.map((v) {
-                        final seleccionada = varianteSeleccionada?.id == v.id;
-                        final sinStock = v.stockDisponible == 0;
-                        return GestureDetector(
-                          onTap: sinStock
-                              ? null
-                              : () => setState(() {
-                                  varianteSeleccionada = v;
-                                  error = '';
-                                  mensaje = '';
-                                }),
-                          child: Opacity(
-                            opacity: sinStock ? 0.4 : 1,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: seleccionada
-                                      ? Colors.black
-                                      : Colors.grey.shade300,
-                                  width: seleccionada ? 2 : 1,
+                      const Spacer(),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey.shade300),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              onPressed: cantidad > 1
+                                  ? () => setState(() => cantidad--)
+                                  : null,
+                              icon: const Icon(Icons.remove, size: 18),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            SizedBox(
+                              width: 28,
+                              child: Text(
+                                '$cantidad',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 15,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 14,
-                                    height: 14,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _colorDesdeHex(v.colorHex),
-                                      border: Border.all(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '${v.tallaNombre} · ${v.colorNombre}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    if (varianteSeleccionada != null) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        varianteSeleccionada!.stockDisponible > 0
-                            ? '${varianteSeleccionada!.stockDisponible} unidades disponibles'
-                            : 'Sin stock para esta combinación',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: varianteSeleccionada!.stockDisponible > 0
-                              ? Colors.green.shade700
-                              : Colors.red,
+                            IconButton(
+                              onPressed:
+                                  (variante != null &&
+                                      cantidad < variante.stockDisponible)
+                                  ? () => setState(() => cantidad++)
+                                  : null,
+                              icon: const Icon(Icons.add, size: 18),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                    const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        const Text(
-                          'Cantidad',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        IconButton.filledTonal(
-                          onPressed: cantidad > 1
-                              ? () => setState(() => cantidad--)
-                              : null,
-                          icon: const Icon(Icons.remove),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Text(
-                            '$cantidad',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                  ),
+                ],
+                if (mensaje.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  _MensajeDetalle(
+                    texto: mensaje,
+                    color: Colors.green.shade700,
+                    icono: Icons.check_circle_outline,
+                  ),
+                ],
+                if (error.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  _MensajeDetalle(
+                    texto: error,
+                    color: Colors.red,
+                    icono: Icons.error_outline,
+                  ),
+                ],
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: (agregando ||
+                            variantes.isEmpty ||
+                            sinStock)
+                        ? null
+                        : _agregarAlCarrito,
+                    icon: agregando
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
                             ),
-                          ),
-                        ),
-                        IconButton.filledTonal(
-                          onPressed: () => setState(() => cantidad++),
-                          icon: const Icon(Icons.add),
-                        ),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 20),
-                  if (mensaje.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        mensaje,
-                        style: const TextStyle(color: Colors.green),
+                          )
+                        : const Icon(Icons.shopping_bag_outlined),
+                    label: Text(
+                      agregando ? 'Agregando...' : 'Agregar al Carrito',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
                       ),
                     ),
-                  if (error.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Text(
-                        error,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: FilledButton(
-                      onPressed:
-                          (agregando ||
-                              variantes.isEmpty ||
-                              (varianteSeleccionada?.stockDisponible ?? 0) == 0)
-                          ? null
-                          : _agregarAlCarrito,
-                      child: Text(
-                        agregando ? 'Agregando...' : 'Agregar al carrito',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.negro,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -359,6 +454,90 @@ class _ProductoDetallePageState extends State<ProductoDetallePage> {
     var codigo = hex.replaceAll('#', '');
     if (codigo.length == 6) codigo = 'FF$codigo';
     return Color(int.parse(codigo, radix: 16));
+  }
+}
+
+class _StockPill extends StatelessWidget {
+  final int stock;
+
+  const _StockPill({required this.stock});
+
+  @override
+  Widget build(BuildContext context) {
+    final disponible = stock > 0;
+    final color = disponible ? Colors.green.shade700 : Colors.red;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            disponible
+                ? Icons.check_circle_outline
+                : Icons.remove_circle_outline,
+            size: 15,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            disponible
+                ? '$stock unidades disponibles'
+                : 'Sin stock para esta combinación',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MensajeDetalle extends StatelessWidget {
+  final String texto;
+  final Color color;
+  final IconData icono;
+
+  const _MensajeDetalle({
+    required this.texto,
+    required this.color,
+    required this.icono,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: [
+          Icon(icono, color: color, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              texto,
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -377,6 +556,8 @@ class _ImagenDetalle extends StatelessWidget {
     return Image.network(
       url,
       fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
       filterQuality: FilterQuality.high,
       loadingBuilder: (context, child, progress) {
         if (progress == null) return child;

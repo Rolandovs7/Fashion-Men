@@ -14,7 +14,10 @@ import '../screens/login_page.dart';
 /// o los helpers [get]/[post]/[put]/[delete] para inyectar el JWT.
 class ApiClient {
   static bool _redirigiendoLogin = false;
-  static bool _suprimirRedireccion = false;
+  /// Contador (no bool) para que peticiones concurrentes envueltas en
+  /// [sinRedireccionAutomatica] no reabran la redirección antes de tiempo.
+  static int _supresionesRedireccion = 0;
+  static bool get _suprimirRedireccion => _supresionesRedireccion > 0;
   static http.Response? _respuestaAuthPendiente;
   /// URL del backend. Por defecto apunta a producción (Render).
   /// Para desarrollo local, usa --dart-define=API_URL=http://localhost:8000/api
@@ -58,14 +61,19 @@ class ApiClient {
   static Future<http.Response> delete(String path, {bool auth = true}) =>
       http.delete(uri(path), headers: authHeaders());
 
-  /// [Fix 1.1] Un 401/403 proveniente de `/login` o `/refresh`
-  /// (credenciales inválidas) NO dispara el cierre global de sesión
-  /// ni la redirección al Login: se reporta como error normal de la petición.
+  /// Solo un **401** significa que el token es inválido o expiró.
+  ///
+  /// Los códigos 400, 402, 403 y 422 son errores de negocio/validación
+  /// (monto incorrecto, pedido ya pagado, sin permisos, datos inválidos) y
+  /// deben llegar a la pantalla con el mensaje real del backend. Un 403
+  /// NO debe cerrar la sesión ni mostrar "Tu sesión expiró".
+  /// También se excluye el flujo de login/refresh: allí el 401 son
+  /// credenciales incorrectas, no una sesión vencida.
   static bool esErrorAuth(http.Response response) {
     final path = (response.request?.url.path ?? '').toLowerCase();
     final esFlujoLogin = path.endsWith('/login') || path.contains('/refresh');
     if (esFlujoLogin) return false;
-    final esAuth = response.statusCode == 401 || response.statusCode == 403;
+    final esAuth = response.statusCode == 401;
     // Se guarda la respuesta para que manejarErrorAuth() pueda distinguir
     // si el 401 corresponde al token vigente o a una petición rezagada.
     if (esAuth) _respuestaAuthPendiente = response;
@@ -73,8 +81,10 @@ class ApiClient {
   }
 
   /// [Fix 1.1 + 1.3 + Interceptor global] Cierra la sesión y redirige al
-  /// Login (una sola vez).
+  /// Login (una sola vez) **solo ante un 401 real**.
   ///
+  /// - Un 400/402/403/422 nunca llega aquí: [esErrorAuth] únicamente
+  ///   devuelve true para 401, y además se valida el código como defensa.
   /// - Endpoints de pagos (`/pagos`) o dashboard (`/reportes`): un 401 NO
   ///   cierra la sesión ni redirige al Login. Se lanza
   ///   [SesionExpiradaException('Tu sesión expiró. Reintentá')] para que la
@@ -87,6 +97,15 @@ class ApiClient {
   static Future<Never> manejarErrorAuth() async {
     final response = _respuestaAuthPendiente;
     _respuestaAuthPendiente = null;
+
+    // Defensa extra: si por alguna razón se invoca con un error que no es
+    // 401, se propaga el mensaje real del backend como error normal.
+    if (response != null && response.statusCode != 401) {
+      throw Exception(
+        mensajeHttp(response, fallback: 'No se pudo completar la operación'),
+      );
+    }
+
     // Los flujos envueltos en [sinRedireccionAutomatica] (pago, checkout,
     // confirmación) y los endpoints de pagos/reportes NUNCA expulsan al
     // usuario: solo lanzan la excepción para que la pantalla muestre el
@@ -122,7 +141,7 @@ class ApiClient {
   /// 401 rezagada del usuario anterior afecten a la sesión nueva.
   static void reiniciarEstado() {
     _redirigiendoLogin = false;
-    _suprimirRedireccion = false;
+    _supresionesRedireccion = 0;
     _respuestaAuthPendiente = null;
   }
 
@@ -139,16 +158,16 @@ class ApiClient {
   }
 
   /// [Fix 1.3] Ejecuta [accion] (flujos de pago) SIN la redirección
-  /// automática al Login ante 401/403. La pantalla captura
+  /// automática al Login ante un 401 real. La pantalla captura
   /// [SesionExpiradaException] y muestra "Tu sesión expiró..." inline
-  /// con un botón, sin cerrar la app. Anidable.
+  /// con un botón, sin cerrar la app. Anidable y seguro ante llamadas
+  /// concurrentes: usa un contador, no un booleano.
   static Future<T> sinRedireccionAutomatica<T>(Future<T> Function() accion) async {
-    final anterior = _suprimirRedireccion;
-    _suprimirRedireccion = true;
+    _supresionesRedireccion++;
     try {
       return await accion();
     } finally {
-      _suprimirRedireccion = anterior;
+      if (_supresionesRedireccion > 0) _supresionesRedireccion--;
     }
   }
 
@@ -183,24 +202,26 @@ class ApiClient {
   static void liberarRedireccionLogin() => _redirigiendoLogin = false;
 
   static String mensajeHttp(http.Response response, {String fallback = 'Error en la petición'}) {
-    String detalle = fallback;
+    String? detalleBackend;
     try {
       final data = jsonDecode(response.body);
       if (data is Map && data['detail'] != null) {
-        detalle = data['detail'].toString();
+        detalleBackend = data['detail'].toString();
       } else if (data is Map && data['message'] != null) {
-        detalle = data['message'].toString();
+        detalleBackend = data['message'].toString();
       }
     } catch (_) {
       final body = response.body.trim();
-      if (body.isNotEmpty && body.length < 180) detalle = body;
+      if (body.isNotEmpty && body.length < 180) detalleBackend = body;
     }
     final authMsg = response.statusCode == 401
         ? 'No autorizado'
         : response.statusCode == 403
             ? 'Acceso denegado'
             : null;
-    final base = authMsg ?? detalle;
+    // Prioriza el mensaje real del backend (p. ej. "El monto no coincide",
+    // "Ya existe un pago aprobado...") sobre el texto genérico de auth.
+    final base = detalleBackend ?? authMsg ?? fallback;
     return 'Error ${response.statusCode}: $base';
   }
 

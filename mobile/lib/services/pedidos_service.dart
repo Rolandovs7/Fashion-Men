@@ -43,9 +43,15 @@ class PedidosService {
     required double monto,
     String? referencia,
   }) async {
+    // El JWT viaja siempre en Authorization. Se construye en el momento de
+    // la petición (no al crear el servicio) para usar el token vigente.
+    final headers = ApiClient.jsonHeaders();
+    if (!headers.containsKey('Authorization')) {
+      throw Exception('No hay una sesión activa. Inicia sesión de nuevo.');
+    }
     final response = await http.post(
       Uri.parse('${ApiClient.baseUrl}/pagos'),
-      headers: ApiClient.jsonHeaders(),
+      headers: headers,
       body: jsonEncode({
         'pedido_id': pedidoId,
         'metodo': metodo,
@@ -103,18 +109,36 @@ class PedidosService {
       await ApiClient.manejarErrorAuth();
     }
     if (response.statusCode < 200 || response.statusCode >= 300) {
-            final msg = _extraerError(response.body);
+      final msg = _extraerError(response);
       // ignore: avoid_print
       print('[PedidosService] HTTP ${response.statusCode}: $msg');
       throw Exception(msg);
     }
   }
 
-  String _extraerError(String body) {
+  /// Extrae el mensaje real del backend. Cubre `detail` como texto
+  /// (400/403/409) y como lista de validación (422).
+  String _extraerError(http.Response response) {
     try {
-      final data = jsonDecode(body);
-      if (data is Map && data['detail'] != null) return data['detail'].toString();
-    } catch (_) {}
-    return 'No se pudo completar la operación del pedido';
+      final data = jsonDecode(response.body);
+      if (data is Map) {
+        final detail = data['detail'] ?? data['message'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail.trim();
+        }
+        if (detail is List) {
+          final mensajes = detail
+              .map((e) => e is Map ? (e['msg'] ?? e.toString()) : e.toString())
+              .where((m) => m.trim().isNotEmpty)
+              .join(', ');
+          if (mensajes.isNotEmpty) return mensajes;
+        }
+      }
+    } catch (_) {
+      // El cuerpo no era JSON.
+    }
+    final body = response.body.trim();
+    if (body.isNotEmpty && body.length < 180) return body;
+    return 'No se pudo completar la operación (HTTP ${response.statusCode})';
   }
 }

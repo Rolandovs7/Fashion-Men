@@ -146,8 +146,9 @@ class _CarritoPageState extends State<CarritoPage> {
 
     setState(() => procesando = true);
     try {
-      // [Fix 1.3] Checkout sin redirección automática ante 401/403:
-      // se muestra el mensaje inline con botón, sin cerrar la app.
+      // [Fix 1.3] Checkout sin redirección automática ante un 401 real:
+      // se muestra el mensaje inline con botón, sin cerrar la app. Los
+      // 400/402/403/422 conservan el mensaje real del backend.
       final pedido = await ApiClient.sinRedireccionAutomatica(
         () => pedidosService.crearDesdeCarrito(sucursalId),
       );

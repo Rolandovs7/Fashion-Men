@@ -11,9 +11,10 @@ import 'api_client.dart';
 /// - Las envía a `/api/sync/operaciones` con el JWT del usuario
 ///   (`Authorization: Bearer <token>` vía [ApiClient.jsonHeaders]).
 ///
-/// [Fix 1.3] Ante 401/403 lanza [SesionExpiradaException] para que la
+/// [Fix 1.3] Ante un 401 real lanza [SesionExpiradaException] para que la
 /// pantalla muestre el mensaje inline ("Tu sesión expiró...") con un
-/// botón, sin cerrar la app ni redirigir automáticamente.
+/// botón, sin cerrar la app ni redirigir automáticamente. Los 403 se
+/// reportan como error normal (permisos/negocio), no como sesión vencida.
 class OfflineSyncService {
   final _uuid = const Uuid();
   final Connectivity _connectivity = Connectivity();
@@ -76,7 +77,7 @@ class OfflineSyncService {
       body: jsonEncode(payload),
     );
 
-    if (response.statusCode == 401 || response.statusCode == 403) {
+    if (response.statusCode == 401) {
       throw SesionExpiradaException('Tu sesión expiró. Iniciá sesión de nuevo');
     }
     if (response.statusCode != 200) return;

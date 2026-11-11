@@ -7,6 +7,8 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../services/auth_service.dart';
+
 class PagoQrPage extends StatelessWidget {
   final int pedidoId;
   final double monto;
@@ -21,7 +23,7 @@ class PagoQrPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // El QR contiene: identificador del sistema + pedido + monto + timestamp
     final qrData =
-        'MenStyle|PAGO|$pedidoId|${monto.toStringAsFixed(2)}|${DateTime.now().millisecondsSinceEpoch}';
+        '${AuthService.instance.nombreEmpresa}|PAGO|$pedidoId|${monto.toStringAsFixed(2)}|${DateTime.now().millisecondsSinceEpoch}';
 
     return Scaffold(
       backgroundColor: Colors.white,

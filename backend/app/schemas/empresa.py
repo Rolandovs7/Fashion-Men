@@ -40,6 +40,12 @@ class EmpresaListadoRead(BaseModel):
     activo: bool = True
 
 
+class EmpresaPublicaRead(BaseModel):
+    """Empresa visible en el registro público (selector de tienda)."""
+    id: int
+    nombre: str
+
+
 class EmpresaUsuarioRead(BaseModel):
     """Usuario/cliente de una empresa (panel de administración)."""
     id: int

@@ -4,6 +4,7 @@ import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/auth_service.dart';
+import '../services/export_service.dart';
 import '../services/roles_service.dart';
 import '../services/usuarios_service.dart';
 import '../shared/admin_shell.dart';
@@ -39,6 +40,7 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
   List<Rol> roles = [];
   bool cargando = true;
   bool sesionExpirada = false;
+  bool exportando = false;
   String error = '';
   String busqueda = '';
 
@@ -132,6 +134,74 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
   String _fechaCorta(String? fecha) {
     if (fecha == null || fecha.isEmpty) return '—';
     return fecha.length >= 10 ? fecha.substring(0, 10) : fecha;
+  }
+
+  List<String> get _columnasReporte => const [
+        'Nombre',
+        'Email',
+        'Teléfono',
+        'Rol',
+        'Registro',
+        'Estado',
+      ];
+
+  List<List<String>> get _filasReporte => _filtrados
+      .map(
+        (u) => [
+          u.nombreCompleto,
+          u.email,
+          u.telefono ?? '—',
+          u.rol,
+          _fechaCorta(u.fechaRegistro),
+          u.activo ? 'Activo' : 'Inactivo',
+        ],
+      )
+      .toList();
+
+  Future<void> _exportarPdf() async {
+    if (_filtrados.isEmpty) {
+      _avisar('No hay usuarios para exportar.');
+      return;
+    }
+    setState(() => exportando = true);
+    try {
+      await ExportService.exportarPdf(
+        titulo: 'Usuarios de la empresa',
+        subtitulo: 'Listado de usuarios/clientes registrados',
+        columnas: _columnasReporte,
+        filas: _filasReporte,
+      );
+    } catch (e) {
+      _avisar('No se pudo generar el PDF: ${e.toString().replaceFirst('Exception: ', '')}');
+    } finally {
+      if (mounted) setState(() => exportando = false);
+    }
+  }
+
+  Future<void> _exportarExcel() async {
+    if (_filtrados.isEmpty) {
+      _avisar('No hay usuarios para exportar.');
+      return;
+    }
+    setState(() => exportando = true);
+    try {
+      await ExportService.exportarExcel(
+        titulo: 'Usuarios de la empresa',
+        subtitulo: 'Listado de usuarios/clientes registrados',
+        columnas: _columnasReporte,
+        filas: _filasReporte,
+        nombreHoja: 'Usuarios',
+      );
+    } catch (e) {
+      _avisar('No se pudo generar el Excel: ${e.toString().replaceFirst('Exception: ', '')}');
+    } finally {
+      if (mounted) setState(() => exportando = false);
+    }
+  }
+
+  void _avisar(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   Future<void> _editar(Usuario usuario) async {
@@ -328,7 +398,26 @@ class _AdminUsuariosPageState extends State<AdminUsuariosPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: exportando ? null : _exportarPdf,
+                icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                label: const Text('Exportar a PDF'),
+              ),
+              OutlinedButton.icon(
+                onPressed: exportando ? null : _exportarExcel,
+                icon: const Icon(Icons.table_view_outlined, size: 18),
+                label: const Text('Exportar a Excel'),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           child: TextField(
             controller: buscarController,
             onChanged: (v) => setState(() => busqueda = v),

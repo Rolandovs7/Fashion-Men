@@ -245,7 +245,7 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            'M',
+            authService.nombreEmpresa.characters.first.toUpperCase(),
             style: AppTheme.fuenteTitulo.copyWith(
               color: AppTheme.amarilloMarca,
               fontWeight: FontWeight.w800,
@@ -255,7 +255,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         const SizedBox(height: 10),
         Text(
-          'MENSTYLE.',
+          '${authService.nombreEmpresa.toUpperCase()}.',
           style: AppTheme.fuenteTitulo.copyWith(
             color: AppTheme.negro,
             fontSize: 18,

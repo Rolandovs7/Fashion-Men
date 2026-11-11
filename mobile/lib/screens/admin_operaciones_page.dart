@@ -7,6 +7,8 @@ import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
 import '../services/api_client.dart';
+import '../services/auth_service.dart';
+import '../services/export_service.dart';
 import '../services/pedidos_service.dart';
 import '../services/reservas_service.dart';
 import '../services/sucursales_service.dart';
@@ -45,6 +47,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
   Map<int, Usuario> usuarios = {};
 
   bool cargando = true;
+  bool exportando = false;
   String error = '';
   String mensaje = '';
   bool sesionExpirada = false;
@@ -134,6 +137,121 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
 
   int _totalPaginas(int totalFilas) =>
       totalFilas <= 0 ? 1 : ((totalFilas - 1) ~/ _porPagina) + 1;
+
+  // ============== EXPORTACIÓN PDF / EXCEL ==============
+  List<String> _columnasPedidos() => const [
+        'ID',
+        'Cliente',
+        'Fecha',
+        'Total (Bs)',
+        'Estado',
+      ];
+
+  List<List<String>> _filasPedidos() => pedidos
+      .map(
+        (p) => [
+          '#${p.id}',
+          _nombreClienteDe(p.cliente, p.usuarioId),
+          _fechaCorta(p.fechaPedido),
+          p.total.toStringAsFixed(2),
+          p.estado,
+        ],
+      )
+      .toList();
+
+  List<String> _columnasReservas() => const [
+        'ID',
+        'Cliente',
+        'Sucursal',
+        'Fecha',
+        'Estado',
+      ];
+
+  List<List<String>> _filasReservas() => reservas
+      .map(
+        (r) => [
+          '#${r.id}',
+          _nombreClienteDe(r.cliente, r.usuarioId),
+          _nombreSucursal(r.sucursalId),
+          _fechaCorta(r.fechaReserva),
+          r.estado,
+        ],
+      )
+      .toList();
+
+  Future<void> _exportarPdf({required bool esPedidos}) async {
+    final filas = esPedidos ? _filasPedidos() : _filasReservas();
+    if (filas.isEmpty) {
+      _avisar('No hay ${esPedidos ? 'pedidos' : 'reservas'} para exportar.');
+      return;
+    }
+    setState(() => exportando = true);
+    try {
+      await ExportService.exportarPdf(
+        titulo: esPedidos ? 'Reporte de pedidos' : 'Reporte de reservas',
+        subtitulo: esPedidos
+            ? 'Listado general de pedidos registrados'
+            : 'Listado general de reservas registradas',
+        columnas: esPedidos ? _columnasPedidos() : _columnasReservas(),
+        filas: filas,
+      );
+    } catch (e) {
+      _avisar('No se pudo generar el PDF: ${e.toString().replaceFirst('Exception: ', '')}');
+    } finally {
+      if (mounted) setState(() => exportando = false);
+    }
+  }
+
+  Future<void> _exportarExcel({required bool esPedidos}) async {
+    final filas = esPedidos ? _filasPedidos() : _filasReservas();
+    if (filas.isEmpty) {
+      _avisar('No hay ${esPedidos ? 'pedidos' : 'reservas'} para exportar.');
+      return;
+    }
+    setState(() => exportando = true);
+    try {
+      await ExportService.exportarExcel(
+        titulo: esPedidos ? 'Reporte de pedidos' : 'Reporte de reservas',
+        subtitulo: esPedidos
+            ? 'Listado general de pedidos registrados'
+            : 'Listado general de reservas registradas',
+        columnas: esPedidos ? _columnasPedidos() : _columnasReservas(),
+        filas: filas,
+        nombreHoja: esPedidos ? 'Pedidos' : 'Reservas',
+      );
+    } catch (e) {
+      _avisar('No se pudo generar el Excel: ${e.toString().replaceFirst('Exception: ', '')}');
+    } finally {
+      if (mounted) setState(() => exportando = false);
+    }
+  }
+
+  void _avisar(String mensaje) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+
+  Widget _barraExportacion({required bool esPedidos}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          OutlinedButton.icon(
+            onPressed: exportando ? null : () => _exportarPdf(esPedidos: esPedidos),
+            icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+            label: const Text('Exportar a PDF'),
+          ),
+          OutlinedButton.icon(
+            onPressed: exportando ? null : () => _exportarExcel(esPedidos: esPedidos),
+            icon: const Icon(Icons.table_view_outlined, size: 18),
+            label: const Text('Exportar a Excel'),
+          ),
+        ],
+      ),
+    );
+  }
 
   String _fechaCorta(String fecha) {
     if (fecha.length >= 10) return fecha.substring(0, 10);
@@ -354,6 +472,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
 
     return Column(
       children: [
+        _barraExportacion(esPedidos: true),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
@@ -466,6 +585,7 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
 
     return Column(
       children: [
+        _barraExportacion(esPedidos: false),
         Expanded(
           child: SingleChildScrollView(
             scrollDirection: Axis.vertical,
@@ -652,7 +772,10 @@ class _DialogoComprobante extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('MENSTYLE', style: TextStyle(color: AppTheme.amarilloMarca, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                  Text(
+                    AuthService.instance.nombreEmpresa.toUpperCase(),
+                    style: const TextStyle(color: AppTheme.amarilloMarca, fontWeight: FontWeight.w900, letterSpacing: 2),
+                  ),
                   const SizedBox(height: 4),
                   Text('Nota de Venta · Pedido #${pedido.id}',
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),

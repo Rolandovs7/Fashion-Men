@@ -38,6 +38,11 @@ export class HeaderComponent implements OnInit {
     }
   }
 
+  get nombreEmpresa(): string {
+    const nombre = (this.usuario?.empresa_nombre ?? '').toString().trim();
+    return nombre || this.authService.nombreEmpresa();
+  }
+
   esAdministrador(): boolean {
     return this.usuario?.rol === 'administrador' || this.usuario?.rol === 'superadmin';
   }

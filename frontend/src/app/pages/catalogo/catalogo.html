@@ -300,8 +300,8 @@
       <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
         <div class="col-span-2 md:col-span-4 lg:col-span-1">
           <a routerLink="/inicio" class="inline-flex items-center gap-2">
-            <span class="w-9 h-9 rounded-xl bg-ms-amber-soft flex items-center justify-center font-display text-lg text-ms-black">M</span>
-            <span class="font-display text-xl text-ms-white">MenStyle</span>
+            <span class="w-9 h-9 rounded-xl bg-ms-amber-soft flex items-center justify-center font-display text-lg text-ms-black">{{ nombreEmpresa.charAt(0).toUpperCase() }}</span>
+            <span class="font-display text-xl text-ms-white">{{ nombreEmpresa }}</span>
           </a>
           <p class="mt-3 text-sm leading-relaxed max-w-xs">
             Moda masculina premium con inteligencia artificial y un vestidor
@@ -341,7 +341,7 @@
       </div>
 
       <div class="mt-14 pt-6 border-t border-ms-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ms-slate/70">
-        <p>© 2026 MenStyle · Plataforma E-Commerce FashionStore.</p>
+        <p>© 2026 {{ nombreEmpresa }} · Plataforma E-Commerce FashionStore.</p>
         <p class="font-medium">Sistemas II · U.A.G.R.M.</p>
       </div>
     </div>

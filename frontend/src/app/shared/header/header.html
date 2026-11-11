@@ -34,13 +34,13 @@
                   font-weight="900"
                   font-size="26"
                   fill="#0a0a0a"
-                  letter-spacing="-1.5">M</text>
+                  letter-spacing="-1.5">{{ nombreEmpresa.charAt(0).toUpperCase() }}</text>
           </svg>
         </div>
         <!-- Texto del logo (oculto en móvil muy chico) -->
         <div class="hidden sm:block leading-none">
           <h1 class="text-xl sm:text-2xl font-black tracking-[0.2em] text-white uppercase leading-none m-0">
-            MENSTYLE
+            {{ nombreEmpresa }}
           </h1>
           <span class="text-[10px] text-neutral-400 font-semibold tracking-widest uppercase block mt-1 leading-none">
             FashionStore Platform
@@ -152,10 +152,10 @@
                     font-weight="900"
                     font-size="26"
                     fill="#0a0a0a"
-                    letter-spacing="-1.5">M</text>
+                    letter-spacing="-1.5">{{ nombreEmpresa.charAt(0).toUpperCase() }}</text>
             </svg>
           </div>
-          <span class="font-black tracking-[0.2em] text-white uppercase text-sm">MENSTYLE</span>
+          <span class="font-black tracking-[0.2em] text-white uppercase text-sm">{{ nombreEmpresa }}</span>
         </div>
         <button (click)="cerrarMenu()" class="text-neutral-400 hover:text-white transition-colors cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

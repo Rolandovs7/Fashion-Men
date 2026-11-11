@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui';
 
@@ -17,16 +17,33 @@ import { ButtonComponent, InputComponent, AlertComponent } from '../../shared/ui
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-export class Login {
+export class Login implements OnInit {
 
   private authService = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   email = '';
   password = '';
   error = '';
   cargando = false;
   mostrarPassword = false;
+
+  /** Conserva /login?empresa_id=2 al ir al registro de esa tienda. */
+  empresaId: number | null = null;
+
+  ngOnInit(): void {
+    const param = Number(this.route.snapshot.queryParamMap.get('empresa_id'));
+    this.empresaId = Number.isFinite(param) && param > 0 ? param : null;
+  }
+
+  get empresaNombre(): string {
+    return this.authService.nombreEmpresa();
+  }
+
+  get registroQueryParams(): Record<string, number> {
+    return this.empresaId != null ? { empresa_id: this.empresaId } : {};
+  }
 
   togglePassword(): void {
     this.mostrarPassword = !this.mostrarPassword;

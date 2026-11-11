@@ -32,16 +32,14 @@ from app.models.inventory import Inventario
 
 MENSTYLE_EMPRESA_ID = 1
 AVENOR_NOMBRE = "Avenor"
-AVENOR_EMPRESA_ID_FALLBACK = 2
 CATEGORIA_TERMINOS = ("deport", "chaquet", "pantal")  # match flexible (deportiva, chaqueta, pantalón/pantalones)
 STOCK_INICIAL = 20
 
 
 def _obtener_avenor(db):
-    emp = db.query(Empresa).filter(Empresa.nombre == AVENOR_NOMBRE).first()
-    if emp:
-        return emp
-    return db.query(Empresa).filter(Empresa.id == AVENOR_EMPRESA_ID_FALLBACK).first()
+    # Se busca por nombre, nunca por id: el id puede variar entre
+    # entornos y otra empresa podría ocupar el id 2.
+    return db.query(Empresa).filter(Empresa.nombre == AVENOR_NOMBRE).first()
 
 
 def seed_avenor():
@@ -49,8 +47,8 @@ def seed_avenor():
     try:
         avenor = _obtener_avenor(db)
         if not avenor:
-            print(f"ERROR: No se encontró la empresa '{AVENOR_NOMBRE}' (ni id={AVENOR_EMPRESA_ID_FALLBACK}).")
-            print("Cree la empresa Avenor primero (empresa_id=2) y vuelva a ejecutar.")
+            print(f"ERROR: No se encontró la empresa '{AVENOR_NOMBRE}'.")
+            print("Ejecute primero seed_saas.py para crear MenStyle y Avenor.")
             return 1
 
         print(f"Empresa destino: {avenor.nombre} (id={avenor.id})")

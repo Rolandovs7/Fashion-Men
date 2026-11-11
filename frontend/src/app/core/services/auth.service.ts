@@ -10,6 +10,7 @@ export interface Usuario {
   activo: boolean;
   rol: string;
   empresa_id?: number | null;
+  empresa_nombre?: string | null;
   sucursal_id?: number | null;
 }
 
@@ -93,6 +94,21 @@ export class AuthService {
     );
   }
 
+  /** Nombre de la empresa del usuario autenticado (branding dinámico). */
+  nombreEmpresa(): string {
+    try {
+      const raw = localStorage.getItem('menstyle_usuario_actual');
+      if (raw) {
+        const usuario = JSON.parse(raw) as Usuario;
+        const nombre = (usuario?.empresa_nombre ?? '').toString().trim();
+        if (nombre) return nombre;
+      }
+    } catch {
+      // ignore
+    }
+    return 'MenStyle';
+  }
+
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
@@ -106,6 +122,7 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('menstyle_usuario_actual');
   }
   
     solicitarResetPassword(email: string): Observable<{ mensaje: string }> {

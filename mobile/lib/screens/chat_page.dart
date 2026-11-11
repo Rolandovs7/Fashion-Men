@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../services/auth_service.dart';
 import '../services/chat_service.dart';
 import '../core/theme.dart';
 import 'producto_detalle_page.dart';
@@ -32,9 +33,9 @@ class _ChatPageState extends State<ChatPage> {
   final List<_MensajeChat> _mensajes = [
     _MensajeChat(
       texto:
-          '¡Hola! Soy el asistente de MenStyle. ¿En qué prenda estás '
-          'pensando hoy? Puedo ayudarte a encontrar algo para una ocasión, '
-          'un estilo o una temporada.',
+          '¡Hola! Soy el asistente de ${AuthService.instance.nombreEmpresa}. '
+          '¿En qué prenda estás pensando hoy? Puedo ayudarte a encontrar algo '
+          'para una ocasión, un estilo o una temporada.',
       esUsuario: false,
     ),
   ];
@@ -104,7 +105,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.fondoCatalogo,
-      appBar: AppBar(title: const Text('Asistente MenStyle')),
+      appBar: AppBar(title: Text('Asistente ${AuthService.instance.nombreEmpresa}')),
       body: Column(
         children: [
           Expanded(

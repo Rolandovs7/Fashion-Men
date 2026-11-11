@@ -599,6 +599,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  _politicaDevolucion(),
                   if (_sesionExpirada) _bannerSesionExpirada(),
                   if (mensaje.isNotEmpty) _banner(mensaje, Colors.green),
                   if (error.isNotEmpty) _banner(error, Colors.red),
@@ -618,6 +619,67 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
             ),
     );
   }
+
+  /// Aviso visible al inicio de "Mis pedidos" con la política de devolución.
+  Widget _politicaDevolucion() => Card(
+    margin: const EdgeInsets.only(bottom: 12),
+    elevation: 0,
+    color: Colors.white,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+      side: BorderSide(
+        color: AppTheme.amarilloMarca.withValues(alpha: 0.45),
+      ),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: AppTheme.amarilloMarca,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.autorenew,
+              color: AppTheme.negro,
+              size: 21,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Política de Devolución: ',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.negro,
+                    ),
+                  ),
+                  TextSpan(
+                    text:
+                        'Tienes 7 días para cambiar o devolver tu prenda. '
+                        'El stock será repuesto y recibirás un correo de '
+                        'confirmación.',
+                  ),
+                ],
+              ),
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.4,
+                color: AppTheme.grisTexto,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Widget _banner(String texto, Color color) => Container(
     width: double.infinity,

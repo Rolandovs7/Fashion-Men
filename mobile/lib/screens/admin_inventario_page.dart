@@ -57,9 +57,13 @@ class AdminInventarioPage extends StatefulWidget {
 }
 
 class _AdminInventarioPageState extends State<AdminInventarioPage> {
-  /// [Lote fix] Paginación simple: máximo 20 registros por página.
-  static const int _porPagina = 20;
+  /// [Rediseño] Paginación de 15 filas por página.
+  static const int _porPagina = 15;
   int _paginaActual = 1;
+
+  /// Ordenamiento por columnas (Producto, Stock, Precio).
+  int? _columnaOrden;
+  bool _ordenAscendente = true;
 
   final inventarioService = InventarioService();
   final sucursalesService = SucursalesService();
@@ -70,6 +74,10 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
   List<Categoria> categorias = [];
   List<Variante> variantesDelProducto = [];
   List<_FilaInventario> filas = [];
+
+  /// Caché de variantes ya resueltas para evitar una petición por fila
+  /// en cada recarga (carga perezosa + reutilización).
+  final Map<int, Variante> _variantesCache = {};
 
   int? sucursalSeleccionadaId;
   int? productoSeleccionadoId;
@@ -99,7 +107,9 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
       if (!mounted) return;
       setState(() {
         sucursales = resultados[0] as List<Sucursal>;
-        productos = (resultados[1] as List<Producto>).where((p) => p.activo).toList();
+        // Se conservan todos los productos (también inactivos) para poder
+        // resolver el nombre/precio de inventarios históricos.
+        productos = resultados[1] as List<Producto>;
         categorias = resultados[2] as List<Categoria>;
       });
 
@@ -147,48 +157,102 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
   }
 
   Future<void> _resolverFilas(List<Inventario> inventarios) async {
-    final nuevasFilas = <_FilaInventario>[];
+    // [Optimización] Resuelve todas las variantes en paralelo (y reutiliza
+    // las ya cacheadas) en lugar de encadenar peticiones secuenciales.
+    final idsPendientes = inventarios
+        .map((inv) => inv.varianteId)
+        .where((id) => !_variantesCache.containsKey(id))
+        .toSet();
 
-    for (final inv in inventarios) {
-      final fila = _FilaInventario(inv);
-      try {
-        fila.variante = await catalogoService.obtenerVariante(inv.varianteId);
-        if (fila.variante != null) {
-          fila.producto = await catalogoService.obtenerProducto(fila.variante!.productoId);
-          if (fila.producto != null) {
-            final cat = categorias.where((c) => c.id == fila.producto!.categoriaId);
-            fila.categoriaNombre = cat.isEmpty ? '—' : cat.first.nombre;
-          }
+    await Future.wait(
+      idsPendientes.map((id) async {
+        try {
+          _variantesCache[id] = await catalogoService.obtenerVariante(id);
+        } catch (_) {
+          // Si no se puede resolver la variante, la fila se muestra con su ID.
         }
-      } catch (_) {
-        // Si no se puede resolver el nombre, igual se muestra la fila con el ID.
+      }),
+    );
+
+    final productosPorId = {for (final p in productos) p.id: p};
+    final categoriasPorId = {for (final c in categorias) c.id: c.nombre};
+
+    final nuevasFilas = inventarios.map((inv) {
+      final fila = _FilaInventario(inv);
+      fila.variante = _variantesCache[inv.varianteId];
+      if (fila.variante != null) {
+        fila.producto = productosPorId[fila.variante!.productoId];
+        if (fila.producto != null) {
+          fila.categoriaNombre =
+              categoriasPorId[fila.producto!.categoriaId] ?? '—';
+        }
       }
-      nuevasFilas.add(fila);
-    }
+      return fila;
+    }).toList();
 
     if (!mounted) return;
     setState(() {
       filas = nuevasFilas;
       cargando = false;
-      // [Lote fix] Al recargar, se vuelve a la primera página.
+      // Al recargar, se vuelve a la primera página.
       _paginaActual = 1;
     });
   }
 
   // ==========================================================
-  // [Lote fix] Paginación simple (20 registros por página)
+  // Paginación (15 registros por página) y ordenamiento
   // ==========================================================
   int get _totalPaginas =>
       filas.isEmpty ? 1 : (filas.length / _porPagina).ceil();
 
   int get _pagina => _paginaActual.clamp(1, _totalPaginas);
 
+  /// [Ordenamiento] Devuelve las filas ordenadas según la columna activa.
+  List<_FilaInventario> get _filasOrdenadas {
+    final resultado = List<_FilaInventario>.from(filas);
+    if (_columnaOrden == null) return resultado;
+
+    int comparar(_FilaInventario a, _FilaInventario b) {
+      switch (_columnaOrden) {
+        case 0: // Producto
+          return (a.producto?.nombre ?? '').toLowerCase().compareTo(
+            (b.producto?.nombre ?? '').toLowerCase(),
+          );
+        case 3: // Stock disponible
+          return a.disponible.compareTo(b.disponible);
+        case 5: // Precio
+          return (a.producto?.precio ?? 0).compareTo(b.producto?.precio ?? 0);
+        default:
+          return 0;
+      }
+    }
+
+    resultado.sort((a, b) {
+      final cmp = comparar(a, b);
+      return _ordenAscendente ? cmp : -cmp;
+    });
+    return resultado;
+  }
+
+  void _ordenarPor(int columna) {
+    setState(() {
+      if (_columnaOrden == columna) {
+        _ordenAscendente = !_ordenAscendente;
+      } else {
+        _columnaOrden = columna;
+        _ordenAscendente = true;
+      }
+      _paginaActual = 1;
+    });
+  }
+
   List<_FilaInventario> get _filasVisibles {
-    if (filas.isEmpty) return const [];
+    final ordenadas = _filasOrdenadas;
+    if (ordenadas.isEmpty) return const [];
     final inicio = (_pagina - 1) * _porPagina;
     var fin = inicio + _porPagina;
-    if (fin > filas.length) fin = filas.length;
-    return filas.sublist(inicio, fin);
+    if (fin > ordenadas.length) fin = ordenadas.length;
+    return ordenadas.sublist(inicio, fin);
   }
 
   Future<void> _cargarVariantesDelProducto(int? productoId) async {
@@ -417,6 +481,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                             isExpanded: true,
                             decoration: const InputDecoration(labelText: 'Producto', border: OutlineInputBorder(), isDense: true),
                             items: productos
+                                .where((p) => p.activo)
                                 .map(
                                   (p) => DropdownMenuItem(
                                     value: p.id,
@@ -497,15 +562,31 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
                           headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
                           dataTextStyle: const TextStyle(fontSize: 12.5),
                           columnSpacing: 20,
-                          columns: const [
-                            DataColumn(label: Text('Producto')),
-                            DataColumn(label: Text('Código')),
-                            DataColumn(label: Text('Categoría')),
-                            DataColumn(label: Text('Stock'), numeric: true),
-                            DataColumn(label: Text('Stock Mínimo'), numeric: true),
-                            DataColumn(label: Text('Precio'), numeric: true),
-                            DataColumn(label: Text('Estado')),
-                            DataColumn(label: Text('Acciones')),
+                          sortColumnIndex: _columnaOrden,
+                          sortAscending: _ordenAscendente,
+                          columns: [
+                            DataColumn(
+                              label: const Text('Producto'),
+                              onSort: (_, _) => _ordenarPor(0),
+                            ),
+                            const DataColumn(label: Text('Código')),
+                            const DataColumn(label: Text('Categoría')),
+                            DataColumn(
+                              label: const Text('Stock'),
+                              numeric: true,
+                              onSort: (_, _) => _ordenarPor(3),
+                            ),
+                            const DataColumn(
+                              label: Text('Stock Mínimo'),
+                              numeric: true,
+                            ),
+                            DataColumn(
+                              label: const Text('Precio'),
+                              numeric: true,
+                              onSort: (_, _) => _ordenarPor(5),
+                            ),
+                            const DataColumn(label: Text('Estado')),
+                            const DataColumn(label: Text('Acciones')),
                           ],
                           rows: _filasVisibles.map((fila) {
                             final producto = fila.producto;
@@ -589,7 +670,7 @@ class _AdminInventarioPageState extends State<AdminInventarioPage> {
     );
   }
 
-  // [Lote fix] Controles de paginación: 20 registros por página.
+  // Controles de paginación: 15 registros por página.
   Widget _paginacion() {
     if (_totalPaginas <= 1) {
       return Center(

@@ -322,6 +322,271 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
     }
   }
 
+  /// [Rediseño] Card de pedido: bordes redondeados, sombra suave,
+  /// estado en chip de color, total destacado y acciones alineadas.
+  Widget _tarjetaPedido(Pedido pedido) {
+    final color = _colorEstado(pedido.estado);
+    final pendiente = pedido.estado == 'pendiente';
+    final puedeCancelar = _puedeCancelar(pedido);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pedido #${pedido.id}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.negro,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        pedido.fechaPedido.substring(0, 10),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    etiquetas[pedido.estado] ?? pedido.estado,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.fondoClaro,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'Total',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Bs ${pedido.total.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.negro,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                alignment: WrapAlignment.end,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => _verComprobante(pedido),
+                    icon: const Icon(Icons.receipt_long_outlined, size: 17),
+                    label: const Text('Ver comprobante'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.negro,
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  if (pendiente)
+                    FilledButton.icon(
+                      onPressed: _pedidoIdProcesandoStripe == pedido.id
+                          ? null
+                          : () => _pagarConStripe(pedido),
+                      icon: _pedidoIdProcesandoStripe == pedido.id
+                          ? const SizedBox(
+                              width: 15,
+                              height: 15,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.credit_card, size: 17),
+                      label: Text(
+                        _pedidoIdProcesandoStripe == pedido.id
+                            ? 'Procesando...'
+                            : 'Pagar',
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.negro,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  if (puedeCancelar)
+                    TextButton.icon(
+                      onPressed: () => _cancelar(pedido),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: const Text('Cancelar'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (pendiente) ...[
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                    onPressed: () => _pagarConQr(pedido),
+                    icon: const Icon(Icons.qr_code, size: 16),
+                    label: const Text('Pagar con QR'),
+                  ),
+                  TextButton(
+                    onPressed: () => _pagar(pedido),
+                    child: const Text('Pago manual'),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// CU20 - Nota de venta del pedido para el cliente.
+  Future<void> _verComprobante(Pedido pedido) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.receipt_long, color: AppTheme.bronce),
+            const SizedBox(width: 8),
+            const Text(
+              'Comprobante',
+              style: TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pedido #${pedido.id}',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Text(
+                '${pedido.fechaPedido.substring(0, 10)} · ${etiquetas[pedido.estado] ?? pedido.estado}',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+              ),
+              const Divider(height: 22),
+              for (final d in pedido.detalles)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Variante #${d.varianteId} × ${d.cantidad}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                      Text(
+                        'Bs ${d.subtotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const Divider(height: 22),
+              Row(
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Bs ${pedido.total.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,117 +612,7 @@ class _MisPedidosPageState extends State<MisPedidosPage> {
                         ),
                       ),
                     ),
-                  ...pedidos.map(
-                    (pedido) => Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Pedido #${pedido.id}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _colorEstado(pedido.estado)
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    etiquetas[pedido.estado] ?? pedido.estado,
-                                    style: TextStyle(
-                                      color: _colorEstado(pedido.estado),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              pedido.fechaPedido.substring(0, 10),
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const Divider(height: 20),
-                            Text(
-                              'Total: Bs ${pedido.total.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            if (pedido.estado == 'pendiente') ...[
-                              SizedBox(
-                                width: double.infinity,
-                                height: 46,
-                                child: FilledButton.icon(
-                                  onPressed:
-                                      _pedidoIdProcesandoStripe == pedido.id
-                                      ? null
-                                      : () => _pagarConStripe(pedido),
-                                  icon: _pedidoIdProcesandoStripe == pedido.id
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Icon(Icons.credit_card),
-                                  label: Text(
-                                    _pedidoIdProcesandoStripe == pedido.id
-                                        ? 'Procesando...'
-                                        : 'Pagar con tarjeta',
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                            ],
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                if (pedido.estado == 'pendiente')
-                                  TextButton.icon(
-                                    onPressed: () => _pagarConQr(pedido),
-                                    icon: const Icon(Icons.qr_code, size: 18),
-                                    label: const Text('Pagar con QR'),
-                                  ),
-                                if (pedido.estado == 'pendiente')
-                                  TextButton(
-                                    onPressed: () => _pagar(pedido),
-                                    child: const Text('Registrar pago manual'),
-                                  ),
-                                if (_puedeCancelar(pedido))
-                                  TextButton(
-                                    onPressed: () => _cancelar(pedido),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: Colors.red,
-                                    ),
-                                    child: const Text('Cancelar'),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  ...pedidos.map((pedido) => _tarjetaPedido(pedido)),
                 ],
               ),
             ),

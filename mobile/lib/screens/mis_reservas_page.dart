@@ -131,6 +131,169 @@ class _MisReservasPageState extends State<MisReservasPage> {
     }
   }
 
+  /// [Rediseño] Card de reserva con bordes redondeados, sombra suave,
+  /// estado en chip y acciones alineadas.
+  Widget _tarjetaReserva(Reserva reserva) {
+    final color = _colorEstado(reserva.estado);
+    final puedeCancelar = _puedeCancelar(reserva);
+    final fecha = reserva.fechaReserva.length >= 16
+        ? reserva.fechaReserva.substring(0, 16).replaceFirst('T', ' ')
+        : reserva.fechaReserva;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Reserva #${reserva.id}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.negro,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    etiquetas[reserva.estado] ?? reserva.estado,
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.fondoReservas,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.event_outlined,
+                    size: 17,
+                    color: Colors.grey.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      fecha,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.storefront_outlined,
+                  size: 16,
+                  color: Colors.grey.shade600,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    _nombreSucursal(reserva.sucursalId),
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (reserva.detalles.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 10),
+              for (final d in reserva.detalles)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Variante #${d.varianteId}',
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
+                      Text(
+                        '${d.cantidad} unid.',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+            if (reserva.observaciones?.isNotEmpty == true) ...[
+              const SizedBox(height: 8),
+              Text(
+                '"${reserva.observaciones}"',
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+            if (puedeCancelar) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => _cancelar(reserva),
+                  icon: const Icon(Icons.close, size: 16),
+                  label: const Text('Cancelar reserva'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.red),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,104 +323,7 @@ class _MisReservasPageState extends State<MisReservasPage> {
                         ),
                       ),
                     ),
-                  ...reservas.map(
-                    (reserva) => Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Reserva #${reserva.id}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _colorEstado(reserva.estado)
-                                        .withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    etiquetas[reserva.estado] ?? reserva.estado,
-                                    style: TextStyle(
-                                      color: _colorEstado(reserva.estado),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${_nombreSucursal(reserva.sucursalId)} · ${reserva.fechaReserva.substring(0, 16).replaceFirst('T', ' ')}',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                            const Divider(height: 20),
-                            ...reserva.detalles.map(
-                              (d) => Padding(
-                                padding: const EdgeInsets.only(bottom: 4),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Variante #${d.varianteId}',
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
-                                    Text(
-                                      '${d.cantidad} unid.',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (reserva.observaciones?.isNotEmpty == true) ...[
-                              const SizedBox(height: 6),
-                              Text(
-                                '"${reserva.observaciones}"',
-                                style: const TextStyle(
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                            if (_puedeCancelar(reserva)) ...[
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () => _cancelar(reserva),
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                  child: const Text('Cancelar reserva'),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  ...reservas.map((reserva) => _tarjetaReserva(reserva)),
                 ],
               ),
             ),

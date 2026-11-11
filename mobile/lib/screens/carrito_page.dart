@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/config.dart';
 import '../core/sesion.dart';
 import '../core/theme.dart';
 import '../models/models.dart';
@@ -272,6 +273,169 @@ class _CarritoPageState extends State<CarritoPage> {
     );
   }
 
+  /// [Rediseño] Item del carrito con imagen 56x56, nombre y talla/color.
+  Widget _tarjetaItem(_ItemCarritoVista item) {
+    final url = AppConfig.urlCompleta(item.producto?.imagenUrl);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: url == null
+                        ? _imagenFallback()
+                        : Image.network(
+                            url,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _imagenFallback(),
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.producto?.nombre ?? 'Producto no disponible',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14.5,
+                          color: AppTheme.negro,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      if (item.variante != null)
+                        Text(
+                          'Talla ${item.variante!.tallaNombre} · ${item.variante!.colorNombre}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      const SizedBox(height: 5),
+                      Text(
+                        'Bs ${item.subtotal.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Quitar del carrito',
+                  onPressed: () => _eliminarItem(item),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Text(
+                  'Cantidad',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const Spacer(),
+                _controlCantidad(
+                  icono: Icons.remove,
+                  onTap: item.detalle.cantidad > 1
+                      ? () => _cambiarCantidad(
+                          item,
+                          item.detalle.cantidad - 1,
+                        )
+                      : null,
+                ),
+                SizedBox(
+                  width: 34,
+                  child: Text(
+                    '${item.detalle.cantidad}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                _controlCantidad(
+                  icono: Icons.add,
+                  onTap: () => _cambiarCantidad(
+                    item,
+                    item.detalle.cantidad + 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _imagenFallback() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF262626), Color(0xFF000000)],
+        ),
+      ),
+      child: const Icon(Icons.checkroom, color: Colors.white54, size: 24),
+    );
+  }
+
+  Widget _controlCantidad({
+    required IconData icono,
+    required VoidCallback? onTap,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: IconButton(
+        onPressed: onTap,
+        icon: Icon(icono, size: 16),
+        visualDensity: VisualDensity.compact,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -305,88 +469,7 @@ class _CarritoPageState extends State<CarritoPage> {
                         ),
                       ),
                     ),
-                  ...items.map(
-                    (item) => Card(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Color(0xFF262626),
-                                    Color(0xFF000000),
-                                  ],
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.checkroom,
-                                color: Colors.white54,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.producto?.nombre ??
-                                        'Producto no disponible',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (item.variante != null)
-                                    Text(
-                                      'Talla ${item.variante!.tallaNombre} · ${item.variante!.colorNombre}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  Text(
-                                    'Bs ${item.subtotal.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: item.detalle.cantidad > 1
-                                  ? () => _cambiarCantidad(
-                                      item,
-                                      item.detalle.cantidad - 1,
-                                    )
-                                  : null,
-                              icon: const Icon(Icons.remove_circle_outline),
-                            ),
-                            Text('${item.detalle.cantidad}'),
-                            IconButton(
-                              onPressed: () => _cambiarCantidad(
-                                item,
-                                item.detalle.cantidad + 1,
-                              ),
-                              icon: const Icon(Icons.add_circle_outline),
-                            ),
-                            IconButton(
-                              onPressed: () => _eliminarItem(item),
-                              icon: const Icon(
-                                Icons.delete_outline,
-                                color: Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  ...items.map((item) => _tarjetaItem(item)),
                   if (items.isNotEmpty) ...[
                     const Divider(height: 32),
                     Row(

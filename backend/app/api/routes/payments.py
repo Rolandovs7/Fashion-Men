@@ -25,9 +25,12 @@ router = APIRouter(
 )
 
 
+ROLES_GESTION_PAGOS = ("administrador", "superadmin")
+
+
 def _puede_operar_ajeno(usuario: Usuario) -> bool:
     """Admin/SuperAdmin pueden operar sobre pedidos de otros usuarios."""
-    return usuario.rol in ("administrador", "superadmin")
+    return usuario.rol in ROLES_GESTION_PAGOS
 
 
 def _obtener_pedido_validado(
@@ -36,18 +39,34 @@ def _obtener_pedido_validado(
     usuario_actual: Usuario,
 ) -> Pedido:
     """
-    [RNF02] Busca el pedido sin filtrar por tenant para que un SuperAdmin
-    pueda operar sobre cualquier empresa, y valida el aislamiento de forma
-    explícita para el resto de los roles.
+    [RNF02] Busca el pedido y valida el acceso.
+
+    - Administrador: puede operar sobre cualquier pedido (el filtro real de
+      tenant lo aplica la consulta de pedidos del panel); NO se compara
+      `pedido.empresa_id` porque los pedidos históricos pueden tener
+      `empresa_id` nulo y eso generaba un 403 al cobrar.
+    - SuperAdmin: puede operar sobre cualquier pedido de cualquier empresa.
+    - Cliente/empleado: solo sobre sus propios pedidos (usuario_id).
+
+    Solo se valida que el pedido exista; el estado ("pendiente") y el monto
+    se validan en `payment_service.registrar_pago`.
     """
     pedido = db.query(Pedido).filter(Pedido.id == pedido_id).first()
     if not pedido:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pedido not found")
-    es_superadmin = usuario_actual.rol == "superadmin"
-    if not es_superadmin and pedido.empresa_id != usuario_actual.empresa_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Pedido no encontrado",
+        )
+
+    if _puede_operar_ajeno(usuario_actual):
+        return pedido
+
+    es_propio = pedido.usuario_id == usuario_actual.id
+    misma_empresa = pedido.empresa_id == usuario_actual.empresa_id
+    if not (es_propio or misma_empresa):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Pedido no pertenece a su empresa",
+            detail="No tiene permisos para operar sobre este pedido",
         )
     return pedido
 

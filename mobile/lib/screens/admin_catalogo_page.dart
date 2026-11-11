@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/config.dart';
 import '../models/models.dart';
 import '../services/catalogo_service.dart';
 import '../services/sucursales_service.dart';
@@ -1782,15 +1783,24 @@ class _GrillaProductosState extends State<_GrillaProductos> {
     final categoria = widget.nombresCategoria[p.categoriaId] ?? 'Sin categoría';
     final stock = _stocks[p.id];
     final stockBajo = (stock ?? 0) <= p.stockMinimo;
+    final imagen = AppConfig.urlCompleta(p.imagenUrl);
 
-    return Card(
-      margin: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: p.activo ? Colors.grey.shade300 : Colors.grey.shade400),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: p.activo ? Colors.grey.shade200 : Colors.grey.shade400,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1800,9 +1810,9 @@ class _GrillaProductosState extends State<_GrillaProductos> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (p.imagenUrl != null && p.imagenUrl!.isNotEmpty)
+                if (imagen != null)
                   Image.network(
-                    p.imagenUrl!,
+                    imagen,
                     fit: BoxFit.cover,
                     errorBuilder: (_, _, _) => _fallbackImagen(p),
                   )

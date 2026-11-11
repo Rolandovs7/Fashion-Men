@@ -190,6 +190,79 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
     }
   }
 
+  Future<void> _mostrarEstadosPedido(Pedido pedido) async {
+    final nuevo = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Cambiar estado del pedido #${pedido.id}',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final estado in estadosPedido.where((e) => e != pedido.estado))
+              ListTile(
+                leading: Icon(Icons.circle, size: 12, color: _colorEstadoPedido(estado)),
+                title: Text(estado),
+                onTap: () => Navigator.pop(sheetContext, estado),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (nuevo != null) await _cambiarEstadoPedido(pedido, nuevo);
+  }
+
+  Future<void> _mostrarEstadosReserva(Reserva reserva) async {
+    final nuevo = await showModalBottomSheet<String>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Cambiar estado de la reserva #${reserva.id}',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+            for (final estado in estadosReserva.where((e) => e != reserva.estado))
+              ListTile(
+                leading: Icon(Icons.circle, size: 12, color: _colorEstadoReserva(estado)),
+                title: Text(estado),
+                onTap: () => Navigator.pop(sheetContext, estado),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (nuevo != null) await _cambiarEstadoReserva(reserva, nuevo);
+  }
+
+  /// Botón de acción compacto (solo ícono) para las tablas.
+  Widget _accionCompacta({
+    required IconData icono,
+    required String tooltip,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return IconButton(
+      icon: Icon(icono, size: 19, color: color),
+      tooltip: tooltip,
+      onPressed: onTap,
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+    );
+  }
+
   // CU20 - Nota de Venta: consulta los pagos del pedido y muestra
   // el comprobante en un diálogo (GET /api/pagos/pedido/{id}).
   Future<void> _verComprobante(Pedido pedido) async {
@@ -297,22 +370,28 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
                 child: DataTable(
                   headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
                   dataTextStyle: const TextStyle(fontSize: 12.5),
-                  columnSpacing: 20,
+                  columnSpacing: 14,
+                  horizontalMargin: 14,
+                  dataRowMinHeight: 48,
+                  dataRowMaxHeight: 56,
                   columns: const [
-                    DataColumn(label: Text('ID'), numeric: true),
-                    DataColumn(label: Text('Cliente')),
-                    DataColumn(label: Text('Fecha')),
-                    DataColumn(label: Text('Total'), numeric: true),
-                    DataColumn(label: Text('Estado')),
-                    DataColumn(label: Text('Acción')),
+                    DataColumn(label: SizedBox(width: 52, child: Text('ID')), numeric: true),
+                    DataColumn(label: SizedBox(width: 170, child: Text('Cliente'))),
+                    DataColumn(label: SizedBox(width: 92, child: Text('Fecha'))),
+                    DataColumn(label: SizedBox(width: 96, child: Text('Total')), numeric: true),
+                    DataColumn(label: SizedBox(width: 92, child: Text('Estado'))),
+                    DataColumn(label: SizedBox(width: 104, child: Text('Acciones'))),
                   ],
                   rows: visibles.map((pedido) {
                     final finalizado = pedido.estado == 'cancelado' || pedido.estado == 'entregado';
                     return DataRow(cells: [
-                      DataCell(Text('#${pedido.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                      DataCell(SizedBox(
+                        width: 52,
+                        child: Text('#${pedido.id}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      )),
                       DataCell(
                         SizedBox(
-                          width: 160,
+                          width: 170,
                           child: Text(
                             _nombreClienteDe(pedido.cliente, pedido.usuarioId),
                             maxLines: 1,
@@ -320,31 +399,37 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
                           ),
                         ),
                       ),
-                      DataCell(Text(_fechaCorta(pedido.fechaPedido))),
-                      DataCell(Text('Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700))),
-                      DataCell(_chipEstado(pedido.estado, _colorEstadoPedido(pedido.estado))),
+                      DataCell(SizedBox(width: 92, child: Text(_fechaCorta(pedido.fechaPedido)))),
+                      DataCell(SizedBox(
+                        width: 96,
+                        child: Text('Bs ${pedido.total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      )),
+                      DataCell(SizedBox(width: 92, child: _chipEstado(pedido.estado, _colorEstadoPedido(pedido.estado)))),
                       DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (!finalizado)
-                              PopupMenuButton<String>(
-                                tooltip: 'Cambiar estado',
-                                icon: const Icon(Icons.published_with_changes_outlined, size: 20),
-                                onSelected: (v) => _cambiarEstadoPedido(pedido, v),
-                                itemBuilder: (_) => estadosPedido
-                                    .where((e) => e != pedido.estado)
-                                    .map((e) => PopupMenuItem(value: e, child: Text(e)))
-                                    .toList(),
-                              )
-                            else
-                              const Icon(Icons.lock_outline, size: 16, color: Colors.grey),
-                            IconButton(
-                              icon: const Icon(Icons.receipt_long_outlined, size: 20, color: AppTheme.bronce),
-                              tooltip: 'Ver comprobante',
-                              onPressed: () => _verComprobante(pedido),
-                            ),
-                          ],
+                        SizedBox(
+                          width: 104,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!finalizado)
+                                _accionCompacta(
+                                  icono: Icons.published_with_changes_outlined,
+                                  tooltip: 'Cambiar estado',
+                                  onTap: () => _mostrarEstadosPedido(pedido),
+                                )
+                              else
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Icon(Icons.lock_outline, size: 16, color: Colors.grey),
+                                ),
+                              _accionCompacta(
+                                icono: Icons.receipt_long_outlined,
+                                tooltip: 'Ver comprobante',
+                                color: AppTheme.bronce,
+                                onTap: () => _verComprobante(pedido),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ]);
@@ -397,22 +482,28 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
                 child: DataTable(
                   headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.black87),
                   dataTextStyle: const TextStyle(fontSize: 12.5),
-                  columnSpacing: 20,
+                  columnSpacing: 14,
+                  horizontalMargin: 14,
+                  dataRowMinHeight: 48,
+                  dataRowMaxHeight: 56,
                   columns: const [
-                    DataColumn(label: Text('ID'), numeric: true),
-                    DataColumn(label: Text('Cliente')),
-                    DataColumn(label: Text('Sucursal')),
-                    DataColumn(label: Text('Fecha')),
-                    DataColumn(label: Text('Estado')),
-                    DataColumn(label: Text('Acción')),
+                    DataColumn(label: SizedBox(width: 52, child: Text('ID')), numeric: true),
+                    DataColumn(label: SizedBox(width: 170, child: Text('Cliente'))),
+                    DataColumn(label: SizedBox(width: 150, child: Text('Sucursal'))),
+                    DataColumn(label: SizedBox(width: 92, child: Text('Fecha'))),
+                    DataColumn(label: SizedBox(width: 92, child: Text('Estado'))),
+                    DataColumn(label: SizedBox(width: 52, child: Text('Acción'))),
                   ],
                   rows: visibles.map((reserva) {
                     final finalizada = reserva.estado == 'cancelada' || reserva.estado == 'completada';
                     return DataRow(cells: [
-                      DataCell(Text('#${reserva.id}', style: const TextStyle(fontWeight: FontWeight.w700))),
+                      DataCell(SizedBox(
+                        width: 52,
+                        child: Text('#${reserva.id}', style: const TextStyle(fontWeight: FontWeight.w700)),
+                      )),
                       DataCell(
                         SizedBox(
-                          width: 160,
+                          width: 170,
                           child: Text(
                             _nombreClienteDe(reserva.cliente, reserva.usuarioId),
                             maxLines: 1,
@@ -420,21 +511,27 @@ class _AdminOperacionesPageState extends State<AdminOperacionesPage> {
                           ),
                         ),
                       ),
-                      DataCell(Text(_nombreSucursal(reserva.sucursalId))),
-                      DataCell(Text(_fechaCorta(reserva.fechaReserva))),
-                      DataCell(_chipEstado(reserva.estado, _colorEstadoReserva(reserva.estado))),
+                      DataCell(SizedBox(
+                        width: 150,
+                        child: Text(
+                          _nombreSucursal(reserva.sucursalId),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )),
+                      DataCell(SizedBox(width: 92, child: Text(_fechaCorta(reserva.fechaReserva)))),
+                      DataCell(SizedBox(width: 92, child: _chipEstado(reserva.estado, _colorEstadoReserva(reserva.estado)))),
                       DataCell(
-                        finalizada
-                            ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey)
-                            : PopupMenuButton<String>(
-                                tooltip: 'Cambiar estado',
-                                icon: const Icon(Icons.published_with_changes_outlined, size: 20),
-                                onSelected: (v) => _cambiarEstadoReserva(reserva, v),
-                                itemBuilder: (_) => estadosReserva
-                                    .where((e) => e != reserva.estado)
-                                    .map((e) => PopupMenuItem(value: e, child: Text(e)))
-                                    .toList(),
-                              ),
+                        SizedBox(
+                          width: 52,
+                          child: finalizada
+                              ? const Icon(Icons.lock_outline, size: 16, color: Colors.grey)
+                              : _accionCompacta(
+                                  icono: Icons.published_with_changes_outlined,
+                                  tooltip: 'Cambiar estado',
+                                  onTap: () => _mostrarEstadosReserva(reserva),
+                                ),
+                        ),
                       ),
                     ]);
                   }).toList(),
